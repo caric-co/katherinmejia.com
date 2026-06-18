@@ -46,13 +46,13 @@ export function Navigation() {
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-50 px-6 md:px-10 transition-all duration-300 ${
         scrolled
           ? "bg-background/85 backdrop-blur-xl border-b border-border"
           : "bg-transparent"
       }`}
     >
-      <div className="max-w-7xl mx-auto px-6 md:px-10 flex items-center justify-between h-14">
+      <div className="max-w-7xl mx-auto flex items-center justify-between h-14">
         <Link to="/" className="font-display text-xl tracking-tight">
           Katherin Mejia
         </Link>
