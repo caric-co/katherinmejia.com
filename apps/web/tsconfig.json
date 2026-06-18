@@ -6,7 +6,7 @@
     "module": "ESNext",
     "paths": {
       "#/*": ["./src/*"],
-      "@convex/*": ["../convex/convex/*"]
+      "@convex/*": ["../backend/convex/*"]
     },
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "types": ["vite/client"],

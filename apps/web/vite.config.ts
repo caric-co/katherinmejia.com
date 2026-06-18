@@ -9,7 +9,7 @@ const config = defineConfig({
   resolve: {
     tsconfigPaths: true,
     alias: {
-      "@convex": path.resolve(__dirname, "../convex/convex"),
+      "@convex": path.resolve(__dirname, "../backend/convex"),
     },
   },
   ssr: {

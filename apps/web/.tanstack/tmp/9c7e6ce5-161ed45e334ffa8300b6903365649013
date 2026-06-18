@@ -16,12 +16,7 @@ import { Route as AuthForgotPasswordRouteImport } from './routes/auth/forgot-pas
 import { Route as AdminLayoutRouteImport } from './routes/admin/_layout'
 import { Route as AdminLayoutIndexRouteImport } from './routes/admin/_layout/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
-import { Route as AdminLayoutInvitationsRouteImport } from './routes/admin/_layout/invitations'
-import { Route as AdminLayoutContentRouteImport } from './routes/admin/_layout/content'
-import { Route as AdminLayoutUsersIndexRouteImport } from './routes/admin/_layout/users/index'
 import { Route as AdminLayoutCoursesIndexRouteImport } from './routes/admin/_layout/courses/index'
-import { Route as AdminLayoutBlogIndexRouteImport } from './routes/admin/_layout/blog/index'
-import { Route as AdminLayoutCoursesNewRouteImport } from './routes/admin/_layout/courses/new'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -58,34 +53,9 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminLayoutInvitationsRoute = AdminLayoutInvitationsRouteImport.update({
-  id: '/invitations',
-  path: '/invitations',
-  getParentRoute: () => AdminLayoutRoute,
-} as any)
-const AdminLayoutContentRoute = AdminLayoutContentRouteImport.update({
-  id: '/content',
-  path: '/content',
-  getParentRoute: () => AdminLayoutRoute,
-} as any)
-const AdminLayoutUsersIndexRoute = AdminLayoutUsersIndexRouteImport.update({
-  id: '/users/',
-  path: '/users/',
-  getParentRoute: () => AdminLayoutRoute,
-} as any)
 const AdminLayoutCoursesIndexRoute = AdminLayoutCoursesIndexRouteImport.update({
   id: '/courses/',
   path: '/courses/',
-  getParentRoute: () => AdminLayoutRoute,
-} as any)
-const AdminLayoutBlogIndexRoute = AdminLayoutBlogIndexRouteImport.update({
-  id: '/blog/',
-  path: '/blog/',
-  getParentRoute: () => AdminLayoutRoute,
-} as any)
-const AdminLayoutCoursesNewRoute = AdminLayoutCoursesNewRouteImport.update({
-  id: '/courses/new',
-  path: '/courses/new',
   getParentRoute: () => AdminLayoutRoute,
 } as any)
 
@@ -95,28 +65,18 @@ export interface FileRoutesByFullPath {
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
-  '/admin/content': typeof AdminLayoutContentRoute
-  '/admin/invitations': typeof AdminLayoutInvitationsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/admin/': typeof AdminLayoutIndexRoute
-  '/admin/courses/new': typeof AdminLayoutCoursesNewRoute
-  '/admin/blog/': typeof AdminLayoutBlogIndexRoute
   '/admin/courses/': typeof AdminLayoutCoursesIndexRoute
-  '/admin/users/': typeof AdminLayoutUsersIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
-  '/admin/content': typeof AdminLayoutContentRoute
-  '/admin/invitations': typeof AdminLayoutInvitationsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/admin': typeof AdminLayoutIndexRoute
-  '/admin/courses/new': typeof AdminLayoutCoursesNewRoute
-  '/admin/blog': typeof AdminLayoutBlogIndexRoute
   '/admin/courses': typeof AdminLayoutCoursesIndexRoute
-  '/admin/users': typeof AdminLayoutUsersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -125,14 +85,9 @@ export interface FileRoutesById {
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
-  '/admin/_layout/content': typeof AdminLayoutContentRoute
-  '/admin/_layout/invitations': typeof AdminLayoutInvitationsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/admin/_layout/': typeof AdminLayoutIndexRoute
-  '/admin/_layout/courses/new': typeof AdminLayoutCoursesNewRoute
-  '/admin/_layout/blog/': typeof AdminLayoutBlogIndexRoute
   '/admin/_layout/courses/': typeof AdminLayoutCoursesIndexRoute
-  '/admin/_layout/users/': typeof AdminLayoutUsersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -142,28 +97,18 @@ export interface FileRouteTypes {
     | '/auth/forgot-password'
     | '/auth/login'
     | '/auth/register'
-    | '/admin/content'
-    | '/admin/invitations'
     | '/api/auth/$'
     | '/admin/'
-    | '/admin/courses/new'
-    | '/admin/blog/'
     | '/admin/courses/'
-    | '/admin/users/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth/forgot-password'
     | '/auth/login'
     | '/auth/register'
-    | '/admin/content'
-    | '/admin/invitations'
     | '/api/auth/$'
     | '/admin'
-    | '/admin/courses/new'
-    | '/admin/blog'
     | '/admin/courses'
-    | '/admin/users'
   id:
     | '__root__'
     | '/'
@@ -171,14 +116,9 @@ export interface FileRouteTypes {
     | '/auth/forgot-password'
     | '/auth/login'
     | '/auth/register'
-    | '/admin/_layout/content'
-    | '/admin/_layout/invitations'
     | '/api/auth/$'
     | '/admin/_layout/'
-    | '/admin/_layout/courses/new'
-    | '/admin/_layout/blog/'
     | '/admin/_layout/courses/'
-    | '/admin/_layout/users/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -241,27 +181,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/_layout/invitations': {
-      id: '/admin/_layout/invitations'
-      path: '/invitations'
-      fullPath: '/admin/invitations'
-      preLoaderRoute: typeof AdminLayoutInvitationsRouteImport
-      parentRoute: typeof AdminLayoutRoute
-    }
-    '/admin/_layout/content': {
-      id: '/admin/_layout/content'
-      path: '/content'
-      fullPath: '/admin/content'
-      preLoaderRoute: typeof AdminLayoutContentRouteImport
-      parentRoute: typeof AdminLayoutRoute
-    }
-    '/admin/_layout/users/': {
-      id: '/admin/_layout/users/'
-      path: '/users'
-      fullPath: '/admin/users/'
-      preLoaderRoute: typeof AdminLayoutUsersIndexRouteImport
-      parentRoute: typeof AdminLayoutRoute
-    }
     '/admin/_layout/courses/': {
       id: '/admin/_layout/courses/'
       path: '/courses'
@@ -269,41 +188,17 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLayoutCoursesIndexRouteImport
       parentRoute: typeof AdminLayoutRoute
     }
-    '/admin/_layout/blog/': {
-      id: '/admin/_layout/blog/'
-      path: '/blog'
-      fullPath: '/admin/blog/'
-      preLoaderRoute: typeof AdminLayoutBlogIndexRouteImport
-      parentRoute: typeof AdminLayoutRoute
-    }
-    '/admin/_layout/courses/new': {
-      id: '/admin/_layout/courses/new'
-      path: '/courses/new'
-      fullPath: '/admin/courses/new'
-      preLoaderRoute: typeof AdminLayoutCoursesNewRouteImport
-      parentRoute: typeof AdminLayoutRoute
-    }
   }
 }
 
 interface AdminLayoutRouteChildren {
-  AdminLayoutContentRoute: typeof AdminLayoutContentRoute
-  AdminLayoutInvitationsRoute: typeof AdminLayoutInvitationsRoute
   AdminLayoutIndexRoute: typeof AdminLayoutIndexRoute
-  AdminLayoutCoursesNewRoute: typeof AdminLayoutCoursesNewRoute
-  AdminLayoutBlogIndexRoute: typeof AdminLayoutBlogIndexRoute
   AdminLayoutCoursesIndexRoute: typeof AdminLayoutCoursesIndexRoute
-  AdminLayoutUsersIndexRoute: typeof AdminLayoutUsersIndexRoute
 }
 
 const AdminLayoutRouteChildren: AdminLayoutRouteChildren = {
-  AdminLayoutContentRoute: AdminLayoutContentRoute,
-  AdminLayoutInvitationsRoute: AdminLayoutInvitationsRoute,
   AdminLayoutIndexRoute: AdminLayoutIndexRoute,
-  AdminLayoutCoursesNewRoute: AdminLayoutCoursesNewRoute,
-  AdminLayoutBlogIndexRoute: AdminLayoutBlogIndexRoute,
   AdminLayoutCoursesIndexRoute: AdminLayoutCoursesIndexRoute,
-  AdminLayoutUsersIndexRoute: AdminLayoutUsersIndexRoute,
 }
 
 const AdminLayoutRouteWithChildren = AdminLayoutRoute._addFileChildren(

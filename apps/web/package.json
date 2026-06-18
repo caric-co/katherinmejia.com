@@ -14,7 +14,7 @@
   "dependencies": {
     "@convex-dev/better-auth": "latest",
     "@convex-dev/react-query": "^0.1.0",
-    "@repo/convex": "workspace:*",
+    "@repo/backend": "workspace:*",
     "@repo/ui": "workspace:*",
     "@repo/utils": "workspace:*",
     "@t3-oss/env-core": "^0.13.10",
