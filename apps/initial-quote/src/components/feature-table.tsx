@@ -1,9 +1,11 @@
 import { useState } from "react"
 import { DataTable, type ColumnDef } from "@repo/ui/components/data-table"
 import { DataTableColumnHeader } from "@repo/ui/components/data-table-column-header"
+import { Button } from "@repo/ui/components/button"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@repo/ui/components/tooltip"
 import { features, type QuoteFeature } from "../data/quote"
 import { Badge } from "@repo/ui/components/badge"
-import { ChevronDown } from "lucide-react"
+import { ChevronDown, ChevronsUpDown } from "lucide-react"
 
 const complexityColor = {
   low: "text-foreground/70 border-border bg-secondary",
@@ -81,9 +83,21 @@ export function FeatureTable() {
     { min: 0, max: 0 }
   )
 
+  const allOpen = phases.every((p) => openPhases.has(p))
+
+  const toggleAll = () => {
+    setOpenPhases(allOpen ? new Set() : new Set([1, 2, 3]))
+  }
+
   return (
     <section className="mb-12">
-      <h2 className="font-display text-h2 mb-6">Alcance y Estimación</h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="font-display text-h2">Alcance y Estimación</h2>
+        <Button variant="ghost" size="sm" onClick={toggleAll}>
+          <ChevronsUpDown data-icon="inline-start" className="size-3.5" />
+          {allOpen ? "Colapsar todo" : "Expandir todo"}
+        </Button>
+      </div>
 
       {phases.map((phase) => {
         const phaseFeatures = features.filter((f) => f.phase === phase)
@@ -105,9 +119,16 @@ export function FeatureTable() {
               onClick={() => togglePhase(phase)}
               className="w-full text-left flex items-center gap-3 py-3 px-1 cursor-pointer hover:opacity-80 transition-opacity"
             >
-              <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-accent text-foreground text-sm font-bold shrink-0">
-                {phase}
-              </span>
+              <TooltipProvider delayDuration={300}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-accent text-foreground text-sm font-bold shrink-0">
+                      {phase}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>{phaseLabels[phase]}</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
               <span className="text-lg font-semibold flex-1">
                 Fase {phase}: {phaseLabels[phase]}
               </span>

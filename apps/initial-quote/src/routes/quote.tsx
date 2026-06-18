@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { useState, useCallback } from "react"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, Printer } from "lucide-react"
 import { Button } from "@repo/ui/components/button"
 import { QuoteHeader } from "#/components/quote-header"
 import { ReferencesSection } from "#/components/references-section"
@@ -31,12 +31,18 @@ function QuotePage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-6xl mx-auto px-6 py-12">
-        <Link to="/">
-          <Button variant="ghost" size="sm" className="mb-8">
-            <ArrowLeft data-icon="inline-start" className="size-3.5" />
-            Volver al índice
+        <div className="flex items-center justify-between mb-8 print:hidden">
+          <Link to="/">
+            <Button variant="ghost" size="sm">
+              <ArrowLeft data-icon="inline-start" className="size-3.5" />
+              Volver al índice
+            </Button>
+          </Link>
+          <Button variant="outline" size="sm" onClick={() => window.print()}>
+            <Printer data-icon="inline-start" className="size-3.5" />
+            Exportar PDF
           </Button>
-        </Link>
+        </div>
 
         <QuoteHeader />
         <TrmInput trm={trm} onTrmChange={handleTrmChange} />
