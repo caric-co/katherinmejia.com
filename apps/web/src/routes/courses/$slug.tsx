@@ -61,7 +61,7 @@ function CourseDetailPage() {
       <Navigation />
 
       <div className="pt-24 pb-16 px-6 md:px-10">
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-7xl mx-auto">
           <Link to="/courses">
             <Button variant="ghost" size="sm" className="mb-6">
               <ArrowLeft data-icon="inline-start" className="size-3.5" />
