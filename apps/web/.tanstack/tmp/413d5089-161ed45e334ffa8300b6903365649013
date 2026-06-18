@@ -10,6 +10,8 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CoursesIndexRouteImport } from './routes/courses/index'
+import { Route as CoursesSlugRouteImport } from './routes/courses/$slug'
 import { Route as AuthRegisterRouteImport } from './routes/auth/register'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
 import { Route as AuthForgotPasswordRouteImport } from './routes/auth/forgot-password'
@@ -22,10 +24,22 @@ import { Route as AdminLayoutUsersIndexRouteImport } from './routes/admin/_layou
 import { Route as AdminLayoutCoursesIndexRouteImport } from './routes/admin/_layout/courses/index'
 import { Route as AdminLayoutBlogIndexRouteImport } from './routes/admin/_layout/blog/index'
 import { Route as AdminLayoutCoursesNewRouteImport } from './routes/admin/_layout/courses/new'
+import { Route as AdminLayoutCoursesIdRouteImport } from './routes/admin/_layout/courses/$id'
+import { Route as AdminLayoutCoursesIdLessonsRouteImport } from './routes/admin/_layout/courses/$id/lessons'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CoursesIndexRoute = CoursesIndexRouteImport.update({
+  id: '/courses/',
+  path: '/courses/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CoursesSlugRoute = CoursesSlugRouteImport.update({
+  id: '/courses/$slug',
+  path: '/courses/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRegisterRoute = AuthRegisterRouteImport.update({
@@ -88,6 +102,17 @@ const AdminLayoutCoursesNewRoute = AdminLayoutCoursesNewRouteImport.update({
   path: '/courses/new',
   getParentRoute: () => AdminLayoutRoute,
 } as any)
+const AdminLayoutCoursesIdRoute = AdminLayoutCoursesIdRouteImport.update({
+  id: '/courses/$id',
+  path: '/courses/$id',
+  getParentRoute: () => AdminLayoutRoute,
+} as any)
+const AdminLayoutCoursesIdLessonsRoute =
+  AdminLayoutCoursesIdLessonsRouteImport.update({
+    id: '/lessons',
+    path: '/lessons',
+    getParentRoute: () => AdminLayoutCoursesIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -95,28 +120,36 @@ export interface FileRoutesByFullPath {
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
+  '/courses/$slug': typeof CoursesSlugRoute
+  '/courses/': typeof CoursesIndexRoute
   '/admin/content': typeof AdminLayoutContentRoute
   '/admin/invitations': typeof AdminLayoutInvitationsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/admin/': typeof AdminLayoutIndexRoute
+  '/admin/courses/$id': typeof AdminLayoutCoursesIdRouteWithChildren
   '/admin/courses/new': typeof AdminLayoutCoursesNewRoute
   '/admin/blog/': typeof AdminLayoutBlogIndexRoute
   '/admin/courses/': typeof AdminLayoutCoursesIndexRoute
   '/admin/users/': typeof AdminLayoutUsersIndexRoute
+  '/admin/courses/$id/lessons': typeof AdminLayoutCoursesIdLessonsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
+  '/courses/$slug': typeof CoursesSlugRoute
+  '/courses': typeof CoursesIndexRoute
   '/admin/content': typeof AdminLayoutContentRoute
   '/admin/invitations': typeof AdminLayoutInvitationsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/admin': typeof AdminLayoutIndexRoute
+  '/admin/courses/$id': typeof AdminLayoutCoursesIdRouteWithChildren
   '/admin/courses/new': typeof AdminLayoutCoursesNewRoute
   '/admin/blog': typeof AdminLayoutBlogIndexRoute
   '/admin/courses': typeof AdminLayoutCoursesIndexRoute
   '/admin/users': typeof AdminLayoutUsersIndexRoute
+  '/admin/courses/$id/lessons': typeof AdminLayoutCoursesIdLessonsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -125,14 +158,18 @@ export interface FileRoutesById {
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
+  '/courses/$slug': typeof CoursesSlugRoute
+  '/courses/': typeof CoursesIndexRoute
   '/admin/_layout/content': typeof AdminLayoutContentRoute
   '/admin/_layout/invitations': typeof AdminLayoutInvitationsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/admin/_layout/': typeof AdminLayoutIndexRoute
+  '/admin/_layout/courses/$id': typeof AdminLayoutCoursesIdRouteWithChildren
   '/admin/_layout/courses/new': typeof AdminLayoutCoursesNewRoute
   '/admin/_layout/blog/': typeof AdminLayoutBlogIndexRoute
   '/admin/_layout/courses/': typeof AdminLayoutCoursesIndexRoute
   '/admin/_layout/users/': typeof AdminLayoutUsersIndexRoute
+  '/admin/_layout/courses/$id/lessons': typeof AdminLayoutCoursesIdLessonsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -142,28 +179,36 @@ export interface FileRouteTypes {
     | '/auth/forgot-password'
     | '/auth/login'
     | '/auth/register'
+    | '/courses/$slug'
+    | '/courses/'
     | '/admin/content'
     | '/admin/invitations'
     | '/api/auth/$'
     | '/admin/'
+    | '/admin/courses/$id'
     | '/admin/courses/new'
     | '/admin/blog/'
     | '/admin/courses/'
     | '/admin/users/'
+    | '/admin/courses/$id/lessons'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth/forgot-password'
     | '/auth/login'
     | '/auth/register'
+    | '/courses/$slug'
+    | '/courses'
     | '/admin/content'
     | '/admin/invitations'
     | '/api/auth/$'
     | '/admin'
+    | '/admin/courses/$id'
     | '/admin/courses/new'
     | '/admin/blog'
     | '/admin/courses'
     | '/admin/users'
+    | '/admin/courses/$id/lessons'
   id:
     | '__root__'
     | '/'
@@ -171,14 +216,18 @@ export interface FileRouteTypes {
     | '/auth/forgot-password'
     | '/auth/login'
     | '/auth/register'
+    | '/courses/$slug'
+    | '/courses/'
     | '/admin/_layout/content'
     | '/admin/_layout/invitations'
     | '/api/auth/$'
     | '/admin/_layout/'
+    | '/admin/_layout/courses/$id'
     | '/admin/_layout/courses/new'
     | '/admin/_layout/blog/'
     | '/admin/_layout/courses/'
     | '/admin/_layout/users/'
+    | '/admin/_layout/courses/$id/lessons'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -187,6 +236,8 @@ export interface RootRouteChildren {
   AuthForgotPasswordRoute: typeof AuthForgotPasswordRoute
   AuthLoginRoute: typeof AuthLoginRoute
   AuthRegisterRoute: typeof AuthRegisterRoute
+  CoursesSlugRoute: typeof CoursesSlugRoute
+  CoursesIndexRoute: typeof CoursesIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
@@ -197,6 +248,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/courses/': {
+      id: '/courses/'
+      path: '/courses'
+      fullPath: '/courses/'
+      preLoaderRoute: typeof CoursesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/courses/$slug': {
+      id: '/courses/$slug'
+      path: '/courses/$slug'
+      fullPath: '/courses/$slug'
+      preLoaderRoute: typeof CoursesSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/register': {
@@ -283,13 +348,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLayoutCoursesNewRouteImport
       parentRoute: typeof AdminLayoutRoute
     }
+    '/admin/_layout/courses/$id': {
+      id: '/admin/_layout/courses/$id'
+      path: '/courses/$id'
+      fullPath: '/admin/courses/$id'
+      preLoaderRoute: typeof AdminLayoutCoursesIdRouteImport
+      parentRoute: typeof AdminLayoutRoute
+    }
+    '/admin/_layout/courses/$id/lessons': {
+      id: '/admin/_layout/courses/$id/lessons'
+      path: '/lessons'
+      fullPath: '/admin/courses/$id/lessons'
+      preLoaderRoute: typeof AdminLayoutCoursesIdLessonsRouteImport
+      parentRoute: typeof AdminLayoutCoursesIdRoute
+    }
   }
 }
+
+interface AdminLayoutCoursesIdRouteChildren {
+  AdminLayoutCoursesIdLessonsRoute: typeof AdminLayoutCoursesIdLessonsRoute
+}
+
+const AdminLayoutCoursesIdRouteChildren: AdminLayoutCoursesIdRouteChildren = {
+  AdminLayoutCoursesIdLessonsRoute: AdminLayoutCoursesIdLessonsRoute,
+}
+
+const AdminLayoutCoursesIdRouteWithChildren =
+  AdminLayoutCoursesIdRoute._addFileChildren(AdminLayoutCoursesIdRouteChildren)
 
 interface AdminLayoutRouteChildren {
   AdminLayoutContentRoute: typeof AdminLayoutContentRoute
   AdminLayoutInvitationsRoute: typeof AdminLayoutInvitationsRoute
   AdminLayoutIndexRoute: typeof AdminLayoutIndexRoute
+  AdminLayoutCoursesIdRoute: typeof AdminLayoutCoursesIdRouteWithChildren
   AdminLayoutCoursesNewRoute: typeof AdminLayoutCoursesNewRoute
   AdminLayoutBlogIndexRoute: typeof AdminLayoutBlogIndexRoute
   AdminLayoutCoursesIndexRoute: typeof AdminLayoutCoursesIndexRoute
@@ -300,6 +391,7 @@ const AdminLayoutRouteChildren: AdminLayoutRouteChildren = {
   AdminLayoutContentRoute: AdminLayoutContentRoute,
   AdminLayoutInvitationsRoute: AdminLayoutInvitationsRoute,
   AdminLayoutIndexRoute: AdminLayoutIndexRoute,
+  AdminLayoutCoursesIdRoute: AdminLayoutCoursesIdRouteWithChildren,
   AdminLayoutCoursesNewRoute: AdminLayoutCoursesNewRoute,
   AdminLayoutBlogIndexRoute: AdminLayoutBlogIndexRoute,
   AdminLayoutCoursesIndexRoute: AdminLayoutCoursesIndexRoute,
@@ -316,6 +408,8 @@ const rootRouteChildren: RootRouteChildren = {
   AuthForgotPasswordRoute: AuthForgotPasswordRoute,
   AuthLoginRoute: AuthLoginRoute,
   AuthRegisterRoute: AuthRegisterRoute,
+  CoursesSlugRoute: CoursesSlugRoute,
+  CoursesIndexRoute: CoursesIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport

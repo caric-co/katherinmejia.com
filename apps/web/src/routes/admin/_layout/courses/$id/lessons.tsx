@@ -1,0 +1,200 @@
+import { createFileRoute, Link } from "@tanstack/react-router"
+import { useQuery, useMutation } from "convex/react"
+import { api } from "@convex/_generated/api"
+import type { Id } from "@convex/_generated/dataModel"
+import { Button } from "@repo/ui/components/button"
+import { Input } from "@repo/ui/components/input"
+import { Label } from "@repo/ui/components/label"
+import { Badge } from "@repo/ui/components/badge"
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "@repo/ui/components/table"
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from "@repo/ui/components/dropdown-menu"
+import { ArrowLeft, MoreHorizontal, Trash2, GripVertical, Plus } from "lucide-react"
+import { useState } from "react"
+
+export const Route = createFileRoute("/admin/_layout/courses/$id/lessons")({
+  component: LessonsPage,
+})
+
+function LessonsPage() {
+  const { id } = Route.useParams()
+  const courseId = id as Id<"courses">
+  const course = useQuery(api.courses.getById, { courseId })
+  const lessons = useQuery(api.lessons.listByCourse, { courseId })
+  const createLesson = useMutation(api.lessons.create)
+  const removeLesson = useMutation(api.lessons.remove)
+  const [showForm, setShowForm] = useState(false)
+
+  if (course === undefined || lessons === undefined) {
+    return <p className="text-muted-foreground">Cargando...</p>
+  }
+
+  return (
+    <div>
+      <Link to={`/admin/courses/${id}`}>
+        <Button variant="ghost" size="sm" className="mb-4">
+          <ArrowLeft data-icon="inline-start" className="size-3.5" />
+          Volver al curso
+        </Button>
+      </Link>
+
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="font-display text-h2">Lecciones</h1>
+          <p className="text-muted-foreground">{course?.title.es}</p>
+        </div>
+        <Button onClick={() => setShowForm(!showForm)}>
+          <Plus data-icon="inline-start" className="size-4" />
+          Nueva lección
+        </Button>
+      </div>
+
+      {showForm && (
+        <AddLessonForm
+          courseId={courseId}
+          onCreated={() => setShowForm(false)}
+        />
+      )}
+
+      {lessons.length === 0 ? (
+        <p className="text-muted-foreground py-8 text-center">
+          No hay lecciones. Crea la primera.
+        </p>
+      ) : (
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-muted hover:bg-muted">
+              <TableHead className="w-12">#</TableHead>
+              <TableHead>Título</TableHead>
+              <TableHead className="text-center">Duración</TableHead>
+              <TableHead className="text-center">Gratis</TableHead>
+              <TableHead className="w-12" />
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {lessons.map((lesson) => (
+              <TableRow key={lesson._id}>
+                <TableCell className="text-muted-foreground font-mono">
+                  {lesson.order}
+                </TableCell>
+                <TableCell>
+                  <div className="font-medium">{lesson.title.es}</div>
+                  <div className="text-sm text-muted-foreground">{lesson.title.en}</div>
+                </TableCell>
+                <TableCell className="text-center font-mono">
+                  {formatDuration(lesson.duration)}
+                </TableCell>
+                <TableCell className="text-center">
+                  {lesson.isFree && <Badge variant="outline">Gratis</Badge>}
+                </TableCell>
+                <TableCell>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />}>
+                      <MoreHorizontal className="size-4" />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        onClick={() => removeLesson({ lessonId: lesson._id })}
+                        variant="destructive"
+                      >
+                        <Trash2 className="size-4" />
+                        Eliminar
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
+    </div>
+  )
+}
+
+function formatDuration(seconds: number): string {
+  const m = Math.floor(seconds / 60)
+  const s = seconds % 60
+  return `${m}:${s.toString().padStart(2, "0")}`
+}
+
+function AddLessonForm({
+  courseId,
+  onCreated,
+}: {
+  courseId: Id<"courses">
+  onCreated: () => void
+}) {
+  const createLesson = useMutation(api.lessons.create)
+  const [titleEs, setTitleEs] = useState("")
+  const [titleEn, setTitleEn] = useState("")
+  const [descEs, setDescEs] = useState("")
+  const [descEn, setDescEn] = useState("")
+  const [duration, setDuration] = useState("")
+  const [isFree, setIsFree] = useState(false)
+  const [loading, setLoading] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    await createLesson({
+      courseId,
+      title: { es: titleEs, en: titleEn || titleEs },
+      description: { es: descEs, en: descEn || descEs },
+      videoId: "pending-upload",
+      duration: parseInt(duration) || 0,
+      isFree,
+    })
+    setLoading(false)
+    onCreated()
+  }
+
+  return (
+    <div className="bg-muted p-6 mb-6">
+      <h3 className="font-semibold mb-4">Nueva lección</h3>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label className="text-xs uppercase tracking-wider font-medium mb-2 block">Título (ES)</Label>
+            <Input value={titleEs} onChange={(e) => setTitleEs(e.target.value)} placeholder="Preparación de la piel" required />
+          </div>
+          <div>
+            <Label className="text-xs uppercase tracking-wider font-medium mb-2 block">Título (EN)</Label>
+            <Input value={titleEn} onChange={(e) => setTitleEn(e.target.value)} placeholder="Skin preparation" />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label className="text-xs uppercase tracking-wider font-medium mb-2 block">Descripción (ES)</Label>
+            <Input value={descEs} onChange={(e) => setDescEs(e.target.value)} placeholder="Descripción breve" required />
+          </div>
+          <div>
+            <Label className="text-xs uppercase tracking-wider font-medium mb-2 block">Descripción (EN)</Label>
+            <Input value={descEn} onChange={(e) => setDescEn(e.target.value)} placeholder="Short description" />
+          </div>
+        </div>
+        <div className="flex gap-4 items-end">
+          <div className="max-w-32">
+            <Label className="text-xs uppercase tracking-wider font-medium mb-2 block">Duración (seg)</Label>
+            <Input type="number" value={duration} onChange={(e) => setDuration(e.target.value)} placeholder="720" required />
+          </div>
+          <label className="flex items-center gap-2 pb-2 cursor-pointer">
+            <input type="checkbox" checked={isFree} onChange={(e) => setIsFree(e.target.checked)} className="accent-foreground" />
+            <span className="text-sm">Lección gratuita</span>
+          </label>
+        </div>
+        <div className="flex gap-3">
+          <Button type="submit" disabled={loading}>
+            {loading ? "Creando..." : "Agregar lección"}
+          </Button>
+          <Button type="button" variant="ghost" onClick={onCreated}>
+            Cancelar
+          </Button>
+        </div>
+      </form>
+    </div>
+  )
+}
