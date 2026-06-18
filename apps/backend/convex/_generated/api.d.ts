@@ -18,6 +18,7 @@ import type * as lessons from "../lessons.js";
 import type * as purchases from "../purchases.js";
 import type * as seed from "../seed.js";
 import type * as siteContent from "../siteContent.js";
+import type * as translate from "../translate.js";
 import type * as users from "../users.js";
 
 import type {
@@ -37,6 +38,7 @@ declare const fullApi: ApiFromModules<{
   purchases: typeof purchases;
   seed: typeof seed;
   siteContent: typeof siteContent;
+  translate: typeof translate;
   users: typeof users;
 }>;
 
