@@ -81,7 +81,7 @@ function CoursesListPage() {
                       <MoreHorizontal className="size-4" />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem render={<Link to={`/admin/courses/${course._id}`} />}>
+                      <DropdownMenuItem render={<Link to={`/admin/courses/${course.slug.es}`} />}>
                         <Pencil className="size-4" />
                         Editar
                       </DropdownMenuItem>

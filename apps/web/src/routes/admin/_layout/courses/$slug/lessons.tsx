@@ -15,15 +15,15 @@ import {
 import { ArrowLeft, MoreHorizontal, Trash2, GripVertical, Plus } from "lucide-react"
 import { useState } from "react"
 
-export const Route = createFileRoute("/admin/_layout/courses/$id/lessons")({
+export const Route = createFileRoute("/admin/_layout/courses/$slug/lessons")({
   component: LessonsPage,
 })
 
 function LessonsPage() {
-  const { id } = Route.useParams()
-  const courseId = id as Id<"courses">
-  const course = useQuery(api.courses.getById, { courseId })
-  const lessons = useQuery(api.lessons.listByCourse, { courseId })
+  const { slug: routeSlug } = Route.useParams()
+  const course = useQuery(api.courses.getBySlug, { slug: routeSlug })
+  const courseId = course?._id
+  const lessons = useQuery(api.lessons.listByCourse, courseId ? { courseId } : "skip")
   const createLesson = useMutation(api.lessons.create)
   const removeLesson = useMutation(api.lessons.remove)
   const [showForm, setShowForm] = useState(false)
@@ -34,7 +34,7 @@ function LessonsPage() {
 
   return (
     <div>
-      <Link to={`/admin/courses/${id}`}>
+      <Link to={`/admin/courses/${routeSlug}`}>
         <Button variant="ghost" size="sm" className="mb-4">
           <ArrowLeft data-icon="inline-start" className="size-3.5" />
           Volver al curso

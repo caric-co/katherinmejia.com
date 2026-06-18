@@ -11,7 +11,6 @@
 import type * as access from "../access.js";
 import type * as auth from "../auth.js";
 import type * as blogPosts from "../blogPosts.js";
-import type * as clearAndReseed from "../clearAndReseed.js";
 import type * as courses from "../courses.js";
 import type * as http from "../http.js";
 import type * as invitations from "../invitations.js";
@@ -31,7 +30,6 @@ declare const fullApi: ApiFromModules<{
   access: typeof access;
   auth: typeof auth;
   blogPosts: typeof blogPosts;
-  clearAndReseed: typeof clearAndReseed;
   courses: typeof courses;
   http: typeof http;
   invitations: typeof invitations;
