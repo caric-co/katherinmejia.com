@@ -5,7 +5,7 @@ export function NotesSection() {
     <section className="mb-12">
       <h2 className="font-display text-h2 mb-6">Notas y Consideraciones</h2>
 
-      <div className="rounded-lg border border-accent bg-accent/20 p-5 mb-8">
+      <div className="border border-accent bg-accent/20 p-5 mb-8">
         <div className="flex items-start gap-3">
           <AlertTriangle className="size-5 text-foreground/70 shrink-0 mt-0.5" />
           <div>

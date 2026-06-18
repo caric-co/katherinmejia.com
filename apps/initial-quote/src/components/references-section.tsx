@@ -39,7 +39,7 @@ export function ReferencesSection() {
         {references.map((ref) => (
           <div
             key={ref.name}
-            className="rounded-lg border border-border p-5 bg-card"
+            className="border border-border p-5 bg-card"
           >
             <h3 className="font-semibold text-lg mb-1">
               {ref.name}
@@ -77,7 +77,7 @@ export function ReferencesSection() {
         ))}
       </div>
 
-      <div className="mt-4 p-4 rounded-lg border border-border bg-muted">
+      <div className="mt-4 p-4 border border-border bg-muted">
         <p className="text-sm text-muted-foreground">
           <strong className="text-foreground">
             Elementos comunes a replicar:

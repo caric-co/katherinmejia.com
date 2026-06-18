@@ -49,7 +49,7 @@ export function TechStackSection() {
         {stack.map((group) => (
           <div
             key={group.category}
-            className="rounded-lg border border-border p-4 bg-card"
+            className="border border-border p-4 bg-card"
           >
             <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-2">
               {group.category}

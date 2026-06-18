@@ -109,7 +109,7 @@ export function PlatformOverview() {
         {capabilities.map((cap) => (
           <div
             key={cap.area}
-            className="rounded-lg border border-border p-5 bg-card"
+            className="border border-border p-5 bg-card"
           >
             <div className="flex items-center gap-3 mb-3">
               <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-accent text-foreground text-xs font-bold">

@@ -81,7 +81,7 @@ function IndexPage() {
                 <Link
                   key={item.title}
                   to={item.to}
-                  className="group block rounded-lg border border-border p-5 bg-card hover:bg-muted transition-colors"
+                  className="group block border border-border p-5 bg-card hover:bg-muted transition-colors"
                 >
                   <div className="flex items-center justify-between gap-4">
                     <div>

@@ -134,7 +134,7 @@ export function FeatureTable() {
         )
       })}
 
-      <div className="mt-6 p-4 rounded-lg bg-muted border border-border">
+      <div className="mt-6 p-4 bg-muted border border-border">
         <div className="flex justify-between items-center">
           <span className="font-semibold">
             Estimación total (todas las fases)

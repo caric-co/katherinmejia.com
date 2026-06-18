@@ -9,7 +9,7 @@ interface TrmInputProps {
 
 export function TrmInput({ trm, onTrmChange }: TrmInputProps) {
   return (
-    <div className="mb-10 p-4 rounded-lg border border-border bg-card flex flex-wrap items-center gap-4">
+    <div className="mb-10 p-4 border border-border bg-card flex flex-wrap items-center gap-4">
       <div className="flex items-center gap-3">
         <Label htmlFor="trm" className="text-sm font-semibold whitespace-nowrap">
           TRM (USD → COP)

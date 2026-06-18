@@ -120,7 +120,7 @@ export function PricingSection() {
         descuento de socio aplicado. La Fase 3 se cotizará por separado.
       </p>
 
-      <div className="rounded-lg border border-border overflow-hidden mb-6">
+      <div className="border border-border overflow-hidden mb-6">
         <div className="bg-muted px-4 py-3 border-b border-border">
           <div className="flex justify-between items-center text-sm">
             <span className="text-muted-foreground">Tarifa base por hora</span>
@@ -137,7 +137,7 @@ export function PricingSection() {
         <DataTable columns={columns} data={phaseData} footer={footerRow} />
       </div>
 
-      <div className="rounded-lg border border-border overflow-hidden">
+      <div className="border border-border overflow-hidden">
         <div className="divide-y divide-border">
           <div className="flex justify-between items-center px-4 py-3">
             <span className="text-sm text-muted-foreground">
