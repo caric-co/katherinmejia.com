@@ -11,6 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@repo/ui/components/table"
+import { Separator } from "@repo/ui/components/separator"
 
 export const Route = createFileRoute("/video-costs")({
   component: VideoCostsPage,
@@ -134,9 +135,10 @@ function VideoCostsPage() {
         </div>
 
         {/* Comparison tables */}
-        <h2 className="font-display text-h2 mb-4 border-b border-border pb-2">
+        <h2 className="font-display text-h2 mb-4">
           Comparativa de Costos Mensuales (USD, sin DRM)
         </h2>
+        <Separator className="mb-4" />
         <div className="border border-border mb-12">
           <Table>
             <TableHeader>
@@ -164,9 +166,10 @@ function VideoCostsPage() {
           </Table>
         </div>
 
-        <h2 className="font-display text-h2 mb-4 border-b border-border pb-2">
+        <h2 className="font-display text-h2 mb-4">
           Comparativa con DRM
         </h2>
+        <Separator className="mb-4" />
         <div className="border border-border mb-12">
           <Table>
             <TableHeader>
@@ -193,9 +196,10 @@ function VideoCostsPage() {
         </div>
 
         {/* Provider detail cards */}
-        <h2 className="font-display text-h2 mb-4 border-b border-border pb-2">
+        <h2 className="font-display text-h2 mb-4">
           Detalle por Proveedor
         </h2>
+        <Separator className="mb-4" />
         <div className="space-y-4 mb-12">
           {providers.map((p) => (
             <div key={p.name} className="border border-border bg-card p-5">
@@ -221,9 +225,10 @@ function VideoCostsPage() {
         </div>
 
         {/* Optimization */}
-        <h2 className="font-display text-h2 mb-4 border-b border-border pb-2">
+        <h2 className="font-display text-h2 mb-4">
           Estrategias de Optimización de Costos
         </h2>
+        <Separator className="mb-4" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
           <div className="border border-border bg-card p-5">
             <h3 className="font-semibold mb-3">Reducir Ancho de Banda</h3>
@@ -247,9 +252,10 @@ function VideoCostsPage() {
         </div>
 
         {/* Recommendation */}
-        <h2 className="font-display text-h2 mb-4 border-b border-border pb-2">
+        <h2 className="font-display text-h2 mb-4">
           Recomendación para KMakeup
         </h2>
+        <Separator className="mb-4" />
         <div className="border-2 border-foreground/20 bg-card p-5 mb-12">
           <h3 className="font-semibold mb-3">Ruta Recomendada</h3>
           <div className="border border-border">

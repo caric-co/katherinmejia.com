@@ -6,6 +6,7 @@ import { Badge } from "@repo/ui/components/badge"
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@repo/ui/components/table"
+import { Separator } from "@repo/ui/components/separator"
 
 export const Route = createFileRoute("/plan")({
   component: PlanPage,
@@ -156,7 +157,8 @@ function PlanPage() {
         </div>
 
         {/* Route map */}
-        <h2 className="font-display text-h2 mb-4 border-b border-border pb-2">Mapa de Rutas</h2>
+        <h2 className="font-display text-h2 mb-4">Mapa de Rutas</h2>
+        <Separator className="mb-4" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
           <div className="border border-border bg-card p-5">
             <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-3">Públicas</h3>
@@ -177,7 +179,8 @@ function PlanPage() {
         </div>
 
         {/* Data model */}
-        <h2 className="font-display text-h2 mb-4 border-b border-border pb-2">Modelo de Datos (Convex)</h2>
+        <h2 className="font-display text-h2 mb-4">Modelo de Datos (Convex)</h2>
+        <Separator className="mb-4" />
         <div className="space-y-6 mb-12">
           {schemas.map((s) => (
             <div key={s.name}>
@@ -207,7 +210,8 @@ function PlanPage() {
         </div>
 
         {/* Phases */}
-        <h2 className="font-display text-h2 mb-4 border-b border-border pb-2">Fases de Implementación</h2>
+        <h2 className="font-display text-h2 mb-4">Fases de Implementación</h2>
+        <Separator className="mb-4" />
         <div className="space-y-2 mb-12">
           {phases.map((p) => {
             const isOpen = openPhases.has(p.n)
@@ -240,7 +244,8 @@ function PlanPage() {
         </div>
 
         {/* Decisions */}
-        <h2 className="font-display text-h2 mb-4 border-b border-border pb-2">Decisiones Técnicas Clave</h2>
+        <h2 className="font-display text-h2 mb-4">Decisiones Técnicas Clave</h2>
+        <Separator className="mb-4" />
         <div className="space-y-3 mb-12">
           {decisions.map(([icon, title, desc]) => (
             <div key={title} className="flex gap-3 p-4 bg-muted/50 border border-border">

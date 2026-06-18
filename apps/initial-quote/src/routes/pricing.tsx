@@ -5,6 +5,7 @@ import { Badge } from "@repo/ui/components/badge"
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter,
 } from "@repo/ui/components/table"
+import { Separator } from "@repo/ui/components/separator"
 
 export const Route = createFileRoute("/pricing")({
   component: PricingPage,
@@ -45,7 +46,11 @@ const revenueTable = [
   { users: "1.000", revenue: "$67.710.000", platform: "$1.424.500", bold: "$2.207.300", total: "$3.631.800", profit: "$64.078.200", margin: "94,6%" },
   { users: "5.000", revenue: "$338.550.000", platform: "$6.626.700", bold: "$11.036.700", total: "$17.663.400", profit: "$320.886.600", margin: "94,8%" },
   { users: "10.000", revenue: "$677.100.000", platform: "$13.020.300", bold: "$22.073.500", total: "$35.093.800", profit: "$642.006.200", margin: "94,8%" },
-  { users: "100.000", revenue: "$6.771.000.000", platform: "$20.468.400", bold: "$220.734.600", total: "$241.203.000", profit: "$6.529.797.000", margin: "96,4%", divider: true },
+  { users: "25.000", revenue: "$1.692.750.000", platform: "$5.213.300", bold: "$55.183.700", total: "$60.397.000", profit: "$1.632.353.000", margin: "96,4%", divider: true },
+  { users: "50.000", revenue: "$3.385.500.000", platform: "$10.966.800", bold: "$110.367.300", total: "$121.334.100", profit: "$3.264.165.900", margin: "96,4%" },
+  { users: "100.000", revenue: "$6.771.000.000", platform: "$20.468.400", bold: "$220.734.600", total: "$241.203.000", profit: "$6.529.797.000", margin: "96,4%" },
+  { users: "250.000", revenue: "$16.927.500.000", platform: "$53.191.200", bold: "$551.836.500", total: "$605.027.700", profit: "$16.322.472.300", margin: "96,4%" },
+  { users: "500.000", revenue: "$33.855.000.000", platform: "$103.696.200", bold: "$1.103.673.000", total: "$1.207.369.200", profit: "$32.647.630.800", margin: "96,4%" },
   { users: "1.000.000", revenue: "$67.710.000.000", platform: "$207.296.200", bold: "$2.207.346.000", total: "$2.414.642.200", profit: "$65.295.357.800", margin: "96,4%" },
 ]
 
@@ -96,7 +101,8 @@ function PricingPage() {
         </div>
 
         {/* Service cards */}
-        <h2 className="font-display text-h2 mb-4 border-b border-border pb-2">Costo por Servicio</h2>
+        <h2 className="font-display text-h2 mb-4">Costo por Servicio</h2>
+        <Separator className="mb-4" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
           {services.map((s) => (
             <div key={s.name} className="border border-border bg-card p-5">
@@ -108,7 +114,8 @@ function PricingPage() {
         </div>
 
         {/* Cost table */}
-        <h2 className="font-display text-h2 mb-4 border-b border-border pb-2">Costo Total Mensual por Escala</h2>
+        <h2 className="font-display text-h2 mb-4">Costo Total Mensual por Escala</h2>
+        <Separator className="mb-4" />
         <div className="border border-border mb-4">
           <Table>
             <TableHeader>
@@ -144,7 +151,8 @@ function PricingPage() {
         <p className="text-xs text-muted-foreground mb-12">A partir de 25K, Bunny migra a Red de Volumen ($0,005/GB plano), reduciendo el costo de video ~9x.</p>
 
         {/* Pricing model */}
-        <h2 className="font-display text-h2 mb-4 border-b border-border pb-2">Modelo de Precios Recomendado</h2>
+        <h2 className="font-display text-h2 mb-4">Modelo de Precios Recomendado</h2>
+        <Separator className="mb-4" />
         <p className="text-muted-foreground mb-6">Precios posicionados para el mercado colombiano de cursos de maquillaje. Por debajo de academias premium ($300-500K COP) pero por encima de cursos masivos tipo Domestika ($37-111K COP).</p>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
@@ -187,7 +195,8 @@ function PricingPage() {
         </div>
 
         {/* Revenue table */}
-        <h2 className="font-display text-h2 mb-4 border-b border-border pb-2">Análisis de Rentabilidad</h2>
+        <h2 className="font-display text-h2 mb-4">Análisis de Rentabilidad</h2>
+        <Separator className="mb-4" />
         <p className="text-muted-foreground mb-4">Supuestos: 60% suscriptores mensuales, 25% anuales, 15% compradores individuales. Ingreso promedio ponderado: <strong>$18,30 USD/mes ($67.710 COP/mes)</strong>.</p>
         <div className="border border-border mb-4">
           <Table>
@@ -220,7 +229,8 @@ function PricingPage() {
         <p className="text-xs text-muted-foreground mb-12">Valores en COP. Comisión Bold.co: mezcla 70% tarjeta (2,89% + $900 COP) / 30% Nequi (1,50%). Tasa efectiva ~3,26%.</p>
 
         {/* Free tiers */}
-        <h2 className="font-display text-h2 mb-4 border-b border-border pb-2">Duración de los Planes Gratuitos</h2>
+        <h2 className="font-display text-h2 mb-4">Duración de los Planes Gratuitos</h2>
+        <Separator className="mb-4" />
         <div className="border border-border mb-4">
           <Table>
             <TableHeader>
@@ -250,7 +260,8 @@ function PricingPage() {
         </div>
 
         {/* Milestones */}
-        <h2 className="font-display text-h2 mb-4 border-b border-border pb-2">Hitos de Escala y Acciones Requeridas</h2>
+        <h2 className="font-display text-h2 mb-4">Hitos de Escala y Acciones Requeridas</h2>
+        <Separator className="mb-4" />
         <div className="border border-border mb-12">
           <Table>
             <TableHeader>
