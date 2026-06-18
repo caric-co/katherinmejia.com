@@ -64,7 +64,7 @@ function CoursesListPage() {
               <TableRow key={course._id}>
                 <TableCell>
                   <div className="font-medium">{course.title.es}</div>
-                  <div className="text-sm text-muted-foreground">/{course.slug}</div>
+                  <div className="text-sm text-muted-foreground">/{course.slug.es}</div>
                 </TableCell>
                 <TableCell>
                   <Badge variant={statusVariant[course.status]}>

@@ -38,7 +38,7 @@ function CourseCatalogPage() {
               {courses.map((course) => (
                 <Link
                   key={course._id}
-                  to={`/courses/${course.slug}`}
+                  to={`/courses/${course.slug[locale]}`}
                   className="group"
                 >
                   <div className="aspect-[4/3] bg-accent/30 mb-4 overflow-hidden">

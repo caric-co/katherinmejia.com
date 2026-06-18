@@ -36,7 +36,7 @@ function BlogPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {posts.map((post) => (
-                <Link key={post._id} to={`/blog/${post.slug}`} className="group">
+                <Link key={post._id} to={`/blog/${post.slug[locale]}`} className="group">
                   {post.coverImageUrl && (
                     <div className="aspect-[16/9] bg-accent/20 mb-4 overflow-hidden">
                       <img

@@ -24,7 +24,7 @@ export default defineSchema({
   courses: defineTable({
     title: bilingualText,
     description: bilingualText,
-    slug: v.string(),
+    slug: bilingualText,
     thumbnailUrl: v.optional(v.string()),
     previewVideoId: v.optional(v.string()),
     price: v.number(),
@@ -37,7 +37,8 @@ export default defineSchema({
     order: v.number(),
     createdAt: v.number(),
   })
-    .index("by_slug", ["slug"])
+    .index("by_slug_es", ["slug.es"])
+    .index("by_slug_en", ["slug.en"])
     .index("by_status", ["status"])
     .index("by_order", ["order"]),
 
@@ -140,7 +141,7 @@ export default defineSchema({
 
   blogPosts: defineTable({
     title: bilingualText,
-    slug: v.string(),
+    slug: bilingualText,
     content: bilingualText,
     excerpt: bilingualText,
     coverImageUrl: v.optional(v.string()),
@@ -148,6 +149,7 @@ export default defineSchema({
     publishedAt: v.optional(v.number()),
     createdAt: v.number(),
   })
-    .index("by_slug", ["slug"])
+    .index("by_slug_es", ["slug.es"])
+    .index("by_slug_en", ["slug.en"])
     .index("by_status", ["status"]),
 })

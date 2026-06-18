@@ -23,9 +23,15 @@ export const listPublished = query({
 export const getBySlug = query({
   args: { slug: v.string() },
   handler: async (ctx, args) => {
+    const byEs = await ctx.db
+      .query("blogPosts")
+      .withIndex("by_slug_es", (q) => q.eq("slug.es", args.slug))
+      .first()
+    if (byEs) return byEs
+
     return await ctx.db
       .query("blogPosts")
-      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
+      .withIndex("by_slug_en", (q) => q.eq("slug.en", args.slug))
       .first()
   },
 })
@@ -40,7 +46,7 @@ export const getById = query({
 export const create = mutation({
   args: {
     title: bilingualText,
-    slug: v.string(),
+    slug: bilingualText,
     content: bilingualText,
     excerpt: bilingualText,
     coverImageUrl: v.optional(v.string()),
@@ -58,7 +64,7 @@ export const update = mutation({
   args: {
     postId: v.id("blogPosts"),
     title: v.optional(bilingualText),
-    slug: v.optional(v.string()),
+    slug: v.optional(bilingualText),
     content: v.optional(bilingualText),
     excerpt: v.optional(bilingualText),
     coverImageUrl: v.optional(v.string()),

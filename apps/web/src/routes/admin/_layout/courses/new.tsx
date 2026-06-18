@@ -19,6 +19,16 @@ function slugify(text: string): string {
     .replace(/^-|-$/g, "")
 }
 
+function formatCOP(value: string): string {
+  const num = value.replace(/\D/g, "")
+  if (!num) return ""
+  return Number(num).toLocaleString("es-CO")
+}
+
+function parseCOP(formatted: string): number {
+  return parseInt(formatted.replace(/\D/g, "")) || 0
+}
+
 function NewCoursePage() {
   const navigate = useNavigate()
   const createCourse = useMutation(api.courses.create)
@@ -27,13 +37,23 @@ function NewCoursePage() {
   const [titleEn, setTitleEn] = useState("")
   const [descEs, setDescEs] = useState("")
   const [descEn, setDescEn] = useState("")
-  const [price, setPrice] = useState("")
-  const [slug, setSlug] = useState("")
+  const [priceDisplay, setPriceDisplay] = useState("")
+  const [slugEs, setSlugEs] = useState("")
+  const [slugEn, setSlugEn] = useState("")
   const [error, setError] = useState("")
 
-  const handleTitleChange = (val: string) => {
+  const handleTitleEsChange = (val: string) => {
     setTitleEs(val)
-    setSlug(slugify(val))
+    setSlugEs(slugify(val))
+  }
+
+  const handleTitleEnChange = (val: string) => {
+    setTitleEn(val)
+    setSlugEn(slugify(val))
+  }
+
+  const handlePriceChange = (val: string) => {
+    setPriceDisplay(formatCOP(val))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -44,8 +64,8 @@ function NewCoursePage() {
       await createCourse({
         title: { es: titleEs, en: titleEn || titleEs },
         description: { es: descEs, en: descEn || descEs },
-        slug,
-        price: parseInt(price) || 0,
+        slug: { es: slugEs, en: slugEn || slugEs },
+        price: parseCOP(priceDisplay),
       })
       navigate({ to: "/admin/courses" })
     } catch (err: any) {
@@ -66,7 +86,7 @@ function NewCoursePage() {
             </Label>
             <Input
               value={titleEs}
-              onChange={(e) => handleTitleChange(e.target.value)}
+              onChange={(e) => handleTitleEsChange(e.target.value)}
               placeholder="Maquillaje Natural de Día"
               required
             />
@@ -77,25 +97,27 @@ function NewCoursePage() {
             </Label>
             <Input
               value={titleEn}
-              onChange={(e) => setTitleEn(e.target.value)}
+              onChange={(e) => handleTitleEnChange(e.target.value)}
               placeholder="Natural Day Makeup"
             />
           </div>
         </div>
 
-        <div>
-          <Label className="text-xs uppercase tracking-wider font-medium mb-2 block">
-            Slug
-          </Label>
-          <Input
-            value={slug}
-            onChange={(e) => setSlug(e.target.value)}
-            placeholder="maquillaje-natural-de-dia"
-            required
-          />
-          <p className="text-sm text-muted-foreground mt-1">
-            URL: /courses/{slug || "..."}
-          </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <Label className="text-xs uppercase tracking-wider font-medium mb-2 block">
+              Slug (ES)
+            </Label>
+            <Input value={slugEs} onChange={(e) => setSlugEs(e.target.value)} required />
+            <p className="text-sm text-muted-foreground mt-1">/courses/{slugEs || "..."}</p>
+          </div>
+          <div>
+            <Label className="text-xs uppercase tracking-wider font-medium mb-2 block">
+              Slug (EN)
+            </Label>
+            <Input value={slugEn} onChange={(e) => setSlugEn(e.target.value)} />
+            <p className="text-sm text-muted-foreground mt-1">/courses/{slugEn || slugEs || "..."}</p>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -103,24 +125,13 @@ function NewCoursePage() {
             <Label className="text-xs uppercase tracking-wider font-medium mb-2 block">
               Descripción (ES)
             </Label>
-            <textarea
-              value={descEs}
-              onChange={(e) => setDescEs(e.target.value)}
-              placeholder="Descripción del curso en español"
-              className="flex field-sizing-content min-h-24 w-full rounded-none border-0 border-b border-input bg-transparent px-0 py-2 transition-colors outline-none placeholder:text-muted-foreground/60 focus-visible:border-foreground/40"
-              required
-            />
+            <textarea value={descEs} onChange={(e) => setDescEs(e.target.value)} placeholder="Descripción del curso en español" className="flex field-sizing-content min-h-24 w-full rounded-none border-0 border-b border-input bg-transparent px-0 py-2 transition-colors outline-none placeholder:text-muted-foreground/60 focus-visible:border-foreground/40" required />
           </div>
           <div>
             <Label className="text-xs uppercase tracking-wider font-medium mb-2 block">
               Descripción (EN)
             </Label>
-            <textarea
-              value={descEn}
-              onChange={(e) => setDescEn(e.target.value)}
-              placeholder="Course description in English"
-              className="flex field-sizing-content min-h-24 w-full rounded-none border-0 border-b border-input bg-transparent px-0 py-2 transition-colors outline-none placeholder:text-muted-foreground/60 focus-visible:border-foreground/40"
-            />
+            <textarea value={descEn} onChange={(e) => setDescEn(e.target.value)} placeholder="Course description in English" className="flex field-sizing-content min-h-24 w-full rounded-none border-0 border-b border-input bg-transparent px-0 py-2 transition-colors outline-none placeholder:text-muted-foreground/60 focus-visible:border-foreground/40" />
           </div>
         </div>
 
@@ -128,13 +139,16 @@ function NewCoursePage() {
           <Label className="text-xs uppercase tracking-wider font-medium mb-2 block">
             Precio (COP)
           </Label>
-          <Input
-            type="number"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            placeholder="149900"
-            required
-          />
+          <div className="relative">
+            <span className="absolute left-0 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+            <Input
+              value={priceDisplay}
+              onChange={(e) => handlePriceChange(e.target.value)}
+              placeholder="149.900"
+              className="pl-4"
+              required
+            />
+          </div>
         </div>
 
         {error && <p className="text-destructive">{error}</p>}
@@ -143,11 +157,7 @@ function NewCoursePage() {
           <Button type="submit" disabled={loading}>
             {loading ? "Creando..." : "Crear curso"}
           </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => navigate({ to: "/admin/courses" })}
-          >
+          <Button type="button" variant="outline" onClick={() => navigate({ to: "/admin/courses" })}>
             Cancelar
           </Button>
         </div>

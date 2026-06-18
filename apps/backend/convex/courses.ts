@@ -33,9 +33,15 @@ export const listPublished = query({
 export const getBySlug = query({
   args: { slug: v.string() },
   handler: async (ctx, args) => {
+    const byEs = await ctx.db
+      .query("courses")
+      .withIndex("by_slug_es", (q) => q.eq("slug.es", args.slug))
+      .first()
+    if (byEs) return byEs
+
     return await ctx.db
       .query("courses")
-      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
+      .withIndex("by_slug_en", (q) => q.eq("slug.en", args.slug))
       .first()
   },
 })
@@ -51,16 +57,22 @@ export const create = mutation({
   args: {
     title: bilingualText,
     description: bilingualText,
-    slug: v.string(),
+    slug: bilingualText,
     price: v.number(),
     thumbnailUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const existing = await ctx.db
+    const existingEs = await ctx.db
       .query("courses")
-      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
+      .withIndex("by_slug_es", (q) => q.eq("slug.es", args.slug.es))
       .first()
-    if (existing) throw new Error("Slug already exists")
+    if (existingEs) throw new Error("El slug en español ya existe")
+
+    const existingEn = await ctx.db
+      .query("courses")
+      .withIndex("by_slug_en", (q) => q.eq("slug.en", args.slug.en))
+      .first()
+    if (existingEn) throw new Error("El slug en inglés ya existe")
 
     const allCourses = await ctx.db.query("courses").collect()
     const maxOrder = allCourses.reduce((max, c) => Math.max(max, c.order), 0)
@@ -80,7 +92,7 @@ export const update = mutation({
     courseId: v.id("courses"),
     title: v.optional(bilingualText),
     description: v.optional(bilingualText),
-    slug: v.optional(v.string()),
+    slug: v.optional(bilingualText),
     price: v.optional(v.number()),
     thumbnailUrl: v.optional(v.string()),
     previewVideoId: v.optional(v.string()),

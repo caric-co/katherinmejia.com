@@ -58,7 +58,7 @@ function BlogListPage() {
               <TableRow key={post._id}>
                 <TableCell>
                   <div className="font-medium">{post.title.es}</div>
-                  <div className="text-sm text-muted-foreground">/{post.slug}</div>
+                  <div className="text-sm text-muted-foreground">/{post.slug.es}</div>
                 </TableCell>
                 <TableCell>
                   <Badge variant={post.status === "published" ? "default" : "outline"}>
