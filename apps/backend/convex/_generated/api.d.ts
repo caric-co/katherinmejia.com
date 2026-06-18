@@ -9,10 +9,13 @@
  */
 
 import type * as access from "../access.js";
+import type * as auth from "../auth.js";
 import type * as courses from "../courses.js";
+import type * as http from "../http.js";
 import type * as invitations from "../invitations.js";
 import type * as lessons from "../lessons.js";
 import type * as seed from "../seed.js";
+import type * as seedAuth from "../seedAuth.js";
 import type * as users from "../users.js";
 
 import type {
@@ -23,10 +26,13 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   access: typeof access;
+  auth: typeof auth;
   courses: typeof courses;
+  http: typeof http;
   invitations: typeof invitations;
   lessons: typeof lessons;
   seed: typeof seed;
+  seedAuth: typeof seedAuth;
   users: typeof users;
 }>;
 
