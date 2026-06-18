@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Costos de Video Streaming — Investigación</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root { --bg:#F6F3EE; --surface:#FFFFFF; --overlay:#F3ECE6; --border:rgba(43,38,38,0.15); --text:#2B2626; --muted:rgba(43,38,38,0.6); --brand:#2B2626; --success:#3d7a4f; --warning:#a67c00; --danger:#b91c1c; --blue:#2563eb; --accent:#ECDFD4; --peach:#FBCFC6; }
+    *{margin:0;padding:0;box-sizing:border-box} body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+    .container{max-width:1100px;margin:0 auto;padding:3rem 1.5rem}
+    h1{font-family:'Playfair Display',serif;font-size:2.25rem;font-weight:400;letter-spacing:-0.01em;margin-bottom:0.5rem}
+    h2{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:400;margin:2.5rem 0 1rem;border-bottom:1px solid var(--border);padding-bottom:0.5rem}
+    h3{font-size:1rem;font-weight:600;margin:1.5rem 0 0.75rem}
+    p,li{color:var(--muted);font-size:0.875rem} strong{color:var(--text)} a{color:var(--brand)}
+    .subtitle{color:var(--muted);font-size:0.75rem;text-transform:uppercase;letter-spacing:0.15em;margin-bottom:0.25rem}
+    .meta{color:var(--muted);font-size:0.85rem;margin-bottom:2rem;max-width:700px}
+    table{width:100%;border-collapse:collapse;font-size:0.8rem;margin:1rem 0}
+    th{text-align:left;padding:0.5rem 0.75rem;background:var(--overlay);color:var(--muted);font-weight:500;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em}
+    td{padding:0.5rem 0.75rem;border-bottom:1px solid var(--border)} td:first-child{font-weight:600;color:var(--text);white-space:nowrap}
+    .highlight{background:rgba(61,122,79,0.08);} .warn{background:rgba(185,28,28,0.06)}
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:0.75rem;padding:1.25rem;margin-bottom:1rem}
+    .card h3{margin-top:0}
+    .badge{display:inline-block;padding:0.15rem 0.5rem;border-radius:900px;font-size:0.65rem;font-weight:600;text-transform:uppercase;border:1px solid}
+    .badge-best{background:rgba(61,122,79,0.1);color:var(--success);border-color:rgba(61,122,79,0.3)} .badge-warn{background:rgba(185,28,28,0.08);color:var(--danger);border-color:rgba(185,28,28,0.2)}
+    .badge-ok{background:var(--accent);color:var(--brand);border-color:rgba(43,38,38,0.2)}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1rem 0} @media(max-width:700px){.grid{grid-template-columns:1fr}}
+    .assumption{background:var(--accent);border:1px solid rgba(43,38,38,0.1);border-radius:0.5rem;padding:1rem;margin:1rem 0;font-size:0.8rem}
+    ul{padding-left:1.25rem;margin:0.5rem 0} li{margin-bottom:0.3rem}
+    footer{border-top:1px solid var(--border);padding-top:1.5rem;margin-top:3rem;text-align:center} footer p{font-size:0.75rem}
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <p class="subtitle">Investigación Técnica</p>
+  <h1>Costos de Video Streaming y Almacenamiento</h1>
+  <p class="meta">Análisis comparativo de proveedores de video para la plataforma de cursos de KMakeup. Enfoque en audiencia latinoamericana (Colombia) con escala de 10 a 1,000+ usuarios.</p>
+
+  <div class="assumption">
+    <strong>Supuestos base para todos los cálculos:</strong><br>
+    Contenido almacenado: ~50 horas (3.000 minutos, ~150 GB tras codificación multi-bitrate) &bull;
+    Consumo promedio por usuario: 3 horas/mes (180 min, ~7,5 GB) &bull;
+    Resolución máxima: 1080p &bull;
+    Región principal: América del Sur (Colombia)
+  </div>
+
+  <!-- Comparison Table -->
+  <h2>Comparativa de Costos Mensuales (USD, sin DRM)</h2>
+  <table>
+    <thead>
+      <tr><th>Usuarios</th><th>Bunny Stream (SA)</th><th>Mux</th><th>Cloudflare Stream</th><th>R2 Autoalojado</th><th>S3+CloudFront (SA)</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>10</td><td class="highlight"><strong>$5</strong></td><td>$9</td><td>$22</td><td>$7</td><td>$16</td></tr>
+      <tr><td>50</td><td class="highlight"><strong>$18</strong></td><td>$9</td><td>$29</td><td>$7</td><td>$67</td></tr>
+      <tr><td>100</td><td>$35</td><td class="highlight"><strong>$9</strong></td><td>$38</td><td>$7</td><td>$131</td></tr>
+      <tr><td>500</td><td>$170</td><td class="highlight"><strong>$9</strong></td><td>$110</td><td>$8</td><td class="warn">$641</td></tr>
+      <tr><td>1.000</td><td>$339</td><td>$89</td><td>$200</td><td class="highlight"><strong>$8</strong></td><td class="warn">$1.278</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Comparativa con DRM</h2>
+  <table>
+    <thead>
+      <tr><th>Usuarios</th><th>Bunny (DRM básico, gratis)</th><th>Bunny (DRM Enterprise)</th><th>Mux DRM</th><th>Cloudflare</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>10</td><td class="highlight"><strong>$5</strong></td><td>$104</td><td>$109</td><td>N/A</td></tr>
+      <tr><td>50</td><td class="highlight"><strong>$18</strong></td><td>$121</td><td>$111</td><td>N/A</td></tr>
+      <tr><td>100</td><td class="highlight"><strong>$35</strong></td><td>$138</td><td>$113</td><td>N/A</td></tr>
+      <tr><td>500</td><td class="highlight"><strong>$170</strong></td><td>$269</td><td>$127</td><td>N/A</td></tr>
+      <tr><td>1.000</td><td><strong>$339</strong></td><td>$438</td><td>$225</td><td>N/A</td></tr>
+    </tbody>
+  </table>
+
+  <!-- Provider Details -->
+  <h2>Detalle por Proveedor</h2>
+
+  <div class="card">
+    <h3>Bunny Stream <span class="badge badge-best">Recomendado</span></h3>
+    <table>
+      <tr><td>Almacenamiento</td><td>$0,01/GB/mes</td></tr>
+      <tr><td>Codificación estándar</td><td>Gratis (H.264 hasta 1080p)</td></tr>
+      <tr><td>CDN América del Sur</td><td><strong>$0,045/GB</strong></td></tr>
+      <tr><td>CDN Red de Volumen</td><td>$0,005/GB (tarifa plana, 10 PoPs)</td></tr>
+      <tr><td>DRM MediaCage Básico</td><td><strong>Gratis</strong> (cifrado dinámico)</td></tr>
+      <tr><td>DRM MediaCage Enterprise</td><td>$99/mes + $0,005/licencia</td></tr>
+      <tr><td>Transmisión en vivo</td><td>Solo costo de ancho de banda CDN</td></tr>
+      <tr><td>Mínimo mensual</td><td>$1</td></tr>
+    </table>
+    <p><strong>Punto crítico:</strong> el ancho de banda para Sudamérica a $0,045/GB es 4,5x más caro que EU/NA. A 500 usuarios el costo mensual llega a ~$170. La Red de Volumen ($0,005/GB) reduce esto drásticamente pero tiene menos puntos de presencia en LATAM.</p>
+  </div>
+
+  <div class="card">
+    <h3>Mux <span class="badge badge-ok">Alternativa Premium</span></h3>
+    <table>
+      <tr><td>Codificación (Basic)</td><td>Gratis</td></tr>
+      <tr><td>Almacenamiento (1080p)</td><td>$0,003/min/mes</td></tr>
+      <tr><td>Entrega (1080p)</td><td>$0,001/min (<strong>primeros 100K min gratis</strong>)</td></tr>
+      <tr><td>DRM</td><td>$100/mes + $0,003/reproducción</td></tr>
+      <tr><td>Transmisión en vivo</td><td>Costos de codificación superiores</td></tr>
+    </table>
+    <p><strong>Punto crítico:</strong> los 100K minutos gratuitos cubren hasta ~556 usuarios (180 min/usuario/mes). Por debajo de ese umbral, Mux es extraordinariamente económico ($9/mes). El DRM a $100/mes fijo lo hace inviable para plataformas pequeñas.</p>
+  </div>
+
+  <div class="card">
+    <h3>Cloudflare Stream <span class="badge badge-warn">Sin DRM</span></h3>
+    <table>
+      <tr><td>Almacenamiento</td><td>$5/1.000 min ($0,005/min)</td></tr>
+      <tr><td>Entrega</td><td>$1/1.000 min ($0,001/min)</td></tr>
+      <tr><td>Codificación</td><td>Gratis</td></tr>
+      <tr><td>Plan Workers requerido</td><td>$5/mes</td></tr>
+      <tr><td>DRM</td><td><strong>No disponible</strong></td></tr>
+    </table>
+    <p><strong>Punto crítico:</strong> la ausencia de DRM lo descalifica para contenido de pago. Precio lineal sin descuentos por volumen.</p>
+  </div>
+
+  <div class="card">
+    <h3>Cloudflare R2 Autoalojado <span class="badge badge-ok">Más Económico a Escala</span></h3>
+    <table>
+      <tr><td>Almacenamiento R2</td><td>$0,015/GB/mes (10 GB gratis)</td></tr>
+      <tr><td>Egreso R2</td><td><strong>$0 (GRATIS)</strong></td></tr>
+      <tr><td>Operaciones GET</td><td>$0,36/millón de solicitudes</td></tr>
+      <tr><td>Workers</td><td>$5/mes</td></tr>
+      <tr><td>Transcodificación</td><td>DIY con FFmpeg (costo único)</td></tr>
+      <tr><td>DRM</td><td>No incluido (URLs firmadas como alternativa)</td></tr>
+    </table>
+    <p><strong>Punto crítico:</strong> el egreso gratuito de R2 lo convierte en el más barato a cualquier escala (~$7-8/mes constante). Sin embargo, requiere <strong>40-80 horas de desarrollo</strong> para pipeline de transcodificación, generación de manifiestos HLS, reproductor personalizado y control de acceso. A $50/hora, eso equivale a $2.000-4.000 — el costo de 1-2 años de Bunny Stream a 500 usuarios.</p>
+  </div>
+
+  <!-- Optimization -->
+  <h2>Estrategias de Optimización de Costos</h2>
+  <div class="grid">
+    <div class="card">
+      <h3>Reducir Ancho de Banda</h3>
+      <ul>
+        <li>Limitar a 720p + 1080p (sin 4K) — ahorro ~20-30%</li>
+        <li>H.265/HEVC: 30-50% más pequeño que H.264</li>
+        <li>Tutoriales de maquillaje son mayormente estáticos — CRF encoding produce archivos más pequeños</li>
+        <li>Objetivo: 2-3 Mbps para 1080p en vez de 5 Mbps</li>
+        <li><strong>Reducción estimada:</strong> de 7,5 GB a ~4 GB/usuario/mes</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Protección de Contenido</h3>
+      <ul>
+        <li>URLs firmadas con expiración (4-24 horas) — previene compartir enlaces</li>
+        <li>Restricción por dominio — previene incrustación externa</li>
+        <li>Tokens vinculados a IP (cuidado con redes móviles)</li>
+        <li>MediaCage Basic de Bunny es suficiente para prevenir descarga casual</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Recommendation -->
+  <h2>Recomendación para KMakeup</h2>
+  <div class="card" style="border-color:var(--success)">
+    <h3 style="color:var(--success)">Ruta Recomendada</h3>
+    <table>
+      <tr><td>Inicio (10-50 usuarios)</td><td><strong>Bunny Stream + DRM Básico</strong> — $5-18/mes. Sin desarrollo adicional para infraestructura de video.</td></tr>
+      <tr><td>Escala (100-500)</td><td><strong>Continuar con Bunny Stream</strong> — $35-170/mes. Evaluar Red de Volumen si la cobertura LATAM es aceptable.</td></tr>
+      <tr><td>Escala (1.000+)</td><td><strong>Evaluar híbrido</strong> — Bunny para DRM/reproductor/codificación con R2 como almacenamiento origen. A $339/mes, Bunny sigue siendo razonable para una plataforma generando ingresos de 1.000 estudiantes.</td></tr>
+      <tr><td>Transmisión en vivo</td><td><strong>Bunny Stream Live</strong> — Ingesta RTMP (compatible OBS), codificación estándar gratis, solo costo de ancho de banda CDN.</td></tr>
+    </table>
+  </div>
+
+  <footer>
+    <p>Investigación realizada para KMakeup Platform &bull; Datos actualizados a junio 2026</p>
+    <p style="margin-top:0.5rem">
+      Fuentes:
+      <a href="https://bunny.net/pricing/stream/" target="_blank">Bunny</a> &bull;
+      <a href="https://www.mux.com/pricing" target="_blank">Mux</a> &bull;
+      <a href="https://developers.cloudflare.com/stream/pricing/" target="_blank">Cloudflare Stream</a> &bull;
+      <a href="https://developers.cloudflare.com/r2/pricing/" target="_blank">Cloudflare R2</a> &bull;
+      <a href="https://aws.amazon.com/cloudfront/pricing/" target="_blank">AWS CloudFront</a>
+    </p>
+  </footer>
+
+</div>
+</body>
+</html>
