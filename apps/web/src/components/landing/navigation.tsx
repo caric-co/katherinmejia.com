@@ -2,17 +2,26 @@ import { Link } from "@tanstack/react-router"
 import { useTranslation } from "react-i18next"
 import { useState, useEffect } from "react"
 import { Button } from "@repo/ui/components/button"
-import { Menu, X } from "lucide-react"
+import { Avatar, AvatarFallback } from "@repo/ui/components/avatar"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@repo/ui/components/dropdown-menu"
+import { Menu, X, Settings, LogOut, User } from "lucide-react"
+import { authClient } from "#/lib/auth-client"
 
 const navLinks = [
-  { labelKey: "nav.courses", href: "#courses" },
-  { labelKey: "nav.about", href: "#about" },
+  { labelKey: "nav.courses", href: "/courses" },
+  { labelKey: "nav.about", href: "/#about" },
   { labelKey: "nav.blog", href: "/blog" },
-  { labelKey: "nav.contact", href: "#contact" },
+  { labelKey: "nav.contact", href: "/#contact" },
 ] as const
 
 export function Navigation() {
   const { t, i18n } = useTranslation()
+  const { data: session } = authClient.useSession()
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
 
@@ -25,6 +34,15 @@ export function Navigation() {
   const toggleLocale = () => {
     i18n.changeLanguage(i18n.language === "es" ? "en" : "es")
   }
+
+  const initials = session?.user?.name
+    ? session.user.name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2)
+    : ""
 
   return (
     <nav
@@ -56,11 +74,48 @@ export function Navigation() {
           >
             {i18n.language === "es" ? "EN" : "ES"}
           </button>
-          <Link to="/auth/login">
-            <Button variant="outline" size="sm">
-              {t("nav.login")}
-            </Button>
-          </Link>
+
+          {session?.user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger className="cursor-pointer">
+                <Avatar className="size-8">
+                  <AvatarFallback className="text-xs">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <div className="px-2 py-1.5 mb-1">
+                  <p className="text-sm font-medium truncate">{session.user.name}</p>
+                  <p className="text-xs text-muted-foreground truncate">{session.user.email}</p>
+                </div>
+                <DropdownMenuItem render={<Link to="/admin" />}>
+                  <Settings className="size-4" />
+                  Admin
+                </DropdownMenuItem>
+                <DropdownMenuItem render={<Link to="/courses" />}>
+                  <User className="size-4" />
+                  Mis cursos
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() =>
+                    authClient.signOut({
+                      fetchOptions: { onSuccess: () => location.reload() },
+                    })
+                  }
+                >
+                  <LogOut className="size-4" />
+                  Cerrar sesión
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Link to="/auth/login">
+              <Button variant="outline" size="sm">
+                {t("nav.login")}
+              </Button>
+            </Link>
+          )}
         </div>
 
         {/* Mobile hamburger */}
@@ -86,18 +141,35 @@ export function Navigation() {
                 {t(link.labelKey)}
               </a>
             ))}
-            <div className="flex items-center gap-4 pt-4 border-t border-border">
+
+            <div className="pt-4 border-t border-border">
               <button
                 onClick={toggleLocale}
-                className="text-sm text-foreground/50 cursor-pointer"
+                className="text-sm text-foreground/50 cursor-pointer mb-4 block"
               >
                 {i18n.language === "es" ? "English" : "Español"}
               </button>
-              <Link to="/auth/login" onClick={() => setMenuOpen(false)}>
-                <Button variant="outline" size="sm">
-                  {t("nav.login")}
-                </Button>
-              </Link>
+
+              {session?.user ? (
+                <div className="space-y-3">
+                  <p className="text-sm font-medium">{session.user.name}</p>
+                  <Link to="/admin" onClick={() => setMenuOpen(false)} className="text-sm text-muted-foreground hover:text-foreground block">
+                    Admin
+                  </Link>
+                  <button
+                    onClick={() => authClient.signOut({ fetchOptions: { onSuccess: () => location.reload() } })}
+                    className="text-sm text-muted-foreground hover:text-foreground cursor-pointer"
+                  >
+                    Cerrar sesión
+                  </button>
+                </div>
+              ) : (
+                <Link to="/auth/login" onClick={() => setMenuOpen(false)}>
+                  <Button variant="outline" size="sm">
+                    {t("nav.login")}
+                  </Button>
+                </Link>
+              )}
             </div>
           </div>
         </div>

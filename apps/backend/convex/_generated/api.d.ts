@@ -15,7 +15,6 @@ import type * as http from "../http.js";
 import type * as invitations from "../invitations.js";
 import type * as lessons from "../lessons.js";
 import type * as seed from "../seed.js";
-import type * as seedAuth from "../seedAuth.js";
 import type * as users from "../users.js";
 
 import type {
@@ -32,7 +31,6 @@ declare const fullApi: ApiFromModules<{
   invitations: typeof invitations;
   lessons: typeof lessons;
   seed: typeof seed;
-  seedAuth: typeof seedAuth;
   users: typeof users;
 }>;
 
