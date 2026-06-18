@@ -1,5 +1,24 @@
 @import "@repo/ui/globals.css";
 
+@layer base {
+  ::-webkit-scrollbar {
+    @apply w-2;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-foreground/10 rounded-pill;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-foreground/20;
+  }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(43, 38, 38, 0.1) transparent;
+  }
+}
+
 @media print {
   body {
     background: white !important;

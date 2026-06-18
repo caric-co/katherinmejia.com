@@ -8,7 +8,7 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
     <ScrollArea data-slot="table-container" className="relative w-full">
       <table
         data-slot="table"
-        className={cn("w-full caption-bottom text-sm", className)}
+        className={cn("w-full caption-bottom text-body", className)}
         {...props}
       />
     </ScrollArea>
@@ -66,7 +66,7 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
     <th
       data-slot="table-head"
       className={cn(
-        "h-11 px-3 text-left align-middle font-medium whitespace-nowrap text-muted-foreground text-sm uppercase tracking-wider [&:has([role=checkbox])]:pr-0",
+        "h-12 px-4 text-left align-middle font-medium whitespace-nowrap text-muted-foreground text-sm uppercase tracking-wider [&:has([role=checkbox])]:pr-0",
         className
       )}
       {...props}
@@ -79,7 +79,7 @@ function TableCell({ className, ...props }: React.ComponentProps<"td">) {
     <td
       data-slot="table-cell"
       className={cn(
-        "px-3 py-3 align-middle [&:has([role=checkbox])]:pr-0",
+        "px-4 py-3.5 align-middle [&:has([role=checkbox])]:pr-0",
         className
       )}
       {...props}
