@@ -6,7 +6,7 @@ export function Hero() {
   const { t } = useTranslation()
 
   return (
-    <section className="relative min-h-screen flex items-center px-6 md:px-10">
+    <section className="relative min-h-screen flex items-end pb-[15vh] px-6 md:px-10">
       <div
         className="absolute inset-0 bg-cover bg-center"
         style={{
