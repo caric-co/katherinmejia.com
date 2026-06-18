@@ -139,7 +139,7 @@ function VideoCostsPage() {
           Comparativa de Costos Mensuales (USD, sin DRM)
         </h2>
         <Separator className="mb-4" />
-        <div className="border border-border mb-12">
+        <div className="mb-12">
           <Table>
             <TableHeader>
               <TableRow className="bg-muted hover:bg-muted">
@@ -170,7 +170,7 @@ function VideoCostsPage() {
           Comparativa con DRM
         </h2>
         <Separator className="mb-4" />
-        <div className="border border-border mb-12">
+        <div className="mb-12">
           <Table>
             <TableHeader>
               <TableRow className="bg-muted hover:bg-muted">
@@ -202,12 +202,12 @@ function VideoCostsPage() {
         <Separator className="mb-4" />
         <div className="space-y-4 mb-12">
           {providers.map((p) => (
-            <div key={p.name} className="border border-border bg-card p-5">
+            <div key={p.name} className="bg-muted p-5">
               <div className="flex items-center gap-3 mb-3">
                 <h3 className="text-lg font-semibold">{p.name}</h3>
                 <Badge variant={p.badgeVariant}>{p.badge}</Badge>
               </div>
-              <div className="border border-border mb-3">
+              <div className="mb-3">
                 <Table>
                   <TableBody>
                     {p.pricing.map(([item, price]) => (
@@ -230,7 +230,7 @@ function VideoCostsPage() {
         </h2>
         <Separator className="mb-4" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
-          <div className="border border-border bg-card p-5">
+          <div className="bg-muted p-5">
             <h3 className="font-semibold mb-3">Reducir Ancho de Banda</h3>
             <ul className="space-y-1.5 text-sm text-muted-foreground">
               <li>— Limitar a 720p + 1080p (sin 4K): ahorro ~20-30%</li>
@@ -240,7 +240,7 @@ function VideoCostsPage() {
               <li className="font-medium text-foreground">— Reducción estimada: de 7,5 GB a ~4 GB/usuario/mes</li>
             </ul>
           </div>
-          <div className="border border-border bg-card p-5">
+          <div className="bg-muted p-5">
             <h3 className="font-semibold mb-3">Protección de Contenido</h3>
             <ul className="space-y-1.5 text-sm text-muted-foreground">
               <li>— URLs firmadas con expiración (4-24 horas): previene compartir enlaces</li>
@@ -256,9 +256,9 @@ function VideoCostsPage() {
           Recomendación para KMakeup
         </h2>
         <Separator className="mb-4" />
-        <div className="border-2 border-foreground/20 bg-card p-5 mb-12">
+        <div className="bg-muted ring-1 ring-foreground/10 p-5 mb-12">
           <h3 className="font-semibold mb-3">Ruta Recomendada</h3>
-          <div className="border border-border">
+          <div className="">
             <Table>
               <TableBody>
                 {recommendation.map((r) => (

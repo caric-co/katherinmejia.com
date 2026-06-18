@@ -88,11 +88,11 @@ function DataTable<TData, TValue>({
             onChange={(event) =>
               table.getColumn(filterColumn)?.setFilterValue(event.target.value)
             }
-            className="max-w-sm h-8 rounded-md border border-input bg-background px-3 text-xs placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+            className="max-w-sm h-10 rounded-none border-0 border-b border-input bg-transparent px-0 py-2 text-sm placeholder:text-muted-foreground/60 focus:outline-none focus:border-foreground/40"
           />
         </div>
       )}
-      <div className="overflow-hidden rounded-md border">
+      <div className="overflow-hidden">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

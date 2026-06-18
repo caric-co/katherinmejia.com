@@ -149,7 +149,7 @@ function PlanPage() {
         {/* Timeline stats */}
         <div className="grid grid-cols-3 md:grid-cols-5 gap-3 mb-12">
           {[{ v: "10", l: "Fases" }, { v: "~39", l: "Horas Est." }, { v: "9", l: "Tablas Convex" }, { v: "~25", l: "Rutas" }, { v: "ES/EN", l: "Bilingüe" }].map((s) => (
-            <div key={s.l} className="text-center border border-border bg-card p-3">
+            <div key={s.l} className="text-center bg-muted p-3">
               <div className="font-display text-2xl">{s.v}</div>
               <div className="text-xs text-muted-foreground uppercase tracking-wider">{s.l}</div>
             </div>
@@ -160,7 +160,7 @@ function PlanPage() {
         <h2 className="font-display text-h2 mb-4">Mapa de Rutas</h2>
         <Separator className="mb-4" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
-          <div className="border border-border bg-card p-5">
+          <div className="bg-muted p-5">
             <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-3">Públicas</h3>
             <ul className="space-y-1">
               {publicRoutes.map(([path, desc]) => (
@@ -168,7 +168,7 @@ function PlanPage() {
               ))}
             </ul>
           </div>
-          <div className="border border-border bg-card p-5">
+          <div className="bg-muted p-5">
             <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-3">Admin (protegidas)</h3>
             <ul className="space-y-1">
               {adminRoutes.map(([path, desc]) => (
@@ -185,7 +185,7 @@ function PlanPage() {
           {schemas.map((s) => (
             <div key={s.name}>
               <h3 className="font-semibold mb-2">{s.name}</h3>
-              <div className="border border-border">
+              <div className="">
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-muted hover:bg-muted">
@@ -216,7 +216,7 @@ function PlanPage() {
           {phases.map((p) => {
             const isOpen = openPhases.has(p.n)
             return (
-              <div key={p.n} className="border border-border bg-card">
+              <div key={p.n} className="bg-muted">
                 <button
                   onClick={() => togglePhase(p.n)}
                   className="w-full text-left flex items-center gap-3 p-4 cursor-pointer hover:bg-muted/50 transition-colors"

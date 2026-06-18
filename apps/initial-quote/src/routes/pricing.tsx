@@ -93,7 +93,7 @@ function PricingPage() {
             { value: "94%", label: "Margen a 500+ usuarios" },
             { value: "$0", label: "Costo fijo Bold.co" },
           ].map((s) => (
-            <div key={s.label} className="text-center border border-border bg-card p-4">
+            <div key={s.label} className="text-center bg-muted p-4">
               <div className="font-display text-3xl">{s.value}</div>
               <div className="text-xs text-muted-foreground uppercase tracking-wider mt-1">{s.label}</div>
             </div>
@@ -105,7 +105,7 @@ function PricingPage() {
         <Separator className="mb-4" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
           {services.map((s) => (
-            <div key={s.name} className="border border-border bg-card p-5">
+            <div key={s.name} className="bg-muted p-5">
               <h3 className="font-semibold">{s.name} <span className="font-normal text-muted-foreground text-sm">{s.desc}</span></h3>
               <p className="mt-1"><strong>{s.detail.split(".")[0]}.</strong></p>
               <p className="text-sm text-muted-foreground mt-1">{s.sub}</p>
@@ -116,7 +116,7 @@ function PricingPage() {
         {/* Cost table */}
         <h2 className="font-display text-h2 mb-4">Costo Total Mensual por Escala</h2>
         <Separator className="mb-4" />
-        <div className="border border-border mb-4">
+        <div className="mb-4">
           <Table>
             <TableHeader>
               <TableRow className="bg-muted hover:bg-muted">
@@ -156,7 +156,7 @@ function PricingPage() {
         <p className="text-muted-foreground mb-6">Precios posicionados para el mercado colombiano de cursos de maquillaje. Por debajo de academias premium ($300-500K COP) pero por encima de cursos masivos tipo Domestika ($37-111K COP).</p>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
-          <div className="border border-border bg-card p-6 text-center">
+          <div className="bg-muted p-6 text-center">
             <Badge variant="outline" className="mb-3">Mensual</Badge>
             <div className="font-display text-3xl">$79.900</div>
             <div className="text-sm text-muted-foreground">COP / mes</div>
@@ -168,7 +168,7 @@ function PricingPage() {
               <li>— Cancela cuando quieras</li>
             </ul>
           </div>
-          <div className="border-2 border-foreground bg-card p-6 text-center">
+          <div className="bg-foreground/5 ring-1 ring-foreground/20 p-6 text-center">
             <Badge className="mb-3">Anual: 20% dto.</Badge>
             <div className="font-display text-3xl">$769.000</div>
             <div className="text-sm text-muted-foreground">COP / año ($64.083/mes)</div>
@@ -180,7 +180,7 @@ function PricingPage() {
               <li>— 2,4 meses gratis</li>
             </ul>
           </div>
-          <div className="border border-border bg-card p-6 text-center">
+          <div className="bg-muted p-6 text-center">
             <Badge variant="outline" className="mb-3">Curso Individual</Badge>
             <div className="font-display text-3xl">$149.900</div>
             <div className="text-sm text-muted-foreground">COP / curso</div>
@@ -198,7 +198,7 @@ function PricingPage() {
         <h2 className="font-display text-h2 mb-4">Análisis de Rentabilidad</h2>
         <Separator className="mb-4" />
         <p className="text-muted-foreground mb-4">Supuestos: 60% suscriptores mensuales, 25% anuales, 15% compradores individuales. Ingreso promedio ponderado: <strong>$18,30 USD/mes ($67.710 COP/mes)</strong>.</p>
-        <div className="border border-border mb-4">
+        <div className="mb-4">
           <Table>
             <TableHeader>
               <TableRow className="bg-muted hover:bg-muted">
@@ -231,7 +231,7 @@ function PricingPage() {
         {/* Free tiers */}
         <h2 className="font-display text-h2 mb-4">Duración de los Planes Gratuitos</h2>
         <Separator className="mb-4" />
-        <div className="border border-border mb-4">
+        <div className="mb-4">
           <Table>
             <TableHeader>
               <TableRow className="bg-muted hover:bg-muted">
@@ -262,7 +262,7 @@ function PricingPage() {
         {/* Milestones */}
         <h2 className="font-display text-h2 mb-4">Hitos de Escala y Acciones Requeridas</h2>
         <Separator className="mb-4" />
-        <div className="border border-border mb-12">
+        <div className="mb-12">
           <Table>
             <TableHeader>
               <TableRow className="bg-muted hover:bg-muted">

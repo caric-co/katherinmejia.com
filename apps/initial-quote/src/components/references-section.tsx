@@ -77,7 +77,7 @@ export function ReferencesSection() {
         ))}
       </div>
 
-      <div className="mt-4 p-4 border border-border bg-muted">
+      <div className="mt-4 p-4 bg-muted">
         <p className="text-sm text-muted-foreground">
           <strong className="text-foreground">
             Elementos comunes a replicar:
