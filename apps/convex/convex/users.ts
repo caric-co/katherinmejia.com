@@ -1,0 +1,109 @@
+import { v } from "convex/values"
+import { query, mutation, internalMutation } from "./_generated/server"
+
+export const getByEmail = query({
+  args: { email: v.string() },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", args.email))
+      .first()
+  },
+})
+
+export const getById = query({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    return await ctx.db.get(args.userId)
+  },
+})
+
+export const list = query({
+  args: {
+    search: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    let users = await ctx.db.query("users").collect()
+    if (args.search) {
+      const term = args.search.toLowerCase()
+      users = users.filter(
+        (u) =>
+          u.name.toLowerCase().includes(term) ||
+          u.email.toLowerCase().includes(term)
+      )
+    }
+    return users
+  },
+})
+
+export const updateProfile = mutation({
+  args: {
+    userId: v.id("users"),
+    name: v.optional(v.string()),
+    avatar: v.optional(v.string()),
+    locale: v.optional(v.union(v.literal("es"), v.literal("en"))),
+  },
+  handler: async (ctx, args) => {
+    const { userId, ...updates } = args
+    const filtered = Object.fromEntries(
+      Object.entries(updates).filter(([, val]) => val !== undefined)
+    )
+    if (Object.keys(filtered).length > 0) {
+      await ctx.db.patch(userId, filtered)
+    }
+  },
+})
+
+export const setRole = mutation({
+  args: {
+    userId: v.id("users"),
+    role: v.union(v.literal("student"), v.literal("admin")),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.userId, { role: args.role })
+  },
+})
+
+export const blockUser = mutation({
+  args: {
+    userId: v.id("users"),
+    isBlocked: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.userId, { isBlocked: args.isBlocked })
+  },
+})
+
+export const upsertFromAuth = internalMutation({
+  args: {
+    email: v.string(),
+    name: v.string(),
+    authProvider: v.union(
+      v.literal("email"),
+      v.literal("google"),
+      v.literal("apple")
+    ),
+    avatar: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", args.email))
+      .first()
+
+    if (existing) {
+      return existing._id
+    }
+
+    return await ctx.db.insert("users", {
+      email: args.email,
+      name: args.name,
+      role: "student",
+      authProvider: args.authProvider,
+      avatar: args.avatar,
+      locale: "es",
+      isBlocked: false,
+      createdAt: Date.now(),
+    })
+  },
+})

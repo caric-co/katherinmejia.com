@@ -3,10 +3,10 @@
   "private": true,
   "packageManager": "pnpm@10.11.0",
   "scripts": {
-    "dev": "turbo dev",
-    "dev:web": "turbo dev --filter=@kmakeup/web",
-    "dev:convex": "turbo dev --filter=@repo/convex",
-    "dev:quote": "turbo dev --filter=@kmakeup/initial-quote",
+    "dev": "turbo dev --ui tui",
+    "dev:web": "turbo dev --filter=@kmakeup/web --ui tui",
+    "dev:convex": "turbo dev --filter=@repo/convex --ui tui",
+    "dev:quote": "turbo dev --filter=@kmakeup/initial-quote --ui tui",
     "build": "turbo build",
     "typecheck": "turbo typecheck",
     "lint": "turbo lint"
