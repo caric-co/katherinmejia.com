@@ -23,9 +23,10 @@ function CourseDetailPage() {
   const { i18n } = useTranslation()
   const locale = i18n.language as "es" | "en"
   const course = useQuery(api.courses.getBySlug, { slug })
-  const lessons = course
-    ? useQuery(api.lessons.listByCourse, { courseId: course._id })
-    : undefined
+  const lessons = useQuery(
+    api.lessons.listByCourse,
+    course ? { courseId: course._id } : "skip"
+  )
 
   if (course === undefined) {
     return (

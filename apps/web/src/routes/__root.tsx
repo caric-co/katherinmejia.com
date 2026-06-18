@@ -16,7 +16,11 @@ import "#/lib/i18n"
 import appCss from "#/styles.css?url"
 
 const getAuth = createServerFn({ method: "GET" }).handler(async () => {
-  return await getToken()
+  try {
+    return await getToken()
+  } catch {
+    return undefined
+  }
 })
 
 export const Route = createRootRouteWithContext<{
