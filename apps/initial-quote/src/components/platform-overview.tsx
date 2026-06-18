@@ -121,7 +121,7 @@ export function PlatformOverview() {
               {cap.items.map((item) => (
                 <li
                   key={item}
-                  className="text-sm text-muted-foreground flex items-start gap-2"
+                  className="text-muted-foreground flex items-start gap-2"
                 >
                   <span className="text-foreground mt-1 shrink-0">—</span>
                   {item}

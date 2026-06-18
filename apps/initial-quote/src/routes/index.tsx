@@ -88,7 +88,7 @@ function IndexPage() {
                       <h3 className="text-body font-semibold group-hover:opacity-70 transition-opacity">
                         {item.title}
                       </h3>
-                      <p className="text-sm text-muted-foreground mt-1">
+                      <p className="text-muted-foreground mt-1">
                         {item.description}
                       </p>
                     </div>

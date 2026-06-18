@@ -108,7 +108,7 @@ function PricingPage() {
             <div key={s.name} className="bg-muted p-5">
               <h3 className="font-semibold">{s.name} <span className="font-normal text-muted-foreground text-sm">{s.desc}</span></h3>
               <p className="mt-1"><strong>{s.detail.split(".")[0]}.</strong></p>
-              <p className="text-sm text-muted-foreground mt-1">{s.sub}</p>
+              <p className="text-muted-foreground mt-1">{s.sub}</p>
             </div>
           ))}
         </div>
@@ -161,7 +161,7 @@ function PricingPage() {
             <div className="font-display text-3xl">$79.900</div>
             <div className="text-sm text-muted-foreground">COP / mes</div>
             <div className="text-xs text-muted-foreground mt-1">~$21,59 USD</div>
-            <ul className="text-left text-sm text-muted-foreground mt-4 space-y-1">
+            <ul className="text-left text-muted-foreground mt-4 space-y-1">
               <li>— Acceso a todos los cursos</li>
               <li>— Transmisiones en vivo</li>
               <li>— Contenido nuevo mensual</li>
@@ -173,7 +173,7 @@ function PricingPage() {
             <div className="font-display text-3xl">$769.000</div>
             <div className="text-sm text-muted-foreground">COP / año ($64.083/mes)</div>
             <div className="text-xs text-muted-foreground mt-1">~$207,84 USD/año ($17,32/mes)</div>
-            <ul className="text-left text-sm text-muted-foreground mt-4 space-y-1">
+            <ul className="text-left text-muted-foreground mt-4 space-y-1">
               <li>— Todo lo del plan mensual</li>
               <li>— Ahorro de $189.800/año</li>
               <li>— Acceso prioritario a lives</li>
@@ -185,7 +185,7 @@ function PricingPage() {
             <div className="font-display text-3xl">$149.900</div>
             <div className="text-sm text-muted-foreground">COP / curso</div>
             <div className="text-xs text-muted-foreground mt-1">~$40,51 USD</div>
-            <ul className="text-left text-sm text-muted-foreground mt-4 space-y-1">
+            <ul className="text-left text-muted-foreground mt-4 space-y-1">
               <li>— Acceso permanente al curso</li>
               <li>— Sin acceso a otros cursos</li>
               <li>— Sin transmisiones en vivo</li>

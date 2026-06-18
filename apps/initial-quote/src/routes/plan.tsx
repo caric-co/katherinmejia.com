@@ -230,7 +230,7 @@ function PlanPage() {
                   <div className="px-4 pb-4 pt-0">
                     <ul className="space-y-2 ml-11">
                       {p.items.map((item, i) => (
-                        <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
+                        <li key={i} className="text-muted-foreground flex items-start gap-2">
                           <span className="text-foreground shrink-0 mt-0.5">—</span>
                           {item}
                         </li>
@@ -252,7 +252,7 @@ function PlanPage() {
               <span className="text-lg shrink-0">{icon}</span>
               <div>
                 <p className="font-semibold">{title}</p>
-                <p className="text-sm text-muted-foreground mt-0.5">{desc}</p>
+                <p className="text-muted-foreground mt-0.5">{desc}</p>
               </div>
             </div>
           ))}

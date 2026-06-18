@@ -56,7 +56,7 @@ export function TechStackSection() {
             </h3>
             <ul className="space-y-1">
               {group.items.map((item) => (
-                <li key={item} className="text-sm text-muted-foreground">
+                <li key={item} className="text-muted-foreground">
                   {item}
                 </li>
               ))}

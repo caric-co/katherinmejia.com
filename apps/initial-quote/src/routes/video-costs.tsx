@@ -219,7 +219,7 @@ function VideoCostsPage() {
                   </TableBody>
                 </Table>
               </div>
-              <p className="text-sm text-muted-foreground">{p.note}</p>
+              <p className="text-muted-foreground">{p.note}</p>
             </div>
           ))}
         </div>
@@ -232,7 +232,7 @@ function VideoCostsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
           <div className="bg-muted p-5">
             <h3 className="font-semibold mb-3">Reducir Ancho de Banda</h3>
-            <ul className="space-y-1.5 text-sm text-muted-foreground">
+            <ul className="space-y-1.5 text-muted-foreground">
               <li>— Limitar a 720p + 1080p (sin 4K): ahorro ~20-30%</li>
               <li>— H.265/HEVC: 30-50% más pequeño que H.264</li>
               <li>— Tutoriales de maquillaje son mayormente estáticos: CRF encoding produce archivos más pequeños</li>
@@ -242,7 +242,7 @@ function VideoCostsPage() {
           </div>
           <div className="bg-muted p-5">
             <h3 className="font-semibold mb-3">Protección de Contenido</h3>
-            <ul className="space-y-1.5 text-sm text-muted-foreground">
+            <ul className="space-y-1.5 text-muted-foreground">
               <li>— URLs firmadas con expiración (4-24 horas): previene compartir enlaces</li>
               <li>— Restricción por dominio: previene incrustación externa</li>
               <li>— Tokens vinculados a IP (cuidado con redes móviles)</li>

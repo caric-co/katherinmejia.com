@@ -66,7 +66,7 @@ export function ReferencesSection() {
               {ref.highlights.map((h) => (
                 <li
                   key={h}
-                  className="text-sm text-muted-foreground flex items-start gap-2"
+                  className="text-muted-foreground flex items-start gap-2"
                 >
                   <span className="text-foreground mt-1 shrink-0">—</span>
                   {h}
@@ -78,7 +78,7 @@ export function ReferencesSection() {
       </div>
 
       <div className="mt-4 p-4 bg-muted">
-        <p className="text-sm text-muted-foreground">
+        <p className="text-muted-foreground">
           <strong className="text-foreground">
             Elementos comunes a replicar:
           </strong>{" "}
