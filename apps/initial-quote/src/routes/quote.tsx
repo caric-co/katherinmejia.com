@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { useState } from "react"
+import { useState, useCallback } from "react"
 import { ArrowLeft } from "lucide-react"
 import { Button } from "@repo/ui/components/button"
 import { QuoteHeader } from "#/components/quote-header"
@@ -17,7 +17,16 @@ export const Route = createFileRoute("/quote")({
 })
 
 function QuotePage() {
-  const [trm, setTrm] = useState(3700)
+  const [trm, setTrm] = useState(() => {
+    if (typeof window === "undefined") return 3700
+    const saved = localStorage.getItem("kmakeup-trm")
+    return saved ? parseFloat(saved) : 3700
+  })
+
+  const handleTrmChange = useCallback((value: number) => {
+    setTrm(value)
+    localStorage.setItem("kmakeup-trm", value.toString())
+  }, [])
 
   return (
     <div className="min-h-screen bg-background">
@@ -30,7 +39,7 @@ function QuotePage() {
         </Link>
 
         <QuoteHeader />
-        <TrmInput trm={trm} onTrmChange={setTrm} />
+        <TrmInput trm={trm} onTrmChange={handleTrmChange} />
         <ReferencesSection />
         <PlatformOverview />
         <FeatureTable />

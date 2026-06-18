@@ -1,9 +1,10 @@
-import { useMemo, useState } from "react"
+import { useMemo, useState, useCallback } from "react"
 import { DataTable, type ColumnDef } from "@repo/ui/components/data-table"
 import { DataTableColumnHeader } from "@repo/ui/components/data-table-column-header"
 import { TableRow, TableCell } from "@repo/ui/components/table"
 import { Button } from "@repo/ui/components/button"
 import { Badge } from "@repo/ui/components/badge"
+import { Copy, Check } from "lucide-react"
 import { serviceCosts, userScales, type ServiceCost } from "../data/quote"
 import { formatUSD, formatCOP, formatNumber } from "../data/format"
 
@@ -192,7 +193,7 @@ export function CostTable({ trm }: CostTableProps) {
 
   return (
     <section className="mb-12">
-      <h2 className="text-2xl font-normal mb-2">
+      <h2 className="font-display text-h2 mb-2">
         Costos de Infraestructura Mensual
       </h2>
       <p className="text-muted-foreground mb-6">
@@ -235,9 +236,12 @@ export function CostTable({ trm }: CostTableProps) {
       )}
 
       <div className="mt-8">
-        <h3 className="text-lg font-semibold mb-3">
-          Escala de Costos Completa (COP)
-        </h3>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-lg font-semibold">
+            Escala de Costos Completa (COP)
+          </h3>
+          <CopyCSVButton trm={trm} />
+        </div>
         <DataTable
           columns={scaleColumns}
           data={billableServices}
@@ -251,5 +255,53 @@ export function CostTable({ trm }: CostTableProps) {
         </p>
       </div>
     </section>
+  )
+}
+
+function CopyCSVButton({ trm }: { trm: number }) {
+  const [copied, setCopied] = useState(false)
+
+  const handleCopy = useCallback(() => {
+    const billable = serviceCosts.filter(
+      (s) => s.required && s.unit !== "comisión/tx" && s.unit !== "gratuito"
+    )
+    const header = ["Servicio", ...userScales.map((s) => `${formatNumber(s)} usuarios`)]
+    const rows = billable.map((s) => [
+      s.name,
+      ...userScales.map((scale) => {
+        const raw = s.monthlyCost[scale] ?? 0
+        const cop = s.currency === "USD" ? raw * trm : raw
+        return cop.toString()
+      }),
+    ])
+    const totals = [
+      "Total",
+      ...userScales.map((scale) =>
+        billable
+          .reduce((sum, s) => {
+            const raw = s.monthlyCost[scale] ?? 0
+            return sum + (s.currency === "USD" ? raw * trm : raw)
+          }, 0)
+          .toString()
+      ),
+    ]
+    const csv = [header, ...rows, totals]
+      .map((row) => row.map((cell) => `"${cell}"`).join(","))
+      .join("\n")
+
+    navigator.clipboard.writeText(csv)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }, [trm])
+
+  return (
+    <Button variant="outline" size="sm" onClick={handleCopy}>
+      {copied ? (
+        <Check data-icon="inline-start" className="size-3.5" />
+      ) : (
+        <Copy data-icon="inline-start" className="size-3.5" />
+      )}
+      {copied ? "Copiado" : "Copiar CSV"}
+    </Button>
   )
 }

@@ -28,7 +28,7 @@ const references = [
 export function ReferencesSection() {
   return (
     <section className="mb-12">
-      <h2 className="text-2xl font-normal mb-2">Referencias de Diseño</h2>
+      <h2 className="font-display text-h2 mb-2">Referencias de Diseño</h2>
       <p className="text-muted-foreground mb-6">
         El sitio de marca personal se desarrollará tomando como referencia estos
         proyectos premiados en Awwwards, ambos pertenecientes al sector de

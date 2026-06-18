@@ -1,26 +1,18 @@
+import { useState } from "react"
 import { DataTable, type ColumnDef } from "@repo/ui/components/data-table"
 import { DataTableColumnHeader } from "@repo/ui/components/data-table-column-header"
-import { TableRow, TableCell } from "@repo/ui/components/table"
 import { features, type QuoteFeature } from "../data/quote"
 import { Badge } from "@repo/ui/components/badge"
-
-const complexityVariant = {
-  low: "outline" as const,
-  medium: "outline" as const,
-  high: "outline" as const,
-};
+import { ChevronDown } from "lucide-react"
 
 const complexityColor = {
   low: "text-foreground/70 border-border bg-secondary",
   medium: "text-foreground/80 border-peach bg-peach/20",
   high: "text-destructive border-destructive/30 bg-destructive/5",
-};
+}
 
-const complexityLabel = {
-  low: "Baja",
-  medium: "Media",
-  high: "Alta",
-};
+const complexityLabel = { low: "Baja", medium: "Media", high: "Alta" }
+const phaseLabels = { 1: "MVP", 2: "Crecimiento", 3: "Futuro" } as const
 
 const columns: ColumnDef<QuoteFeature>[] = [
   {
@@ -39,31 +31,10 @@ const columns: ColumnDef<QuoteFeature>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "phase",
-    header: ({ column }) => (
-      <DataTableColumnHeader
-        column={column}
-        title="Fase"
-        className="justify-center"
-      />
-    ),
-    cell: ({ row }) => (
-      <div className="text-center">
-        <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-accent text-xs font-semibold">
-          {row.original.phase}
-        </span>
-      </div>
-    ),
-  },
-  {
     id: "hours",
     accessorFn: (row) => row.estimatedHours.min,
     header: ({ column }) => (
-      <DataTableColumnHeader
-        column={column}
-        title="Horas Est."
-        className="justify-center"
-      />
+      <DataTableColumnHeader column={column} title="Horas Est." className="justify-center" />
     ),
     cell: ({ row }) => (
       <div className="text-center font-mono">
@@ -74,30 +45,33 @@ const columns: ColumnDef<QuoteFeature>[] = [
   {
     accessorKey: "complexity",
     header: ({ column }) => (
-      <DataTableColumnHeader
-        column={column}
-        title="Complejidad"
-        className="justify-center"
-      />
+      <DataTableColumnHeader column={column} title="Complejidad" className="justify-center" />
     ),
     cell: ({ row }) => {
-      const c = row.original.complexity;
+      const c = row.original.complexity
       return (
         <div className="text-center">
-          <Badge
-            variant={complexityVariant[c]}
-            className={complexityColor[c]}
-          >
+          <Badge variant="outline" className={complexityColor[c]}>
             {complexityLabel[c]}
           </Badge>
         </div>
-      );
+      )
     },
   },
-];
+]
 
 export function FeatureTable() {
-  const phases = [1, 2, 3] as const;
+  const phases = [1, 2, 3] as const
+  const [openPhases, setOpenPhases] = useState<Set<number>>(new Set([1]))
+
+  const togglePhase = (phase: number) => {
+    setOpenPhases((prev) => {
+      const next = new Set(prev)
+      if (next.has(phase)) next.delete(phase)
+      else next.add(phase)
+      return next
+    })
+  }
 
   const totalHours = features.reduce(
     (acc, f) => ({
@@ -105,15 +79,15 @@ export function FeatureTable() {
       max: acc.max + f.estimatedHours.max,
     }),
     { min: 0, max: 0 }
-  );
+  )
 
   return (
     <section className="mb-12">
-      <h2 className="text-2xl font-normal mb-6">Alcance y Estimación</h2>
+      <h2 className="font-display text-h2 mb-6">Alcance y Estimación</h2>
 
       {phases.map((phase) => {
-        const phaseFeatures = features.filter((f) => f.phase === phase);
-        if (phaseFeatures.length === 0) return null;
+        const phaseFeatures = features.filter((f) => f.phase === phase)
+        if (phaseFeatures.length === 0) return null
 
         const phaseHours = phaseFeatures.reduce(
           (acc, f) => ({
@@ -121,29 +95,43 @@ export function FeatureTable() {
             max: acc.max + f.estimatedHours.max,
           }),
           { min: 0, max: 0 }
-        );
+        )
 
-        const phaseLabel =
-          phase === 1 ? "MVP" : phase === 2 ? "Crecimiento" : "Futuro";
+        const isOpen = openPhases.has(phase)
 
         return (
-          <div key={phase} className="mb-8">
-            <h3 className="text-lg font-semibold mb-3 flex items-center gap-3">
-              <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-accent text-foreground text-sm font-bold">
+          <div key={phase} className="mb-3">
+            <button
+              onClick={() => togglePhase(phase)}
+              className="w-full text-left flex items-center gap-3 py-3 px-1 cursor-pointer hover:opacity-80 transition-opacity"
+            >
+              <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-accent text-foreground text-sm font-bold shrink-0">
                 {phase}
               </span>
-              Fase {phase} — {phaseLabel}
-              <span className="text-sm font-normal text-muted-foreground ml-auto font-mono">
-                {phaseHours.min}–{phaseHours.max} horas
+              <span className="text-lg font-semibold flex-1">
+                Fase {phase}: {phaseLabels[phase]}
               </span>
-            </h3>
-            <DataTable
-              columns={columns}
-              data={phaseFeatures}
-              emptyMessage="Sin funcionalidades en esta fase."
-            />
+              <span className="text-sm text-muted-foreground font-mono mr-3">
+                {phaseHours.min}–{phaseHours.max}h
+              </span>
+              <span className="text-xs text-muted-foreground mr-2">
+                {phaseFeatures.length} items
+              </span>
+              <ChevronDown
+                className={`size-4 text-muted-foreground transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+              />
+            </button>
+            {isOpen && (
+              <div className="mt-1 mb-4">
+                <DataTable
+                  columns={columns}
+                  data={phaseFeatures}
+                  emptyMessage="Sin funcionalidades en esta fase."
+                />
+              </div>
+            )}
           </div>
-        );
+        )
       })}
 
       <div className="mt-6 p-4 rounded-lg bg-muted border border-border">
@@ -157,5 +145,5 @@ export function FeatureTable() {
         </div>
       </div>
     </section>
-  );
+  )
 }

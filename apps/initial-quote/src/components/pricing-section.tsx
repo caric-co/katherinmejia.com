@@ -113,7 +113,7 @@ export function PricingSection() {
 
   return (
     <section className="mb-12">
-      <h2 className="text-2xl font-normal mb-2">Inversión del Proyecto</h2>
+      <h2 className="font-display text-h2 mb-2">Inversión del Proyecto</h2>
       <p className="text-muted-foreground mb-6">
         Desglose del valor real del proyecto basado en la tarifa por hora del
         desarrollador. La presente cotización cubre las Fases 1 y 2, con

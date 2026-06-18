@@ -97,7 +97,7 @@ const capabilities = [
 export function PlatformOverview() {
   return (
     <section className="mb-12">
-      <h2 className="text-2xl font-normal mb-2">
+      <h2 className="font-display text-h2 mb-2">
         Funcionalidades de la Plataforma
       </h2>
       <p className="text-muted-foreground mb-6">

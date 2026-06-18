@@ -4,7 +4,7 @@ export function QuoteHeader() {
       <p className="text-sm text-muted-foreground uppercase tracking-widest mb-2">
         Cotización de Proyecto
       </p>
-      <h1 className="text-4xl font-normal tracking-tight mb-3">
+      <h1 className="font-display text-h1 tracking-tight mb-3">
         KMakeup Platform
       </h1>
       <p className="text-muted-foreground max-w-2xl">
