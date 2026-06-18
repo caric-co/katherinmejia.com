@@ -1,0 +1,10 @@
+{
+  "extends": "@repo/config/tsconfig/react.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "paths": {
+      "@repo/utils": ["../utils/src/index.ts"]
+    }
+  },
+  "include": ["src"]
+}

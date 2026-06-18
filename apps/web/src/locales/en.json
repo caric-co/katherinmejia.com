@@ -1,0 +1,21 @@
+{
+  "nav": {
+    "home": "Home",
+    "courses": "Courses",
+    "about": "About",
+    "blog": "Blog",
+    "contact": "Contact",
+    "login": "Sign in",
+    "register": "Sign up"
+  },
+  "hero": {
+    "title": "Katherin Mejia",
+    "subtitle": "Professional Makeup Artist",
+    "cta": "View Courses"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "back": "Back"
+  }
+}

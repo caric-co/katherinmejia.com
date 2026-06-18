@@ -1,17 +1,5 @@
 const references = [
   {
-    name: "Evagher Makeup",
-    website: "https://evagher.com/en",
-    awwwards: "https://www.awwwards.com/sites/evagher-makeup",
-    highlights: [
-      "Animaciones cinematográficas al desplazar",
-      "Galería de trabajos en formato panorámico",
-      "Tipografía en negrita con alto contraste",
-      "Paleta oscura con acentos dorados",
-      "Navegación minimalista",
-    ],
-  },
-  {
     name: "Evamuah",
     website: "https://www.evamuah.com/",
     awwwards: "https://www.awwwards.com/sites/evamuah",
@@ -23,13 +11,25 @@ const references = [
       "Diseño adaptable con prioridad móvil",
     ],
   },
+  {
+    name: "Evagher Makeup",
+    website: "https://evagher.com/en",
+    awwwards: "https://www.awwwards.com/sites/evagher-makeup",
+    highlights: [
+      "Animaciones cinematográficas al desplazar",
+      "Galería de trabajos en formato panorámico",
+      "Tipografía en negrita con alto contraste",
+      "Paleta oscura con acentos dorados",
+      "Navegación minimalista",
+    ],
+  },
 ];
 
 export function ReferencesSection() {
   return (
     <section className="mb-12">
-      <h2 className="text-2xl font-bold mb-2">Referencias de Diseño</h2>
-      <p className="text-text-muted mb-6">
+      <h2 className="text-2xl font-normal mb-2">Referencias de Diseño</h2>
+      <p className="text-muted-foreground mb-6">
         El sitio de marca personal se desarrollará tomando como referencia estos
         proyectos premiados en Awwwards, ambos pertenecientes al sector de
         maquillaje profesional.
@@ -39,15 +39,17 @@ export function ReferencesSection() {
         {references.map((ref) => (
           <div
             key={ref.name}
-            className="rounded-lg border border-border p-5 bg-surface-raised"
+            className="rounded-lg border border-border p-5 bg-card"
           >
-            <h3 className="font-semibold text-lg mb-1">{ref.name}</h3>
+            <h3 className="font-semibold text-lg mb-1">
+              {ref.name}
+            </h3>
             <div className="flex gap-3 mb-4 text-xs">
               <a
                 href={ref.website}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-brand hover:underline"
+                className="text-foreground underline underline-offset-2 hover:opacity-70"
               >
                 Sitio web
               </a>
@@ -55,7 +57,7 @@ export function ReferencesSection() {
                 href={ref.awwwards}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-brand hover:underline"
+                className="text-foreground underline underline-offset-2 hover:opacity-70"
               >
                 Awwwards
               </a>
@@ -64,9 +66,9 @@ export function ReferencesSection() {
               {ref.highlights.map((h) => (
                 <li
                   key={h}
-                  className="text-sm text-text-muted flex items-start gap-2"
+                  className="text-sm text-muted-foreground flex items-start gap-2"
                 >
-                  <span className="text-brand mt-1 shrink-0">—</span>
+                  <span className="text-foreground mt-1 shrink-0">—</span>
                   {h}
                 </li>
               ))}
@@ -75,12 +77,14 @@ export function ReferencesSection() {
         ))}
       </div>
 
-      <div className="mt-4 p-4 rounded-lg border border-border bg-surface-overlay">
-        <p className="text-sm text-text-muted">
-          <strong className="text-text">Elementos comunes a replicar:</strong>{" "}
+      <div className="mt-4 p-4 rounded-lg border border-border bg-muted">
+        <p className="text-sm text-muted-foreground">
+          <strong className="text-foreground">
+            Elementos comunes a replicar:
+          </strong>{" "}
           animaciones al desplazar, tipografía de alto impacto, fotografía
-          profesional como protagonista, navegación minimalista, paleta oscura
-          con acentos de color, transiciones fluidas entre secciones y diseño
+          profesional como protagonista, navegación minimalista, paleta cálida
+          con acentos suaves, transiciones fluidas entre secciones y diseño
           adaptable con prioridad móvil.
         </p>
       </div>

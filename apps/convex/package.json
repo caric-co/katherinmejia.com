@@ -1,0 +1,14 @@
+{
+  "name": "@repo/convex",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "convex dev",
+    "deploy": "convex deploy"
+  },
+  "dependencies": {
+    "@convex-dev/better-auth": "latest",
+    "better-auth": "~1.6.15",
+    "convex": "latest"
+  }
+}

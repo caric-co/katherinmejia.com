@@ -1,0 +1,21 @@
+{
+  "nav": {
+    "home": "Inicio",
+    "courses": "Cursos",
+    "about": "Sobre mí",
+    "blog": "Blog",
+    "contact": "Contacto",
+    "login": "Iniciar sesión",
+    "register": "Registrarse"
+  },
+  "hero": {
+    "title": "Katherin Mejia",
+    "subtitle": "Maquilladora Profesional",
+    "cta": "Ver Cursos"
+  },
+  "common": {
+    "loading": "Cargando...",
+    "error": "Ha ocurrido un error",
+    "back": "Volver"
+  }
+}

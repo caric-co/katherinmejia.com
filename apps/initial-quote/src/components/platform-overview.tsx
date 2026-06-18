@@ -97,10 +97,10 @@ const capabilities = [
 export function PlatformOverview() {
   return (
     <section className="mb-12">
-      <h2 className="text-2xl font-bold mb-2">
+      <h2 className="text-2xl font-normal mb-2">
         Funcionalidades de la Plataforma
       </h2>
-      <p className="text-text-muted mb-6">
+      <p className="text-muted-foreground mb-6">
         Descripción detallada de las capacidades que ofrecerá la plataforma,
         tanto para Katherin (administradora) como para sus estudiantes.
       </p>
@@ -109,10 +109,10 @@ export function PlatformOverview() {
         {capabilities.map((cap) => (
           <div
             key={cap.area}
-            className="rounded-lg border border-border p-5 bg-surface-raised"
+            className="rounded-lg border border-border p-5 bg-card"
           >
             <div className="flex items-center gap-3 mb-3">
-              <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-brand/20 text-brand text-xs font-bold">
+              <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-accent text-foreground text-xs font-bold">
                 {cap.icon}
               </span>
               <h3 className="font-semibold">{cap.area}</h3>
@@ -121,9 +121,9 @@ export function PlatformOverview() {
               {cap.items.map((item) => (
                 <li
                   key={item}
-                  className="text-sm text-text-muted flex items-start gap-2"
+                  className="text-sm text-muted-foreground flex items-start gap-2"
                 >
-                  <span className="text-brand mt-1 shrink-0">—</span>
+                  <span className="text-foreground mt-1 shrink-0">—</span>
                   {item}
                 </li>
               ))}

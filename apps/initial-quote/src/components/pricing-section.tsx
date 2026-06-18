@@ -1,5 +1,7 @@
-import { features } from "../data/quote";
-import { formatCOP } from "../data/format";
+import { DataTable, type ColumnDef } from "@repo/ui/components/data-table"
+import { TableRow, TableCell } from "@repo/ui/components/table"
+import { features } from "../data/quote"
+import { formatCOP } from "../data/format"
 
 const MONTHLY_SALARY = 29_000_000;
 const HOURS_PER_MONTH = 160;
@@ -15,10 +17,55 @@ const phaseLabels: Record<number, string> = {
   3: "Fase 3 — Futuro",
 };
 
+interface PhaseRow {
+  phase: number;
+  label: string;
+  hoursMin: number;
+  hoursMax: number;
+  costMin: number;
+  costMax: number;
+  included: boolean;
+}
+
+const columns: ColumnDef<PhaseRow>[] = [
+  {
+    accessorKey: "label",
+    header: "Fase",
+    cell: ({ row }) => (
+      <span className={`font-medium ${row.original.included ? "" : "opacity-40"}`}>
+        {row.original.label}
+        {!row.original.included && (
+          <span className="ml-2 text-xs text-muted-foreground font-normal">
+            (no incluida)
+          </span>
+        )}
+      </span>
+    ),
+  },
+  {
+    id: "hours",
+    header: () => <div className="text-center">Horas</div>,
+    cell: ({ row }) => (
+      <div className={`text-center font-mono ${row.original.included ? "" : "opacity-40"}`}>
+        {row.original.hoursMin}–{row.original.hoursMax}h
+      </div>
+    ),
+  },
+  {
+    id: "cost",
+    header: () => <div className="text-right">Valor estimado (COP)</div>,
+    cell: ({ row }) => (
+      <div className={`text-right font-mono ${row.original.included ? "" : "opacity-40"}`}>
+        {formatCOP(row.original.costMin)} – {formatCOP(row.original.costMax)}
+      </div>
+    ),
+  },
+];
+
 export function PricingSection() {
   const allPhases = [...INCLUDED_PHASES, ...FUTURE_PHASES] as const;
 
-  const phaseBreakdown = allPhases.map((phase) => {
+  const phaseData: PhaseRow[] = allPhases.map((phase) => {
     const phaseFeatures = features.filter((f) => f.phase === phase);
     const hours = phaseFeatures.reduce(
       (acc, f) => ({
@@ -31,20 +78,18 @@ export function PricingSection() {
     return {
       phase,
       label: phaseLabels[phase],
-      hours,
+      hoursMin: hours.min,
+      hoursMax: hours.max,
       costMin: hours.min * HOURLY_RATE,
       costMax: hours.max * HOURLY_RATE,
       included,
     };
   });
 
-  const includedBreakdown = phaseBreakdown.filter((p) => p.included);
+  const includedData = phaseData.filter((p) => p.included);
 
-  const includedHours = includedBreakdown.reduce(
-    (acc, p) => ({
-      min: acc.min + p.hours.min,
-      max: acc.max + p.hours.max,
-    }),
+  const includedHours = includedData.reduce(
+    (acc, p) => ({ min: acc.min + p.hoursMin, max: acc.max + p.hoursMax }),
     { min: 0, max: 0 }
   );
 
@@ -54,112 +99,74 @@ export function PricingSection() {
   const discountPercent =
     ((avgIncludedCost - FINAL_PRICE) / avgIncludedCost) * 100;
 
+  const footerRow = (
+    <TableRow className="bg-muted font-semibold">
+      <TableCell>Valor cotizado (Fases 1 y 2)</TableCell>
+      <TableCell className="text-center font-mono">
+        {includedHours.min}–{includedHours.max}h
+      </TableCell>
+      <TableCell className="text-right font-mono">
+        {formatCOP(includedCostMin)} – {formatCOP(includedCostMax)}
+      </TableCell>
+    </TableRow>
+  );
+
   return (
     <section className="mb-12">
-      <h2 className="text-2xl font-bold mb-2">Inversión del Proyecto</h2>
-      <p className="text-text-muted mb-6">
+      <h2 className="text-2xl font-normal mb-2">Inversión del Proyecto</h2>
+      <p className="text-muted-foreground mb-6">
         Desglose del valor real del proyecto basado en la tarifa por hora del
         desarrollador. La presente cotización cubre las Fases 1 y 2, con
         descuento de socio aplicado. La Fase 3 se cotizará por separado.
       </p>
 
       <div className="rounded-lg border border-border overflow-hidden mb-6">
-        <div className="bg-surface-overlay px-4 py-3 border-b border-border">
+        <div className="bg-muted px-4 py-3 border-b border-border">
           <div className="flex justify-between items-center text-sm">
-            <span className="text-text-muted">Tarifa base por hora</span>
+            <span className="text-muted-foreground">Tarifa base por hora</span>
             <span className="font-mono font-semibold">
               {formatCOP(HOURLY_RATE)}/h
             </span>
           </div>
-          <p className="text-[10px] text-text-muted mt-1">
+          <p className="text-xs text-muted-foreground mt-1">
             Calculada sobre salario de {formatCOP(MONTHLY_SALARY)}/mes ÷{" "}
             {HOURS_PER_MONTH} horas laborales
           </p>
         </div>
 
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="bg-surface-overlay text-text-muted text-xs uppercase tracking-wider">
-              <th className="text-left py-2.5 px-4 font-medium">Fase</th>
-              <th className="text-center py-2.5 px-4 font-medium w-28">
-                Horas
-              </th>
-              <th className="text-right py-2.5 px-4 font-medium w-52">
-                Valor estimado (COP)
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {phaseBreakdown.map((p) => (
-              <tr
-                key={p.phase}
-                className={`border-b border-border transition-colors ${
-                  p.included
-                    ? "hover:bg-surface-raised"
-                    : "opacity-40"
-                }`}
-              >
-                <td className="py-3 px-4 font-medium">
-                  {p.label}
-                  {!p.included && (
-                    <span className="ml-2 text-[10px] text-text-muted font-normal">
-                      (no incluida)
-                    </span>
-                  )}
-                </td>
-                <td className="py-3 px-4 text-center font-mono text-text-muted">
-                  {p.hours.min}–{p.hours.max}h
-                </td>
-                <td className="py-3 px-4 text-right font-mono">
-                  {formatCOP(p.costMin)} – {formatCOP(p.costMax)}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-          <tfoot>
-            <tr className="bg-surface-overlay font-semibold border-t border-border">
-              <td className="py-3 px-4">
-                Valor cotizado (Fases 1 y 2)
-              </td>
-              <td className="py-3 px-4 text-center font-mono">
-                {includedHours.min}–{includedHours.max}h
-              </td>
-              <td className="py-3 px-4 text-right font-mono">
-                {formatCOP(includedCostMin)} – {formatCOP(includedCostMax)}
-              </td>
-            </tr>
-          </tfoot>
-        </table>
+        <DataTable columns={columns} data={phaseData} footer={footerRow} />
       </div>
 
       <div className="rounded-lg border border-border overflow-hidden">
         <div className="divide-y divide-border">
           <div className="flex justify-between items-center px-4 py-3">
-            <span className="text-sm text-text-muted">
+            <span className="text-sm text-muted-foreground">
               Valor promedio estimado (Fases 1 y 2)
             </span>
             <span className="font-mono text-sm">
               {formatCOP(avgIncludedCost)}
             </span>
           </div>
-          <div className="flex justify-between items-center px-4 py-3 bg-success/5">
-            <span className="text-sm text-success font-medium">
+          <div className="flex justify-between items-center px-4 py-3 bg-accent">
+            <span className="text-sm text-accent-foreground font-medium">
               Descuento de socio ({discountPercent.toFixed(1)}%)
             </span>
-            <span className="font-mono text-sm text-success">
+            <span className="font-mono text-sm text-accent-foreground">
               −{formatCOP(avgIncludedCost - FINAL_PRICE)}
             </span>
           </div>
-          <div className="flex justify-between items-center px-4 py-4 bg-surface-overlay">
-            <span className="font-bold text-lg">Precio final acordado</span>
-            <span className="font-mono font-bold text-2xl text-brand">
+          <div className="flex justify-between items-center px-4 py-4 bg-muted">
+            <span className="font-bold text-lg">
+              Precio final acordado
+            </span>
+            <span className="font-mono font-bold text-2xl">
               {formatCOP(FINAL_PRICE)}
             </span>
           </div>
         </div>
       </div>
 
-      <p className="text-xs text-text-muted mt-3">
+      <p className="text-xs text-muted-foreground mt-3">
         * La Fase 3 (Asistente de Redes Sociales, Certificados, Programa de
         Referidos) será cotizada de forma independiente una vez concluidas las
         Fases 1 y 2.
