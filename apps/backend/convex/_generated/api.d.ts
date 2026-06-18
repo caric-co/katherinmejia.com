@@ -10,12 +10,14 @@
 
 import type * as access from "../access.js";
 import type * as auth from "../auth.js";
+import type * as blogPosts from "../blogPosts.js";
 import type * as courses from "../courses.js";
 import type * as http from "../http.js";
 import type * as invitations from "../invitations.js";
 import type * as lessons from "../lessons.js";
+import type * as purchases from "../purchases.js";
 import type * as seed from "../seed.js";
-import type * as seedImages from "../seedImages.js";
+import type * as siteContent from "../siteContent.js";
 import type * as users from "../users.js";
 
 import type {
@@ -27,12 +29,14 @@ import type {
 declare const fullApi: ApiFromModules<{
   access: typeof access;
   auth: typeof auth;
+  blogPosts: typeof blogPosts;
   courses: typeof courses;
   http: typeof http;
   invitations: typeof invitations;
   lessons: typeof lessons;
+  purchases: typeof purchases;
   seed: typeof seed;
-  seedImages: typeof seedImages;
+  siteContent: typeof siteContent;
   users: typeof users;
 }>;
 

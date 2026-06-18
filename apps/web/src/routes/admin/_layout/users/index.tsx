@@ -41,7 +41,11 @@ function UsersListPage() {
           <TableBody>
             {users.map((user) => (
               <TableRow key={user._id}>
-                <TableCell className="font-medium">{user.name}</TableCell>
+                <TableCell>
+                  <Link to={`/admin/users/${user._id}`} className="font-medium hover:opacity-70 transition-opacity">
+                    {user.name}
+                  </Link>
+                </TableCell>
                 <TableCell className="text-muted-foreground">{user.email}</TableCell>
                 <TableCell>
                   <Badge variant={user.role === "admin" ? "default" : "outline"}>
