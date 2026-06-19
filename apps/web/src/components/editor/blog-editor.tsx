@@ -1,3 +1,5 @@
+"use client"
+
 import {
   EditorRoot,
   EditorContent,
@@ -8,7 +10,6 @@ import {
   EditorBubble,
   EditorBubbleItem,
   type JSONContent,
-  type EditorInstance,
   StarterKit,
   TiptapLink,
   TiptapImage,
@@ -24,7 +25,7 @@ import {
   createSuggestionItems,
   handleCommandNavigation,
 } from "novel"
-import { useState, forwardRef, useImperativeHandle } from "react"
+import { forwardRef, useImperativeHandle, useRef } from "react"
 import {
   Bold,
   Italic,
@@ -57,7 +58,7 @@ const slashItems = createSuggestionItems([
   {
     title: "Título 1",
     description: "Título grande",
-    searchTerms: ["title", "h1", "heading"],
+    searchTerms: ["title", "h1"],
     icon: <Heading1 className="size-4" />,
     command: ({ editor, range }) => {
       editor.chain().focus().deleteRange(range).setNode("heading", { level: 1 }).run()
@@ -102,7 +103,7 @@ const slashItems = createSuggestionItems([
   {
     title: "Lista de tareas",
     description: "Lista con checkboxes",
-    searchTerms: ["todo", "task", "check"],
+    searchTerms: ["todo", "task"],
     icon: <CheckSquare className="size-4" />,
     command: ({ editor, range }) => {
       editor.chain().focus().deleteRange(range).toggleTaskList().run()
@@ -120,7 +121,7 @@ const slashItems = createSuggestionItems([
   {
     title: "Imagen",
     description: "Insertar imagen por URL",
-    searchTerms: ["image", "photo", "img"],
+    searchTerms: ["image", "photo"],
     icon: <Image className="size-4" />,
     command: ({ editor, range }) => {
       editor.chain().focus().deleteRange(range).run()
@@ -129,9 +130,9 @@ const slashItems = createSuggestionItems([
     },
   },
   {
-    title: "YouTube",
+    title: "Video de YouTube",
     description: "Insertar video de YouTube",
-    searchTerms: ["youtube", "video", "embed"],
+    searchTerms: ["youtube", "video"],
     icon: <VideoIcon className="size-4" />,
     command: ({ editor, range }) => {
       editor.chain().focus().deleteRange(range).run()
@@ -142,7 +143,7 @@ const slashItems = createSuggestionItems([
   {
     title: "Separador",
     description: "Línea horizontal",
-    searchTerms: ["hr", "divider", "separator"],
+    searchTerms: ["hr", "divider"],
     icon: <Minus className="size-4" />,
     command: ({ editor, range }) => {
       editor.chain().focus().deleteRange(range).setHorizontalRule().run()
@@ -153,18 +154,18 @@ const slashItems = createSuggestionItems([
 const extensions = [
   StarterKit.configure({
     heading: { levels: [1, 2, 3] },
-    bulletList: { HTMLAttributes: { class: "list-disc ml-4" } },
-    orderedList: { HTMLAttributes: { class: "list-decimal ml-4" } },
-    blockquote: { HTMLAttributes: { class: "border-l-2 border-foreground/20 pl-4 italic" } },
+    bulletList: { HTMLAttributes: { class: "list-disc ml-6 space-y-1" } },
+    orderedList: { HTMLAttributes: { class: "list-decimal ml-6 space-y-1" } },
+    blockquote: { HTMLAttributes: { class: "border-l-2 border-foreground/15 pl-6 italic text-muted-foreground" } },
     codeBlock: false,
     horizontalRule: false,
   }),
   HorizontalRule,
   TiptapLink.configure({
-    HTMLAttributes: { class: "text-foreground underline underline-offset-2" },
+    HTMLAttributes: { class: "text-foreground underline underline-offset-2 hover:opacity-70" },
   }),
   TiptapImage.configure({
-    HTMLAttributes: { class: "w-full max-w-2xl mx-auto my-4" },
+    HTMLAttributes: { class: "w-full max-w-3xl my-6" },
     allowBase64: true,
   }),
   TiptapUnderline,
@@ -174,10 +175,13 @@ const extensions = [
   TaskList,
   TaskItem.configure({ nested: true }),
   Youtube.configure({
-    HTMLAttributes: { class: "w-full aspect-video my-4" },
+    HTMLAttributes: { class: "w-full aspect-video my-6" },
   }),
   Placeholder.configure({
-    placeholder: "Escribe aquí... usa '/' para insertar bloques",
+    placeholder: ({ node }) => {
+      if (node.type.name === "heading") return "Encabezado"
+      return "Escribe aquí o usa '/' para insertar bloques..."
+    },
     includeChildren: true,
   }),
 ]
@@ -190,17 +194,18 @@ export interface BlogEditorRef {
 
 interface BlogEditorProps {
   initialContent?: JSONContent
-  onChange?: (content: JSONContent, text: string, html: string) => void
+  onChange?: (json: JSONContent, text: string, html: string) => void
+  className?: string
 }
 
 export const BlogEditor = forwardRef<BlogEditorRef, BlogEditorProps>(
-  function BlogEditor({ initialContent, onChange }, ref) {
-    const [editor, setEditor] = useState<EditorInstance | null>(null)
+  function BlogEditor({ initialContent, onChange, className }, ref) {
+    const editorInstanceRef = useRef<any>(null)
 
     useImperativeHandle(ref, () => ({
-      getJSON: () => editor?.getJSON(),
-      getHTML: () => editor?.getHTML(),
-      getText: () => editor?.getText(),
+      getJSON: () => editorInstanceRef.current?.getJSON(),
+      getHTML: () => editorInstanceRef.current?.getHTML(),
+      getText: () => editorInstanceRef.current?.getText(),
     }))
 
     return (
@@ -208,23 +213,34 @@ export const BlogEditor = forwardRef<BlogEditorRef, BlogEditorProps>(
         <EditorContent
           initialContent={initialContent}
           extensions={extensions}
-          className="min-h-64 border-b border-input pb-4"
+          className={className}
+          immediatelyRender={false}
           editorProps={{
             handleDOMEvents: {
               keydown: (_view, event) => handleCommandNavigation(event),
             },
             attributes: {
-              class: "prose prose-sm max-w-none focus:outline-none text-foreground [&_h1]:font-display [&_h1]:text-h2 [&_h2]:font-display [&_h2]:text-h3 [&_h3]:font-semibold [&_p]:leading-relaxed [&_img]:rounded-none",
+              class:
+                "max-w-none focus:outline-none min-h-[50vh] " +
+                "[&_h1]:font-display [&_h1]:text-[2rem] [&_h1]:leading-tight [&_h1]:mt-8 [&_h1]:mb-4 " +
+                "[&_h2]:font-display [&_h2]:text-[1.5rem] [&_h2]:leading-tight [&_h2]:mt-6 [&_h2]:mb-3 " +
+                "[&_h3]:font-semibold [&_h3]:text-[1.2rem] [&_h3]:mt-4 [&_h3]:mb-2 " +
+                "[&_p]:leading-relaxed [&_p]:mb-4 " +
+                "[&_img]:rounded-none " +
+                "[&_.is-empty]:before:text-muted-foreground/40 [&_.is-empty]:before:float-left [&_.is-empty]:before:content-[attr(data-placeholder)] [&_.is-empty]:before:pointer-events-none",
             },
           }}
-          onCreate={({ editor }) => setEditor(editor)}
+          onCreate={({ editor }) => {
+            editorInstanceRef.current = editor
+          }}
           onUpdate={({ editor }) => {
+            editorInstanceRef.current = editor
             onChange?.(editor.getJSON(), editor.getText(), editor.getHTML())
           }}
         >
           {/* Slash commands */}
-          <EditorCommand className="z-50 h-auto max-h-80 overflow-y-auto bg-background border border-border shadow-md">
-            <EditorCommandEmpty className="px-3 py-2 text-sm text-muted-foreground">
+          <EditorCommand className="z-50 h-auto max-h-80 overflow-y-auto bg-card border border-border shadow-lg">
+            <EditorCommandEmpty className="px-4 py-3 text-muted-foreground">
               Sin resultados
             </EditorCommandEmpty>
             <EditorCommandList>
@@ -233,55 +249,45 @@ export const BlogEditor = forwardRef<BlogEditorRef, BlogEditorProps>(
                   key={item.title}
                   value={item.title}
                   onCommand={(val) => item.command?.(val)}
-                  className="flex items-center gap-3 px-3 py-2 text-sm hover:bg-muted cursor-pointer"
+                  className="flex items-center gap-3 px-4 py-2.5 hover:bg-muted cursor-pointer"
                 >
-                  <div className="flex items-center justify-center size-8 bg-muted rounded-md">
+                  <div className="flex items-center justify-center size-9 bg-muted rounded-md shrink-0">
                     {item.icon}
                   </div>
                   <div>
                     <p className="font-medium">{item.title}</p>
-                    <p className="text-xs text-muted-foreground">{item.description}</p>
+                    <p className="text-sm text-muted-foreground">{item.description}</p>
                   </div>
                 </EditorCommandItem>
               ))}
             </EditorCommandList>
           </EditorCommand>
 
-          {/* Bubble menu (selection toolbar) */}
-          <EditorBubble className="flex items-center gap-1 bg-background border border-border shadow-md px-1 py-0.5">
-            <EditorBubbleItem
-              onSelect={(editor) => editor.chain().focus().toggleBold().run()}
-            >
-              <button className="p-1.5 hover:bg-muted rounded-md cursor-pointer">
-                <Bold className="size-3.5" />
+          {/* Bubble menu on selection */}
+          <EditorBubble className="flex items-center gap-0.5 bg-card border border-border shadow-lg px-1.5 py-1 rounded-lg">
+            <EditorBubbleItem onSelect={(e) => e.chain().focus().toggleBold().run()}>
+              <button className="p-1.5 hover:bg-muted rounded-md cursor-pointer" title="Negrita">
+                <Bold className="size-4" />
               </button>
             </EditorBubbleItem>
-            <EditorBubbleItem
-              onSelect={(editor) => editor.chain().focus().toggleItalic().run()}
-            >
-              <button className="p-1.5 hover:bg-muted rounded-md cursor-pointer">
-                <Italic className="size-3.5" />
+            <EditorBubbleItem onSelect={(e) => e.chain().focus().toggleItalic().run()}>
+              <button className="p-1.5 hover:bg-muted rounded-md cursor-pointer" title="Cursiva">
+                <Italic className="size-4" />
               </button>
             </EditorBubbleItem>
-            <EditorBubbleItem
-              onSelect={(editor) => editor.chain().focus().toggleUnderline().run()}
-            >
-              <button className="p-1.5 hover:bg-muted rounded-md cursor-pointer">
-                <Underline className="size-3.5" />
+            <EditorBubbleItem onSelect={(e) => e.chain().focus().toggleUnderline().run()}>
+              <button className="p-1.5 hover:bg-muted rounded-md cursor-pointer" title="Subrayado">
+                <Underline className="size-4" />
               </button>
             </EditorBubbleItem>
-            <EditorBubbleItem
-              onSelect={(editor) => editor.chain().focus().toggleStrike().run()}
-            >
-              <button className="p-1.5 hover:bg-muted rounded-md cursor-pointer">
-                <Strikethrough className="size-3.5" />
+            <EditorBubbleItem onSelect={(e) => e.chain().focus().toggleStrike().run()}>
+              <button className="p-1.5 hover:bg-muted rounded-md cursor-pointer" title="Tachado">
+                <Strikethrough className="size-4" />
               </button>
             </EditorBubbleItem>
-            <EditorBubbleItem
-              onSelect={(editor) => editor.chain().focus().toggleCode().run()}
-            >
-              <button className="p-1.5 hover:bg-muted rounded-md cursor-pointer">
-                <Code className="size-3.5" />
+            <EditorBubbleItem onSelect={(e) => e.chain().focus().toggleCode().run()}>
+              <button className="p-1.5 hover:bg-muted rounded-md cursor-pointer" title="Código">
+                <Code className="size-4" />
               </button>
             </EditorBubbleItem>
           </EditorBubble>
