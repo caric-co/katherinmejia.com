@@ -14,7 +14,7 @@ export default defineConfig({
     },
   },
   ssr: {
-    noExternal: ["@convex-dev/better-auth", "@base-ui/react"],
+    noExternal: true,
   },
   server: { host: true },
   plugins: [
