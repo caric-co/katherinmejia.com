@@ -3,9 +3,10 @@ import {
   Link,
   Outlet,
   redirect,
-  useMatches,
+  useNavigate,
 } from "@tanstack/react-router"
-import { useTranslation } from "react-i18next"
+import { useQuery } from "convex/react"
+import { api } from "@convex/_generated/api"
 import {
   LayoutDashboard,
   BookOpen,
@@ -76,6 +77,24 @@ const navGroups = [
 
 function AdminLayout() {
   const { data: session } = authClient.useSession()
+  const navigate = useNavigate()
+  const userProfile = useQuery(
+    api.users.getByEmail,
+    session?.user?.email ? { email: session.user.email } : "skip"
+  )
+
+  if (userProfile === undefined) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-muted-foreground">Cargando...</p>
+      </div>
+    )
+  }
+
+  if (!userProfile || userProfile.role !== "admin") {
+    navigate({ to: "/" })
+    return null
+  }
 
   const initials = session?.user?.name
     ? session.user.name
