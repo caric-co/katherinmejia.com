@@ -7,8 +7,9 @@ import { Label } from "@repo/ui/components/label"
 import { Badge } from "@repo/ui/components/badge"
 import { Separator } from "@repo/ui/components/separator"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@repo/ui/components/tooltip"
-import { Eye, Sparkles, Loader2, Wand2, MessageSquareText, CheckCircle } from "lucide-react"
-import { useState } from "react"
+import { Eye, Sparkles, Loader2, Wand2, MessageSquareText } from "lucide-react"
+import { useState, useRef } from "react"
+import { BlogEditor, type BlogEditorRef } from "#/components/editor/blog-editor"
 
 export const Route = createFileRoute("/admin/_layout/blog/new")({
   component: NewBlogPostPage,
@@ -31,6 +32,7 @@ function NewBlogPostPage() {
   const improveTextAction = useAction(api.ai.improveText)
   const reviewTextAction = useAction(api.ai.reviewText)
 
+  const editorRef = useRef<BlogEditorRef>(null)
   const [titleEs, setTitleEs] = useState("")
   const [excerptEs, setExcerptEs] = useState("")
   const [contentEs, setContentEs] = useState("")
@@ -126,11 +128,12 @@ function NewBlogPostPage() {
     setSaving(true)
     setError("")
     try {
+      const htmlContent = editorRef.current?.getHTML() ?? contentEs
       await createPost({
         title: { es: titleEs, en: titleEn || titleEs },
         slug: { es: slugify(titleEs), en: slugify(titleEn || titleEs) },
         excerpt: { es: excerptEs, en: excerptEn || excerptEs },
-        content: { es: contentEs, en: contentEn || contentEs },
+        content: { es: htmlContent, en: contentEn || htmlContent },
       })
       navigate({ to: "/admin/blog" })
     } catch (err: any) {
@@ -244,12 +247,13 @@ function NewBlogPostPage() {
                 </TooltipProvider>
               </div>
             </div>
-            <textarea
-              value={contentEs}
-              onChange={(e) => { setContentEs(e.target.value); setTranslated(false); setReview(null) }}
-              placeholder="Escribe el contenido del artículo en español..."
-              className="flex field-sizing-content min-h-64 w-full rounded-none border-0 border-b border-input bg-transparent px-0 py-2 outline-none placeholder:text-muted-foreground/60 focus-visible:border-foreground/40"
-              required
+            <BlogEditor
+              ref={editorRef}
+              onChange={(_json, text) => {
+                setContentEs(text)
+                setTranslated(false)
+                setReview(null)
+              }}
             />
           </div>
 
