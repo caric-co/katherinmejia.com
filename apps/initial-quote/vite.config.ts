@@ -9,7 +9,7 @@ export default defineConfig({
   resolve: { tsconfigPaths: true },
   server: { port: 5173 },
   nitro: {
-    noExternals: true,
+    noExternals: [/^react/, /^@tanstack/],
   },
   plugins: [devtools(), tailwindcss(), tanstackStart(), nitro(), viteReact()],
 })

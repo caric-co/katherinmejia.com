@@ -18,7 +18,7 @@ export default defineConfig({
   },
   server: { host: true },
   nitro: {
-    noExternals: true,
+    noExternals: [/^react/, /^@tanstack/, /^convex/, /^@convex/, /^better-auth/, /^@base-ui/],
   },
   plugins: [
     ...(process.env.NODE_ENV !== "production" ? [devtools()] : []),
