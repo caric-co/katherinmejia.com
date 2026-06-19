@@ -216,26 +216,29 @@ function AdminLayout() {
 }
 
 function RouteProgressBar() {
-  const { isLoading, location } = useRouterState({ select: (s) => ({ isLoading: s.isLoading, location: s.location.pathname }) })
+  const { isLoading, currentPath, pendingPath } = useRouterState({
+    select: (s) => ({
+      isLoading: s.isLoading,
+      currentPath: s.location.pathname,
+      pendingPath: s.resolvedLocation?.pathname,
+    }),
+  })
   const [progress, setProgress] = useState(0)
-  const prevLocationRef = useRef(location)
+
+  const isSameRoute = isLoading && pendingPath === currentPath
 
   useEffect(() => {
+    if (isSameRoute) return
     if (!isLoading) {
-      if (prevLocationRef.current !== location) {
-        setProgress(100)
-        const t = setTimeout(() => setProgress(0), 300)
-        prevLocationRef.current = location
-        return () => clearTimeout(t)
-      }
-      setProgress(0)
-      return
+      setProgress(100)
+      const t = setTimeout(() => setProgress(0), 300)
+      return () => clearTimeout(t)
     }
     setProgress(20)
     const t1 = setTimeout(() => setProgress(50), 200)
     const t2 = setTimeout(() => setProgress(80), 600)
     return () => { clearTimeout(t1); clearTimeout(t2) }
-  }, [isLoading, location])
+  }, [isLoading, isSameRoute])
 
   if (!isLoading && progress === 0) return null
 
