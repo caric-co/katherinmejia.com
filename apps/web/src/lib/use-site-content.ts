@@ -6,6 +6,7 @@ import { createContext, useContext, createElement } from "react"
 const DraftModeContext = createContext(false)
 const PreviewModeContext = createContext(false)
 const FieldClickContext = createContext<((key: string) => void) | null>(null)
+const SiteContentContext = createContext<Map<string, any> | null>(null)
 
 export const DraftModeProvider = DraftModeContext.Provider
 export const PreviewModeProvider = PreviewModeContext.Provider
@@ -13,19 +14,29 @@ export const FieldClickProvider = FieldClickContext.Provider
 export const usePreviewMode = () => useContext(PreviewModeContext)
 export const useFieldClick = () => useContext(FieldClickContext)
 
-export function useSiteContent(prefix: string) {
+export function SiteContentProvider({ children }: { children: React.ReactNode }) {
+  const items = useQuery(api.siteContent.listAll)
+  const contentMap = items
+    ? new Map(items.map((c) => [c.key, c]))
+    : null
+
+  return createElement(SiteContentContext.Provider, { value: contentMap }, children)
+}
+
+export function useSiteContentReady(): boolean {
+  return useContext(SiteContentContext) !== null
+}
+
+export function useSiteContent(_prefix: string) {
   const { i18n } = useTranslation()
   const locale = i18n.language as "es" | "en"
   const isDraft = useContext(DraftModeContext)
   const isPreview = useContext(PreviewModeContext)
   const onFieldClick = useContext(FieldClickContext)
-  const items = useQuery(api.siteContent.listByPrefix, { prefix })
-
-  const contentMap = new Map(
-    (items ?? []).map((c) => [c.key, c])
-  )
+  const contentMap = useContext(SiteContentContext)
 
   function resolve(key: string, fallback: string): string {
+    if (!contentMap) return fallback
     const item = contentMap.get(key)
     if (!item) return fallback
     const value = isDraft && item.draftValue ? item.draftValue : item.value
@@ -50,5 +61,5 @@ export function useSiteContent(prefix: string) {
     return text
   }
 
-  return { t, isLoaded: items !== undefined }
+  return { t, isLoaded: contentMap !== null }
 }

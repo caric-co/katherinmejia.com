@@ -1,4 +1,4 @@
-import { DraftModeProvider, PreviewModeProvider, FieldClickProvider } from "#/lib/use-site-content"
+import { DraftModeProvider, PreviewModeProvider, FieldClickProvider, SiteContentProvider } from "#/lib/use-site-content"
 import { Navigation } from "./navigation"
 import { Hero } from "./hero"
 import { Services } from "./services"
@@ -14,10 +14,11 @@ interface LandingPreviewProps {
 
 export function LandingPreview({ onFieldClick }: LandingPreviewProps) {
   return (
-    <DraftModeProvider value={true}>
-      <PreviewModeProvider value={true}>
-        <FieldClickProvider value={onFieldClick ?? null}>
-          <div
+    <SiteContentProvider>
+      <DraftModeProvider value={true}>
+        <PreviewModeProvider value={true}>
+          <FieldClickProvider value={onFieldClick ?? null}>
+            <div
             className="min-h-screen bg-background"
             onClickCapture={(e) => {
               const target = e.target as HTMLElement
@@ -37,9 +38,10 @@ export function LandingPreview({ onFieldClick }: LandingPreviewProps) {
             <Testimonials />
             <Contact />
             <Footer />
-          </div>
-        </FieldClickProvider>
-      </PreviewModeProvider>
-    </DraftModeProvider>
+            </div>
+          </FieldClickProvider>
+        </PreviewModeProvider>
+      </DraftModeProvider>
+    </SiteContentProvider>
   )
 }

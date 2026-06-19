@@ -7,6 +7,7 @@ import { CoursesPreview } from "#/components/landing/courses-preview"
 import { Testimonials } from "#/components/landing/testimonials"
 import { Contact } from "#/components/landing/contact"
 import { Footer } from "#/components/landing/footer"
+import { SiteContentProvider, useSiteContentReady } from "#/lib/use-site-content"
 
 export const Route = createFileRoute("/")({
   component: HomePage,
@@ -14,7 +15,17 @@ export const Route = createFileRoute("/")({
 
 function HomePage() {
   return (
-    <div className="min-h-screen bg-background">
+    <SiteContentProvider>
+      <HomeContent />
+    </SiteContentProvider>
+  )
+}
+
+function HomeContent() {
+  const isReady = useSiteContentReady()
+
+  return (
+    <div className={`min-h-screen bg-background transition-opacity duration-500 ${isReady ? "opacity-100" : "opacity-0"}`}>
       <Navigation />
       <Hero />
       <Services />
