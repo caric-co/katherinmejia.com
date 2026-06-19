@@ -81,7 +81,7 @@ function RootComponent() {
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es" suppressHydrationWarning>
+    <html lang="es" suppressHydrationWarning style={{ scrollbarGutter: "stable" }}>
       <head>
         <HeadContent />
       </head>
