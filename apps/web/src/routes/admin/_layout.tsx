@@ -5,8 +5,9 @@ import {
   redirect,
   useNavigate,
   useRouterState,
+  useLocation,
 } from "@tanstack/react-router"
-import { useState, useEffect, useRef } from "react"
+import { useState } from "react"
 import { useQuery } from "convex/react"
 import { api } from "@convex/_generated/api"
 import { Progress } from "@repo/ui/components/progress"
@@ -81,6 +82,7 @@ const navGroups = [
 function AdminLayout() {
   const { data: session } = authClient.useSession()
   const navigate = useNavigate()
+  const currentPath = useLocation({ select: (l) => l.pathname })
   const userProfile = useQuery(
     api.users.getByEmail,
     session?.user?.email ? { email: session.user.email } : "skip"
@@ -139,6 +141,7 @@ function AdminLayout() {
                           <Link
                             to={item.to}
                             activeProps={{ "data-active": true } as any}
+                            disabled={currentPath === item.to}
                           />
                         }
                       >
@@ -217,28 +220,10 @@ function AdminLayout() {
 
 function RouteProgressBar() {
   const isLoading = useRouterState({ select: (s) => s.isLoading })
-  const [progress, setProgress] = useState(0)
-  const wasLoadingRef = useRef(false)
 
-  useEffect(() => {
-    if (isLoading) {
-      wasLoadingRef.current = true
-      setProgress(20)
-      const t1 = setTimeout(() => setProgress(50), 200)
-      const t2 = setTimeout(() => setProgress(80), 600)
-      return () => { clearTimeout(t1); clearTimeout(t2) }
-    }
-    if (wasLoadingRef.current) {
-      wasLoadingRef.current = false
-      setProgress(100)
-      const t = setTimeout(() => setProgress(0), 300)
-      return () => clearTimeout(t)
-    }
-  }, [isLoading])
-
-  if (!isLoading && progress === 0) return null
+  if (!isLoading) return null
 
   return (
-    <Progress value={progress} className="absolute top-0 left-0 right-0 z-50 h-0.5 rounded-none bg-transparent" />
+    <Progress value={80} className="absolute top-0 left-0 right-0 z-50 h-0.5 rounded-none bg-transparent" />
   )
 }
