@@ -130,7 +130,7 @@ function NewBlogPostPage() {
     const content = previewLang === "es" ? contentHtml || contentEs : contentEn || contentEs;
 
     return (
-      <div className="max-w-5xl mx-auto">
+      <div className="w-full max-w-4xl mx-auto">
         {/* Preview toolbar */}
         <div className="flex items-center justify-between mb-8 sticky top-0 bg-background/90 backdrop-blur-sm z-10 py-3">
           <div className="flex items-center gap-3">
@@ -186,7 +186,7 @@ function NewBlogPostPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto">
+    <div className="w-full max-w-4xl mx-auto">
       {/* Editor toolbar */}
       <div className="flex items-center justify-between mb-8 sticky top-0 bg-background/90 backdrop-blur-sm z-10 py-3">
         <div className="flex items-center gap-2">

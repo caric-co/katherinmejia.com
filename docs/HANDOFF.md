@@ -55,8 +55,8 @@ katherinmejia.com/
 │   │   │       ├── users/index.tsx    User DataTable (search, filters, soft delete, multi-sort)
 │   │   │       ├── users/$id.tsx      User detail + grant/revoke access
 │   │   │       ├── blog/index.tsx     Blog DataTable (search, status filter, multi-sort)
-│   │   │       ├── blog/new.tsx       Notion-style editor (Novel + AI, draft/publish flow)
-│   │   │       ├── blog/$slug.tsx     Blog edit page (Novel + AI)
+│   │   │       ├── blog/new.tsx       Notion-style editor (Novel + AI, draft/publish, max-w-4xl)
+│   │   │       ├── blog/$slug.tsx     Blog edit page (Novel + AI, max-w-4xl)
 │   │   │       ├── content.tsx        Split-view site content editor + live preview
 │   │   │       ├── content-preview.tsx Standalone landing preview
 │   │   │       └── invitations.tsx    Invitation links

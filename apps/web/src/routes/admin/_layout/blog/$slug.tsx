@@ -166,7 +166,7 @@ function EditBlogPostPage() {
     const content = previewLang === "es" ? contentHtml || contentEs : contentEn || contentEs;
 
     return (
-      <div className="max-w-5xl mx-auto">
+      <div className="w-full max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-8 sticky top-0 bg-background/90 backdrop-blur-sm z-10 py-3">
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="sm" onClick={() => setView("editor")}>
@@ -228,7 +228,7 @@ function EditBlogPostPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto">
+    <div className="w-full max-w-4xl mx-auto">
       <div className="flex items-center justify-between mb-8 sticky top-0 bg-background/90 backdrop-blur-sm z-10 py-3">
         <div className="flex items-center gap-2">
           <TooltipProvider delay={300}>
