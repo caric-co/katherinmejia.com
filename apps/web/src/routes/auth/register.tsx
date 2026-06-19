@@ -3,12 +3,12 @@ import { useForm } from "@tanstack/react-form"
 import { z } from "zod"
 import { Button } from "@repo/ui/components/button"
 import { Separator } from "@repo/ui/components/separator"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@repo/ui/components/tooltip"
 import { toast } from "sonner"
 import { authClient } from "#/lib/auth-client"
-import { useState, useEffect } from "react"
-import { FormField, fieldAnimations } from "#/components/form-field"
-import { motion, useAnimationControls, AnimatePresence } from "motion/react"
+import { useState } from "react"
+import { useSubmitPulse } from "#/lib/form-primitives"
+import { FormField } from "#/components/form-field"
+import { SmartSubmit } from "#/components/smart-submit"
 
 export const Route = createFileRoute("/auth/register")({
   component: RegisterPage,
@@ -23,20 +23,17 @@ const registerSchema = z.object({
 
 const SUBMIT_ID = "register-submit"
 
+const fieldLabels: Record<string, string> = {
+  firstName: "Nombre",
+  lastName: "Apellido",
+  email: "Correo electrónico",
+  password: "Contraseña",
+}
+
 function RegisterPage() {
   const navigate = useNavigate()
   const [serverError, setServerError] = useState("")
-  const submitControls = useAnimationControls()
-
-  useEffect(() => {
-    fieldAnimations.set(SUBMIT_ID, () => {
-      submitControls.start({
-        scale: [1, 1.04, 1],
-        transition: { duration: 0.35, ease: "easeOut" },
-      })
-    })
-    return () => { fieldAnimations.delete(SUBMIT_ID) }
-  }, [submitControls])
+  const submitControls = useSubmitPulse(SUBMIT_ID)
 
   const form = useForm({
     defaultValues: {
@@ -147,64 +144,22 @@ function RegisterPage() {
             selector={(state) => [state.isSubmitting, state.canSubmit, state.isPristine, state.values] as const}
             children={([isSubmitting, canSubmit, isPristine, values]) => {
               const isDisabled = isSubmitting || !canSubmit || isPristine
-              const fieldLabels: Record<string, string> = {
-                firstName: "Nombre",
-                lastName: "Apellido",
-                email: "Correo electrónico",
-                password: "Contraseña",
-              }
               const emptyFields = Object.entries(values as Record<string, string>)
                 .filter(([, v]) => !v)
                 .map(([k]) => fieldLabels[k] ?? k)
 
-              const isReady = !isDisabled && !emptyFields.length
-
-              const submitButton = (
-                <motion.div animate={submitControls}>
-                  <Button id={SUBMIT_ID} type="submit" className="w-full h-11" disabled={isDisabled}>
-                    {isSubmitting ? "Creando cuenta..." : "Crear cuenta"}
-                  </Button>
-                </motion.div>
+              return (
+                <SmartSubmit
+                  id={SUBMIT_ID}
+                  controls={submitControls}
+                  isSubmitting={isSubmitting}
+                  isDisabled={isDisabled}
+                  emptyFieldLabels={emptyFields}
+                  label="Crear cuenta"
+                  submittingLabel="Creando cuenta..."
+                  hint="Presiona Enter para finalizar el registro"
+                />
               )
-
-              if (isReady) {
-                return (
-                  <div>
-                    {submitButton}
-                    <AnimatePresence>
-                      <motion.p
-                        key="hint"
-                        initial={{ height: 0, opacity: 0, clipPath: "inset(0 100% 0 0)" }}
-                        animate={{ height: "auto", opacity: 1, clipPath: "inset(0 0% 0 0)" }}
-                        transition={{ height: { duration: 0.3 }, opacity: { duration: 0.2 }, clipPath: { duration: 0.4, delay: 0.15 } }}
-                        className="text-xs text-muted-foreground text-center mt-2 overflow-hidden"
-                      >
-                        Presiona Enter para finalizar el registro
-                      </motion.p>
-                    </AnimatePresence>
-                  </div>
-                )
-              }
-
-              if (emptyFields.length) {
-                return (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger render={<div className="w-full" />}>
-                        {submitButton}
-                      </TooltipTrigger>
-                      <TooltipContent className="block">
-                        <p className="mb-1">Completa los campos:</p>
-                        <ul className="list-disc pl-4">
-                          {emptyFields.map((f) => <li key={f}>{f}</li>)}
-                        </ul>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                )
-              }
-
-              return submitButton
             }}
           />
         </form>
