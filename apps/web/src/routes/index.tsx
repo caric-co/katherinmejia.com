@@ -7,7 +7,9 @@ import { CoursesPreview } from "#/components/landing/courses-preview"
 import { Testimonials } from "#/components/landing/testimonials"
 import { Contact } from "#/components/landing/contact"
 import { Footer } from "#/components/landing/footer"
+import { Preloader } from "#/components/landing/preloader"
 import { SiteContentProvider, useSiteContentReady } from "#/lib/use-site-content"
+import { useState, useCallback } from "react"
 
 export const Route = createFileRoute("/")({
   component: HomePage,
@@ -23,17 +25,22 @@ function HomePage() {
 
 function HomeContent() {
   const isReady = useSiteContentReady()
+  const [preloaderDone, setPreloaderDone] = useState(false)
+  const handlePreloaderComplete = useCallback(() => setPreloaderDone(true), [])
 
   return (
-    <div className={`min-h-screen bg-background transition-opacity duration-500 ${isReady ? "opacity-100" : "opacity-0"}`}>
-      <Navigation />
-      <Hero />
-      <Services />
-      <About />
-      <CoursesPreview />
-      <Testimonials />
-      <Contact />
-      <Footer />
-    </div>
+    <>
+      <Preloader isContentReady={isReady} onComplete={handlePreloaderComplete} />
+      <div className={`min-h-screen bg-background ${preloaderDone ? "" : "opacity-0 overflow-hidden max-h-screen"}`}>
+        <Navigation />
+        <Hero />
+        <Services />
+        <About />
+        <CoursesPreview />
+        <Testimonials />
+        <Contact />
+        <Footer />
+      </div>
+    </>
   )
 }
