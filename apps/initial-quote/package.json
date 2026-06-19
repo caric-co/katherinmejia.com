@@ -10,7 +10,6 @@
     "dev": "vite dev --port 5173",
     "generate-routes": "tsr generate",
     "build": "vite build",
-    "vercel-build": "bash scripts/vercel-build.sh",
     "preview": "vite preview"
   },
   "dependencies": {
