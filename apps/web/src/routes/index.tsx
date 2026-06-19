@@ -1,4 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router"
+import { createServerFn } from "@tanstack/react-start"
+import { ConvexHttpClient } from "convex/browser"
+import { api } from "@convex/_generated/api"
 import { Navigation } from "#/components/landing/navigation"
 import { Hero } from "#/components/landing/hero"
 import { Services } from "#/components/landing/services"
@@ -11,13 +14,23 @@ import { Preloader } from "#/components/landing/preloader"
 import { SiteContentProvider, useSiteContentReady } from "#/lib/use-site-content"
 import { useState, useCallback, useEffect } from "react"
 
+const fetchSiteContent = createServerFn({ method: "GET" }).handler(async () => {
+  const convexUrl = process.env.VITE_CONVEX_URL || import.meta.env.VITE_CONVEX_URL
+  if (!convexUrl) return []
+  const client = new ConvexHttpClient(convexUrl)
+  return await client.query(api.siteContent.listAll, {})
+})
+
 export const Route = createFileRoute("/")({
+  loader: () => fetchSiteContent(),
   component: HomePage,
 })
 
 function HomePage() {
+  const serverData = Route.useLoaderData()
+
   return (
-    <SiteContentProvider>
+    <SiteContentProvider serverData={serverData}>
       <HomeContent />
     </SiteContentProvider>
   )

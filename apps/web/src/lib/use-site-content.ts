@@ -14,10 +14,16 @@ export const FieldClickProvider = FieldClickContext.Provider
 export const usePreviewMode = () => useContext(PreviewModeContext)
 export const useFieldClick = () => useContext(FieldClickContext)
 
-export function SiteContentProvider({ children }: { children: React.ReactNode }) {
+interface SiteContentProviderProps {
+  children: React.ReactNode
+  serverData?: Array<any>
+}
+
+export function SiteContentProvider({ children, serverData }: SiteContentProviderProps) {
   const items = useQuery(api.siteContent.listAll)
-  const contentMap = items
-    ? new Map(items.map((c) => [c.key, c]))
+  const data = items ?? serverData
+  const contentMap = data
+    ? new Map(data.map((c: any) => [c.key, c]))
     : null
 
   return createElement(SiteContentContext.Provider, { value: contentMap }, children)
