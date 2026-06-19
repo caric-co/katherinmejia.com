@@ -23,27 +23,29 @@ function HomePage() {
   )
 }
 
-let hasLoadedOnce = false
+function hasSeenPreloader() {
+  try { return sessionStorage.getItem("kmakeup-preloader") === "1" } catch { return false }
+}
+
+function markPreloaderSeen() {
+  try { sessionStorage.setItem("kmakeup-preloader", "1") } catch {}
+}
 
 function HomeContent() {
   const isReady = useSiteContentReady()
-  const skipPreloader = hasLoadedOnce || isReady
-  const [preloaderDone, setPreloaderDone] = useState(skipPreloader)
+  const [preloaderDone, setPreloaderDone] = useState(hasSeenPreloader)
 
   const handlePreloaderComplete = useCallback(() => {
     setPreloaderDone(true)
-    hasLoadedOnce = true
+    markPreloaderSeen()
     document.body.style.overflow = ""
   }, [])
 
   useEffect(() => {
-    if (skipPreloader) {
-      hasLoadedOnce = true
-      return
-    }
+    if (preloaderDone) return
     document.body.style.overflow = "hidden"
     return () => { document.body.style.overflow = "" }
-  }, [skipPreloader])
+  }, [preloaderDone])
 
   return (
     <>
