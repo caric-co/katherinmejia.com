@@ -17,9 +17,6 @@ export default defineConfig({
     noExternal: ["@convex-dev/better-auth", "@base-ui/react"],
   },
   server: { host: true },
-  nitro: {
-    noExternals: true,
-  },
   plugins: [
     ...(process.env.NODE_ENV !== "production" ? [devtools()] : []),
     tailwindcss(),
