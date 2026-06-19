@@ -1,67 +1,76 @@
-import { createFileRoute, Link } from "@tanstack/react-router"
-import { useQuery, useMutation, useAction } from "convex/react"
-import { api } from "@convex/_generated/api"
-import type { Id } from "@convex/_generated/dataModel"
-import { Button } from "@repo/ui/components/button"
-import { Input } from "@repo/ui/components/input"
-import { Label } from "@repo/ui/components/label"
-import { Badge } from "@repo/ui/components/badge"
+import { useState } from "react";
+
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useAction, useMutation, useQuery } from "convex/react";
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from "@repo/ui/components/table"
+  ArrowLeft,
+  ChevronDown,
+  ChevronUp,
+  Languages,
+  Loader2,
+  MoreHorizontal,
+  Pencil,
+  Plus,
+  Trash2,
+  X,
+} from "lucide-react";
+
+import { api } from "@convex/_generated/api";
+import type { Id } from "@convex/_generated/dataModel";
+import { Badge } from "@repo/ui/components/badge";
+import { Button } from "@repo/ui/components/button";
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
-} from "@repo/ui/components/dropdown-menu"
-import {
-  Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
-} from "@repo/ui/components/tooltip"
-import {
-  ArrowLeft, MoreHorizontal, Trash2, Plus, ChevronUp, ChevronDown,
-  Pencil, X, Loader2, Languages,
-} from "lucide-react"
-import { useState } from "react"
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@repo/ui/components/dropdown-menu";
+import { Input } from "@repo/ui/components/input";
+import { Label } from "@repo/ui/components/label";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@repo/ui/components/table";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@repo/ui/components/tooltip";
 
 export const Route = createFileRoute("/admin/_layout/courses/$slug/lessons")({
   component: LessonsPage,
-})
+});
 
 function formatDuration(seconds: number): string {
-  const m = Math.floor(seconds / 60)
-  const s = seconds % 60
-  return `${m}:${s.toString().padStart(2, "0")}`
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
 function LessonsPage() {
-  const { slug: routeSlug } = Route.useParams()
-  const course = useQuery(api.courses.getBySlug, { slug: routeSlug })
-  const courseId = course?._id
-  const lessons = useQuery(api.lessons.listByCourse, courseId ? { courseId } : "skip")
-  const reorderLessons = useMutation(api.lessons.reorder)
-  const removeLesson = useMutation(api.lessons.remove)
-  const [showForm, setShowForm] = useState(false)
-  const [editingId, setEditingId] = useState<Id<"lessons"> | null>(null)
+  const { slug: routeSlug } = Route.useParams();
+  const course = useQuery(api.courses.getBySlug, { slug: routeSlug });
+  const courseId = course?._id;
+  const lessons = useQuery(api.lessons.listByCourse, courseId ? { courseId } : "skip");
+  const reorderLessons = useMutation(api.lessons.reorder);
+  const removeLesson = useMutation(api.lessons.remove);
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<Id<"lessons"> | null>(null);
 
   if (course === undefined || lessons === undefined) {
-    return <p className="text-muted-foreground">Cargando...</p>
+    return <p className="text-muted-foreground">Cargando...</p>;
   }
 
   const handleMoveUp = async (index: number) => {
-    if (index === 0 || !lessons) return
-    const ids = lessons.map((l) => l._id)
-    ;[ids[index - 1], ids[index]] = [ids[index], ids[index - 1]]
-    await reorderLessons({ lessonIds: ids })
-  }
+    if (index === 0 || !lessons) return;
+    const ids = lessons.map((l) => l._id);
+    [ids[index - 1], ids[index]] = [ids[index], ids[index - 1]];
+    await reorderLessons({ lessonIds: ids });
+  };
 
   const handleMoveDown = async (index: number) => {
-    if (!lessons || index === lessons.length - 1) return
-    const ids = lessons.map((l) => l._id)
-    ;[ids[index], ids[index + 1]] = [ids[index + 1], ids[index]]
-    await reorderLessons({ lessonIds: ids })
-  }
+    if (!lessons || index === lessons.length - 1) return;
+    const ids = lessons.map((l) => l._id);
+    [ids[index], ids[index + 1]] = [ids[index + 1], ids[index]];
+    await reorderLessons({ lessonIds: ids });
+  };
 
   return (
     <div>
-      <Link to={`/admin/courses/${routeSlug}`}>
+      <Link to={`/admin/courses/${routeSlug}` as string}>
         <Button variant="ghost" size="sm" className="mb-4">
           <ArrowLeft data-icon="inline-start" className="size-3.5" />
           Volver al curso
@@ -74,27 +83,27 @@ function LessonsPage() {
           <p className="text-muted-foreground">
             {course?.title.es}
             {lessons && (
-              <span className="ml-2 text-sm">· {lessons.length} {lessons.length === 1 ? "lección" : "lecciones"}</span>
+              <span className="ml-2 text-sm">
+                · {lessons.length} {lessons.length === 1 ? "lección" : "lecciones"}
+              </span>
             )}
           </p>
         </div>
-        <Button onClick={() => { setShowForm(!showForm); setEditingId(null) }}>
+        <Button
+          onClick={() => {
+            setShowForm(!showForm);
+            setEditingId(null);
+          }}
+        >
           <Plus data-icon="inline-start" className="size-4" />
           Nueva lección
         </Button>
       </div>
 
-      {showForm && courseId && (
-        <LessonForm
-          courseId={courseId}
-          onDone={() => setShowForm(false)}
-        />
-      )}
+      {showForm && courseId && <LessonForm courseId={courseId} onDone={() => setShowForm(false)} />}
 
       {lessons.length === 0 ? (
-        <p className="text-muted-foreground py-8 text-center">
-          No hay lecciones. Crea la primera.
-        </p>
+        <p className="text-muted-foreground py-8 text-center">No hay lecciones. Crea la primera.</p>
       ) : (
         <Table>
           <TableHeader>
@@ -108,63 +117,57 @@ function LessonsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {lessons.map((lesson, index) => (
+            {lessons.map((lesson, index) =>
               editingId === lesson._id ? (
                 <TableRow key={lesson._id}>
                   <TableCell colSpan={6} className="p-0">
-                    <LessonForm
-                      courseId={courseId!}
-                      lesson={lesson}
-                      onDone={() => setEditingId(null)}
-                    />
+                    <LessonForm courseId={courseId!} lesson={lesson} onDone={() => setEditingId(null)} />
                   </TableCell>
                 </TableRow>
               ) : (
                 <TableRow key={lesson._id}>
-                  <TableCell className="text-muted-foreground font-mono">
-                    {lesson.order}
-                  </TableCell>
+                  <TableCell className="text-muted-foreground font-mono">{lesson.order}</TableCell>
                   <TableCell>
                     <div className="font-medium">{lesson.title.es}</div>
                     <div className="text-sm text-muted-foreground">{lesson.title.en}</div>
                     {lesson.description?.es && (
-                      <div className="text-sm text-muted-foreground/70 mt-1 line-clamp-1">
-                        {lesson.description.es}
-                      </div>
+                      <div className="text-sm text-muted-foreground/70 mt-1 line-clamp-1">{lesson.description.es}</div>
                     )}
                   </TableCell>
-                  <TableCell className="text-center font-mono">
-                    {formatDuration(lesson.duration)}
-                  </TableCell>
+                  <TableCell className="text-center font-mono">{formatDuration(lesson.duration)}</TableCell>
                   <TableCell className="text-center">
                     {lesson.isFree && <Badge variant="outline">Gratis</Badge>}
                   </TableCell>
                   <TableCell className="text-center">
                     <div className="flex items-center justify-center gap-1">
-                      <TooltipProvider delayDuration={300}>
+                      <TooltipProvider delay={300}>
                         <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon-sm"
-                              disabled={index === 0}
-                              onClick={() => handleMoveUp(index)}
-                            >
-                              <ChevronUp className="size-4" />
-                            </Button>
+                          <TooltipTrigger
+                            render={
+                              <Button
+                                variant="ghost"
+                                size="icon-sm"
+                                disabled={index === 0}
+                                onClick={() => handleMoveUp(index)}
+                              />
+                            }
+                          >
+                            <ChevronUp className="size-4" />
                           </TooltipTrigger>
                           <TooltipContent>Subir</TooltipContent>
                         </Tooltip>
                         <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon-sm"
-                              disabled={index === lessons.length - 1}
-                              onClick={() => handleMoveDown(index)}
-                            >
-                              <ChevronDown className="size-4" />
-                            </Button>
+                          <TooltipTrigger
+                            render={
+                              <Button
+                                variant="ghost"
+                                size="icon-sm"
+                                disabled={index === lessons.length - 1}
+                                onClick={() => handleMoveDown(index)}
+                              />
+                            }
+                          >
+                            <ChevronDown className="size-4" />
                           </TooltipTrigger>
                           <TooltipContent>Bajar</TooltipContent>
                         </Tooltip>
@@ -177,14 +180,16 @@ function LessonsPage() {
                         <MoreHorizontal className="size-4" />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => { setEditingId(lesson._id); setShowForm(false) }}>
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setEditingId(lesson._id);
+                            setShowForm(false);
+                          }}
+                        >
                           <Pencil className="size-4" />
                           Editar
                         </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => removeLesson({ lessonId: lesson._id })}
-                          variant="destructive"
-                        >
+                        <DropdownMenuItem onClick={() => removeLesson({ lessonId: lesson._id })} variant="destructive">
                           <Trash2 className="size-4" />
                           Eliminar
                         </DropdownMenuItem>
@@ -192,13 +197,13 @@ function LessonsPage() {
                     </DropdownMenu>
                   </TableCell>
                 </TableRow>
-              )
-            ))}
+              ),
+            )}
           </TableBody>
         </Table>
       )}
     </div>
-  )
+  );
 }
 
 function LessonForm({
@@ -206,88 +211,80 @@ function LessonForm({
   lesson,
   onDone,
 }: {
-  courseId: Id<"courses">
+  courseId: Id<"courses">;
   lesson?: {
-    _id: Id<"lessons">
-    title: { es: string; en: string }
-    description: { es: string; en: string }
-    duration: number
-    isFree: boolean
-  }
-  onDone: () => void
+    _id: Id<"lessons">;
+    title: { es: string; en: string };
+    description: { es: string; en: string };
+    duration: number;
+    isFree: boolean;
+  };
+  onDone: () => void;
 }) {
-  const createLesson = useMutation(api.lessons.create)
-  const updateLesson = useMutation(api.lessons.update)
-  const translateAction = useAction(api.ai.translateText)
+  const createLesson = useMutation(api.lessons.create);
+  const updateLesson = useMutation(api.lessons.update);
+  const translateAction = useAction(api.ai.translateText);
 
-  const isEditing = !!lesson
+  const isEditing = !!lesson;
 
-  const [titleEs, setTitleEs] = useState(lesson?.title.es ?? "")
-  const [titleEn, setTitleEn] = useState(lesson?.title.en ?? "")
-  const [descEs, setDescEs] = useState(lesson?.description?.es ?? "")
-  const [descEn, setDescEn] = useState(lesson?.description?.en ?? "")
-  const [duration, setDuration] = useState(lesson ? String(lesson.duration) : "")
-  const [isFree, setIsFree] = useState(lesson?.isFree ?? false)
-  const [loading, setLoading] = useState(false)
-  const [translating, setTranslating] = useState(false)
+  const [titleEs, setTitleEs] = useState(lesson?.title.es ?? "");
+  const [titleEn, setTitleEn] = useState(lesson?.title.en ?? "");
+  const [descEs, setDescEs] = useState(lesson?.description?.es ?? "");
+  const [descEn, setDescEn] = useState(lesson?.description?.en ?? "");
+  const [duration, setDuration] = useState(lesson ? String(lesson.duration) : "");
+  const [isFree, setIsFree] = useState(lesson?.isFree ?? false);
+  const [loading, setLoading] = useState(false);
+  const [translating, setTranslating] = useState(false);
 
   const handleTranslate = async () => {
-    setTranslating(true)
+    setTranslating(true);
     try {
       if (titleEs && !titleEn) {
-        const result = await translateAction({ text: titleEs })
-        setTitleEn(result.translated)
+        const result = await translateAction({ text: titleEs });
+        setTitleEn(result.translated);
       }
       if (descEs && !descEn) {
-        const result = await translateAction({ text: descEs })
-        setDescEn(result.translated)
+        const result = await translateAction({ text: descEs });
+        setDescEn(result.translated);
       }
     } catch {}
-    setTranslating(false)
-  }
+    setTranslating(false);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
+    e.preventDefault();
+    setLoading(true);
     try {
       if (isEditing) {
         await updateLesson({
           lessonId: lesson._id,
           title: { es: titleEs, en: titleEn || titleEs },
           description: { es: descEs, en: descEn || descEs },
-          duration: parseInt(duration) || 0,
+          duration: parseInt(duration, 10) || 0,
           isFree,
-        })
+        });
       } else {
         await createLesson({
           courseId,
           title: { es: titleEs, en: titleEn || titleEs },
           description: { es: descEs, en: descEn || descEs },
           videoId: "pending-upload",
-          duration: parseInt(duration) || 0,
+          duration: parseInt(duration, 10) || 0,
           isFree,
-        })
+        });
       }
-      onDone()
+      onDone();
     } catch {}
-    setLoading(false)
-  }
+    setLoading(false);
+  };
 
   return (
     <div className="bg-muted p-6 mb-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold">
-          {isEditing ? "Editar lección" : "Nueva lección"}
-        </h3>
+        <h3 className="font-semibold">{isEditing ? "Editar lección" : "Nueva lección"}</h3>
         <div className="flex items-center gap-2">
           {(titleEs || descEs) && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={handleTranslate}
-              disabled={translating}
-            >
+            <Button type="button" variant="ghost" size="sm" onClick={handleTranslate} disabled={translating}>
               {translating ? (
                 <Loader2 data-icon="inline-start" className="size-3.5 animate-spin" />
               ) : (
@@ -305,7 +302,12 @@ function LessonForm({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <Label className="text-xs uppercase tracking-wider font-medium mb-2 block">Título (ES)</Label>
-            <Input value={titleEs} onChange={(e) => setTitleEs(e.target.value)} placeholder="Preparación de la piel" required />
+            <Input
+              value={titleEs}
+              onChange={(e) => setTitleEs(e.target.value)}
+              placeholder="Preparación de la piel"
+              required
+            />
           </div>
           <div>
             <Label className="text-xs uppercase tracking-wider font-medium mb-2 block">Título (EN)</Label>
@@ -335,10 +337,21 @@ function LessonForm({
         <div className="flex gap-4 items-end">
           <div className="max-w-32">
             <Label className="text-xs uppercase tracking-wider font-medium mb-2 block">Duración (seg)</Label>
-            <Input type="number" value={duration} onChange={(e) => setDuration(e.target.value)} placeholder="720" required />
+            <Input
+              type="number"
+              value={duration}
+              onChange={(e) => setDuration(e.target.value)}
+              placeholder="720"
+              required
+            />
           </div>
           <label className="flex items-center gap-2 pb-2 cursor-pointer">
-            <input type="checkbox" checked={isFree} onChange={(e) => setIsFree(e.target.checked)} className="accent-foreground" />
+            <input
+              type="checkbox"
+              checked={isFree}
+              onChange={(e) => setIsFree(e.target.checked)}
+              className="accent-foreground"
+            />
             <span className="text-sm">Lección gratuita</span>
           </label>
         </div>
@@ -352,5 +365,5 @@ function LessonForm({
         </div>
       </form>
     </div>
-  )
+  );
 }

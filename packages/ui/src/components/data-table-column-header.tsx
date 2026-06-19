@@ -1,60 +1,53 @@
-import type { Column } from "@tanstack/react-table"
-import { ArrowDown, ArrowUp, ArrowUpDown, EyeOff, X } from "lucide-react"
+import type { Column } from "@tanstack/react-table";
+import { ArrowDown, ArrowUp, ArrowUpDown, EyeOff, X } from "lucide-react";
 
-import { cn } from "@repo/ui/lib/utils"
-import { Button } from "@repo/ui/components/button"
+import { Button } from "@repo/ui/components/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@repo/ui/components/dropdown-menu"
+} from "@repo/ui/components/dropdown-menu";
+import { cn } from "@repo/ui/lib/utils";
 
-interface DataTableColumnHeaderProps<TData, TValue>
-  extends React.HTMLAttributes<HTMLDivElement> {
-  column: Column<TData, TValue>
-  title: string
+interface DataTableColumnHeaderProps<TData, TValue> extends React.HTMLAttributes<HTMLDivElement> {
+  column: Column<TData, TValue>;
+  title: string;
 }
 
-function DataTableColumnHeader<TData, TValue>({
-  column,
-  title,
-  className,
-}: DataTableColumnHeaderProps<TData, TValue>) {
+function DataTableColumnHeader<TData, TValue>({ column, title, className }: DataTableColumnHeaderProps<TData, TValue>) {
   if (!column.getCanSort()) {
-    return <div className={cn(className)}>{title}</div>
+    return <div className={cn(className)}>{title}</div>;
   }
 
-  const sorted = column.getIsSorted()
-  const sortIndex = column.getSortIndex()
+  const sorted = column.getIsSorted();
+  const sortIndex = column.getSortIndex();
 
   return (
     <div className={cn("flex items-center space-x-2", className)}>
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="-ml-3 h-8 data-[state=open]:bg-accent"
-          >
-            <span>{title}</span>
-            <span className="inline-flex items-center gap-0.5 w-8 justify-start">
-              {sorted === "desc" ? (
-                <ArrowDown className="size-3.5" />
-              ) : sorted === "asc" ? (
-                <ArrowUp className="size-3.5" />
-              ) : (
-                <ArrowUpDown className="size-3.5" />
-              )}
-              <span className={cn(
+        <DropdownMenuTrigger
+          render={<Button variant="ghost" size="sm" className="-ml-3 h-8 data-[state=open]:bg-accent" />}
+        >
+          <span>{title}</span>
+          <span className="inline-flex items-center gap-0.5 w-8 justify-start">
+            {sorted === "desc" ? (
+              <ArrowDown className="size-3.5" />
+            ) : sorted === "asc" ? (
+              <ArrowUp className="size-3.5" />
+            ) : (
+              <ArrowUpDown className="size-3.5" />
+            )}
+            <span
+              className={cn(
                 "text-[10px] tabular-nums text-muted-foreground w-3",
-                sortIndex >= 0 ? "visible" : "invisible"
-              )}>
-                {sortIndex >= 0 ? sortIndex + 1 : ""}
-              </span>
+                sortIndex >= 0 ? "visible" : "invisible",
+              )}
+            >
+              {sortIndex >= 0 ? sortIndex + 1 : ""}
             </span>
-          </Button>
+          </span>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
           <DropdownMenuItem onClick={() => column.toggleSorting(false, true)}>
@@ -86,7 +79,7 @@ function DataTableColumnHeader<TData, TValue>({
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
-  )
+  );
 }
 
-export { DataTableColumnHeader }
+export { DataTableColumnHeader };

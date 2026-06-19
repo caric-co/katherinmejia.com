@@ -1,32 +1,35 @@
-import { createFileRoute, Link } from "@tanstack/react-router"
-import { useState, useCallback } from "react"
-import { ArrowLeft, Printer } from "lucide-react"
-import { Button } from "@repo/ui/components/button"
-import { QuoteHeader } from "#/components/quote-header"
-import { ReferencesSection } from "#/components/references-section"
-import { PlatformOverview } from "#/components/platform-overview"
-import { FeatureTable } from "#/components/feature-table"
-import { CostTable } from "#/components/cost-table"
-import { TechStackSection } from "#/components/tech-stack-section"
-import { PricingSection } from "#/components/pricing-section"
-import { NotesSection } from "#/components/notes-section"
-import { TrmInput } from "#/components/trm-input"
+import { useCallback, useState } from "react";
+
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ArrowLeft, Printer } from "lucide-react";
+
+import { Button } from "@repo/ui/components/button";
+
+import { CostTable } from "#/components/cost-table";
+import { FeatureTable } from "#/components/feature-table";
+import { NotesSection } from "#/components/notes-section";
+import { PlatformOverview } from "#/components/platform-overview";
+import { PricingSection } from "#/components/pricing-section";
+import { QuoteHeader } from "#/components/quote-header";
+import { ReferencesSection } from "#/components/references-section";
+import { TechStackSection } from "#/components/tech-stack-section";
+import { TrmInput } from "#/components/trm-input";
 
 export const Route = createFileRoute("/quote")({
   component: QuotePage,
-})
+});
 
 function QuotePage() {
   const [trm, setTrm] = useState(() => {
-    if (typeof window === "undefined") return 3700
-    const saved = localStorage.getItem("kmakeup-trm")
-    return saved ? parseFloat(saved) : 3700
-  })
+    if (typeof window === "undefined") return 3700;
+    const saved = localStorage.getItem("kmakeup-trm");
+    return saved ? parseFloat(saved) : 3700;
+  });
 
   const handleTrmChange = useCallback((value: number) => {
-    setTrm(value)
-    localStorage.setItem("kmakeup-trm", value.toString())
-  }, [])
+    setTrm(value);
+    localStorage.setItem("kmakeup-trm", value.toString());
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -77,5 +80,5 @@ function QuotePage() {
         </footer>
       </div>
     </div>
-  )
+  );
 }

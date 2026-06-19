@@ -1,5 +1,6 @@
-import { v } from "convex/values"
-import { query, mutation } from "./_generated/server"
+import { v } from "convex/values";
+
+import { mutation, query } from "./_generated/server";
 
 export const listByCourse = query({
   args: { courseId: v.id("courses") },
@@ -7,16 +8,16 @@ export const listByCourse = query({
     return await ctx.db
       .query("invitationLinks")
       .withIndex("by_course", (q) => q.eq("courseId", args.courseId))
-      .collect()
+      .collect();
   },
-})
+});
 
 export const listAll = query({
   args: {},
   handler: async (ctx) => {
-    return await ctx.db.query("invitationLinks").collect()
+    return await ctx.db.query("invitationLinks").collect();
   },
-})
+});
 
 export const create = mutation({
   args: {
@@ -26,7 +27,7 @@ export const create = mutation({
     createdBy: v.string(),
   },
   handler: async (ctx, args) => {
-    const code = generateCode()
+    const code = generateCode();
     return await ctx.db.insert("invitationLinks", {
       courseId: args.courseId,
       code,
@@ -35,9 +36,9 @@ export const create = mutation({
       expiresAt: args.expiresAt,
       createdBy: args.createdBy,
       createdAt: Date.now(),
-    })
+    });
   },
-})
+});
 
 export const redeem = mutation({
   args: {
@@ -48,21 +49,19 @@ export const redeem = mutation({
     const invitation = await ctx.db
       .query("invitationLinks")
       .withIndex("by_code", (q) => q.eq("code", args.code))
-      .first()
+      .first();
 
-    if (!invitation) throw new Error("Código de invitación inválido")
-    if (invitation.usedCount >= invitation.maxUses) throw new Error("Este enlace ya alcanzó el límite de usos")
-    if (invitation.expiresAt && Date.now() > invitation.expiresAt) throw new Error("Este enlace ha expirado")
+    if (!invitation) throw new Error("Código de invitación inválido");
+    if (invitation.usedCount >= invitation.maxUses) throw new Error("Este enlace ya alcanzó el límite de usos");
+    if (invitation.expiresAt && Date.now() > invitation.expiresAt) throw new Error("Este enlace ha expirado");
 
     const existingPurchase = await ctx.db
       .query("purchases")
-      .withIndex("by_user_course", (q) =>
-        q.eq("userId", args.userId).eq("courseId", invitation.courseId)
-      )
-      .first()
+      .withIndex("by_user_course", (q) => q.eq("userId", args.userId).eq("courseId", invitation.courseId))
+      .first();
 
     if (existingPurchase?.status === "completed") {
-      throw new Error("Ya tienes acceso a este curso")
+      throw new Error("Ya tienes acceso a este curso");
     }
 
     await ctx.db.insert("purchases", {
@@ -74,28 +73,28 @@ export const redeem = mutation({
       status: "completed",
       grantedBy: "invitation",
       createdAt: Date.now(),
-    })
+    });
 
     await ctx.db.patch(invitation._id, {
       usedCount: invitation.usedCount + 1,
-    })
+    });
 
-    return invitation.courseId
+    return invitation.courseId;
   },
-})
+});
 
 export const remove = mutation({
   args: { invitationId: v.id("invitationLinks") },
   handler: async (ctx, args) => {
-    await ctx.db.delete(args.invitationId)
+    await ctx.db.delete(args.invitationId);
   },
-})
+});
 
 function generateCode(): string {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
-  let code = ""
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let code = "";
   for (let i = 0; i < 8; i++) {
-    code += chars[Math.floor(Math.random() * chars.length)]
+    code += chars[Math.floor(Math.random() * chars.length)];
   }
-  return code
+  return code;
 }

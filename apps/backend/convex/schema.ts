@@ -1,7 +1,7 @@
-import { defineSchema, defineTable } from "convex/server"
-import { v } from "convex/values"
+import { defineSchema, defineTable } from "convex/server";
+import { v } from "convex/values";
 
-const bilingualText = v.object({ es: v.string(), en: v.string() })
+const bilingualText = v.object({ es: v.string(), en: v.string() });
 
 export default defineSchema({
   users: defineTable({
@@ -10,11 +10,7 @@ export default defineSchema({
     lastName: v.optional(v.string()),
     role: v.union(v.literal("student"), v.literal("admin")),
     avatar: v.optional(v.string()),
-    authProvider: v.union(
-      v.literal("email"),
-      v.literal("google"),
-      v.literal("apple")
-    ),
+    authProvider: v.union(v.literal("email"), v.literal("google"), v.literal("apple")),
     locale: v.union(v.literal("es"), v.literal("en")),
     status: v.union(v.literal("active"), v.literal("blocked"), v.literal("deleted")),
     createdAt: v.number(),
@@ -30,11 +26,7 @@ export default defineSchema({
     previewVideoId: v.optional(v.string()),
     price: v.number(),
     currency: v.literal("COP"),
-    status: v.union(
-      v.literal("draft"),
-      v.literal("published"),
-      v.literal("archived")
-    ),
+    status: v.union(v.literal("draft"), v.literal("published"), v.literal("archived")),
     order: v.number(),
     createdAt: v.number(),
   })
@@ -72,22 +64,10 @@ export default defineSchema({
     courseId: v.id("courses"),
     amount: v.number(),
     currency: v.string(),
-    provider: v.union(
-      v.literal("bold"),
-      v.literal("manual"),
-      v.literal("invitation")
-    ),
+    provider: v.union(v.literal("bold"), v.literal("manual"), v.literal("invitation")),
     transactionId: v.optional(v.string()),
-    status: v.union(
-      v.literal("pending"),
-      v.literal("completed"),
-      v.literal("refunded")
-    ),
-    grantedBy: v.union(
-      v.literal("admin"),
-      v.literal("invitation"),
-      v.literal("payment")
-    ),
+    status: v.union(v.literal("pending"), v.literal("completed"), v.literal("refunded")),
+    grantedBy: v.union(v.literal("admin"), v.literal("invitation"), v.literal("payment")),
     createdAt: v.number(),
   })
     .index("by_user", ["userId"])
@@ -97,17 +77,8 @@ export default defineSchema({
   subscriptions: defineTable({
     userId: v.string(),
     plan: v.union(v.literal("monthly"), v.literal("annual")),
-    status: v.union(
-      v.literal("active"),
-      v.literal("cancelled"),
-      v.literal("past_due"),
-      v.literal("expired")
-    ),
-    provider: v.union(
-      v.literal("wompi"),
-      v.literal("bold"),
-      v.literal("manual")
-    ),
+    status: v.union(v.literal("active"), v.literal("cancelled"), v.literal("past_due"), v.literal("expired")),
+    provider: v.union(v.literal("wompi"), v.literal("bold"), v.literal("manual")),
     externalId: v.optional(v.string()),
     currentPeriodStart: v.number(),
     currentPeriodEnd: v.number(),
@@ -133,11 +104,7 @@ export default defineSchema({
     key: v.string(),
     value: bilingualText,
     draftValue: v.optional(bilingualText),
-    type: v.union(
-      v.literal("text"),
-      v.literal("richtext"),
-      v.literal("image")
-    ),
+    type: v.union(v.literal("text"), v.literal("richtext"), v.literal("image")),
     updatedAt: v.number(),
   }).index("by_key", ["key"]),
 
@@ -154,4 +121,4 @@ export default defineSchema({
     .index("by_slug_es", ["slug.es"])
     .index("by_slug_en", ["slug.en"])
     .index("by_status", ["status"]),
-})
+});

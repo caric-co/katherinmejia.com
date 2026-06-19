@@ -1,4 +1,4 @@
-import { useSiteContent, usePreviewMode, useFieldClick } from "#/lib/use-site-content"
+import { useFieldClick, usePreviewMode, useSiteContent } from "#/lib/use-site-content";
 
 const defaults = [
   {
@@ -28,12 +28,12 @@ const defaults = [
     imageKey: "services.3.image",
     imageFallback: "https://images.unsplash.com/photo-1457972729786-0411a3b2b626?w=600&q=80",
   },
-]
+];
 
 export function Services() {
-  const { t: c } = useSiteContent("services.")
-  const isPreview = usePreviewMode()
-  const onFieldClick = useFieldClick()
+  const { t: c } = useSiteContent("services.");
+  const isPreview = usePreviewMode();
+  const onFieldClick = useFieldClick();
 
   return (
     <section className="py-24 md:py-32 px-6 md:px-10 bg-muted">
@@ -53,19 +53,13 @@ export function Services() {
                 style={{ backgroundImage: `url('${c(service.imageKey, service.imageFallback)}')` }}
                 onClick={isPreview && onFieldClick ? () => onFieldClick(service.imageKey) : undefined}
               />
-              <p className="text-sm text-muted-foreground font-mono mb-1">
-                {service.number}/
-              </p>
-              <h3 className="font-display text-h3 mb-2">
-                {c(service.titleKey, service.titleFallback)}
-              </h3>
-              <p className="text-muted-foreground leading-relaxed">
-                {c(service.descKey, service.descFallback)}
-              </p>
+              <p className="text-sm text-muted-foreground font-mono mb-1">{service.number}/</p>
+              <h3 className="font-display text-h3 mb-2">{c(service.titleKey, service.titleFallback)}</h3>
+              <p className="text-muted-foreground leading-relaxed">{c(service.descKey, service.descFallback)}</p>
             </div>
           ))}
         </div>
       </div>
     </section>
-  )
+  );
 }

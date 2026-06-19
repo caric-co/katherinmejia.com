@@ -1,55 +1,59 @@
-import { motion, AnimatePresence } from "motion/react"
-import { useState, useEffect, useCallback } from "react"
+import { useEffect, useState } from "react";
+
+import { motion } from "motion/react";
 
 interface PreloaderProps {
-  isContentReady: boolean
-  onComplete: () => void
+  isContentReady: boolean;
+  onComplete: () => void;
 }
 
 const PHASE_TIMINGS = {
   logo: 1000,
   line: 800,
   hold: 400,
-}
+};
 
-const CURTAIN_DURATION = 0.8
-const EASE = [0.22, 1, 0.36, 1] as const
+const CURTAIN_DURATION = 0.8;
+const EASE = [0.22, 1, 0.36, 1] as const;
 
 export function Preloader({ isContentReady, onComplete }: PreloaderProps) {
-  const [phase, setPhase] = useState<"logo" | "line" | "hold" | "curtain" | "done">("logo")
+  const [phase, setPhase] = useState<"logo" | "line" | "hold" | "curtain" | "done">("logo");
 
   useEffect(() => {
-    const t1 = setTimeout(() => setPhase("line"), PHASE_TIMINGS.logo)
-    return () => clearTimeout(t1)
-  }, [])
+    const t1 = setTimeout(() => setPhase("line"), PHASE_TIMINGS.logo);
+    return () => clearTimeout(t1);
+  }, []);
 
   useEffect(() => {
     if (phase === "line") {
-      const t = setTimeout(() => setPhase("hold"), PHASE_TIMINGS.line)
-      return () => clearTimeout(t)
+      const t = setTimeout(() => setPhase("hold"), PHASE_TIMINGS.line);
+      return () => clearTimeout(t);
     }
-  }, [phase])
+  }, [phase]);
 
   useEffect(() => {
     if (phase === "hold" && isContentReady) {
-      const t = setTimeout(() => setPhase("curtain"), PHASE_TIMINGS.hold)
-      return () => clearTimeout(t)
+      const t = setTimeout(() => setPhase("curtain"), PHASE_TIMINGS.hold);
+      return () => clearTimeout(t);
     }
-  }, [phase, isContentReady])
+  }, [phase, isContentReady]);
 
   useEffect(() => {
     if (phase === "curtain") {
-      const t = setTimeout(() => {
-        setPhase("done")
-        onComplete()
-      }, CURTAIN_DURATION * 1000 + 100)
-      return () => clearTimeout(t)
+      const t = setTimeout(
+        () => {
+          setPhase("done");
+          onComplete();
+        },
+        CURTAIN_DURATION * 1000 + 100,
+      );
+      return () => clearTimeout(t);
     }
-  }, [phase, onComplete])
+  }, [phase, onComplete]);
 
-  if (phase === "done") return null
+  if (phase === "done") return null;
 
-  const isCurtain = phase === "curtain"
+  const isCurtain = phase === "curtain";
 
   return (
     <div className="fixed inset-0 z-[100] pointer-events-none">
@@ -87,19 +91,13 @@ export function Preloader({ isContentReady, onComplete }: PreloaderProps) {
           <motion.div
             className="h-px bg-foreground/25"
             initial={{ width: 0 }}
-            animate={
-              phase !== "logo" ? { width: 200 } : { width: 0 }
-            }
+            animate={phase !== "logo" ? { width: 200 } : { width: 0 }}
             transition={{ duration: 0.6, ease: EASE }}
           />
           <motion.p
             className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground mt-3 select-none"
             initial={{ opacity: 0, y: 6 }}
-            animate={
-              phase !== "logo"
-                ? { opacity: 1, y: 0 }
-                : { opacity: 0, y: 6 }
-            }
+            animate={phase !== "logo" ? { opacity: 1, y: 0 } : { opacity: 0, y: 6 }}
             transition={{ duration: 0.5, delay: 0.15, ease: "easeOut" }}
           >
             Maquilladora Profesional
@@ -107,5 +105,5 @@ export function Preloader({ isContentReady, onComplete }: PreloaderProps) {
         </div>
       </motion.div>
     </div>
-  )
+  );
 }

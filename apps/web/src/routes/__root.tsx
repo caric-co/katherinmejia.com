@@ -1,32 +1,28 @@
-import {
-  HeadContent,
-  Outlet,
-  Scripts,
-  createRootRouteWithContext,
-  useRouteContext,
-} from "@tanstack/react-router"
-import * as React from "react"
-import { createServerFn } from "@tanstack/react-start"
-import { ConvexBetterAuthProvider } from "@convex-dev/better-auth/react"
-import type { ConvexQueryClient } from "@convex-dev/react-query"
-import type { QueryClient } from "@tanstack/react-query"
-import { authClient } from "#/lib/auth-client"
-import { getToken } from "#/lib/auth-server"
-import { Toaster } from "sonner"
-import "#/lib/i18n"
-import appCss from "#/styles.css?url"
+import * as React from "react";
+
+import { ConvexBetterAuthProvider } from "@convex-dev/better-auth/react";
+import type { ConvexQueryClient } from "@convex-dev/react-query";
+import type { QueryClient } from "@tanstack/react-query";
+import { createRootRouteWithContext, HeadContent, Outlet, Scripts, useRouteContext } from "@tanstack/react-router";
+import { createServerFn } from "@tanstack/react-start";
+import { Toaster } from "sonner";
+
+import { authClient } from "#/lib/auth-client";
+import { getToken } from "#/lib/auth-server";
+import "#/lib/i18n";
+import appCss from "#/styles.css?url";
 
 const getAuth = createServerFn({ method: "GET" }).handler(async () => {
   try {
-    return await getToken()
+    return await getToken();
   } catch {
-    return undefined
+    return undefined;
   }
-})
+});
 
 export const Route = createRootRouteWithContext<{
-  queryClient: QueryClient
-  convexQueryClient: ConvexQueryClient
+  queryClient: QueryClient;
+  convexQueryClient: ConvexQueryClient;
 }>()({
   head: () => ({
     meta: [
@@ -35,8 +31,7 @@ export const Route = createRootRouteWithContext<{
       { title: "Katherin Mejia — Maquilladora Profesional" },
       {
         name: "description",
-        content:
-          "Cursos de maquillaje profesional y marca personal de Katherin Mejia (@kmakeup_c)",
+        content: "Cursos de maquillaje profesional y marca personal de Katherin Mejia (@kmakeup_c)",
       },
     ],
     links: [
@@ -55,31 +50,34 @@ export const Route = createRootRouteWithContext<{
     ],
   }),
   beforeLoad: async (ctx) => {
-    const token = await getAuth()
+    const token = await getAuth();
     if (token) {
-      ctx.context.convexQueryClient.serverHttpClient?.setAuth(token)
+      ctx.context.convexQueryClient.serverHttpClient?.setAuth(token);
     }
-    return { isAuthenticated: !!token, token }
+    return { isAuthenticated: !!token, token };
   },
   component: RootComponent,
-})
+});
 
 function RootComponent() {
-  const context = useRouteContext({ from: Route.id })
+  const context = useRouteContext({ from: Route.id });
   return (
     <ConvexBetterAuthProvider
       client={context.convexQueryClient.convexClient}
-      authClient={authClient}
+      authClient={authClient as any}
       initialToken={context.token}
     >
       <RootDocument>
         <Outlet />
       </RootDocument>
     </ConvexBetterAuthProvider>
-  )
+  );
 }
 
 function RootDocument({ children }: { children: React.ReactNode }) {
+  const [isMounted, setIsMounted] = React.useState(false);
+  React.useEffect(() => setIsMounted(true), []);
+
   return (
     <html lang="es" suppressHydrationWarning style={{ scrollbarGutter: "stable" }}>
       <head>
@@ -89,38 +87,39 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         {children}
         <Toaster position="top-center" richColors />
         <Scripts />
-        {import.meta.env.DEV && typeof window !== "undefined" && (
+        {import.meta.env.DEV && isMounted && (
           <React.Suspense>
             <DevTools />
           </React.Suspense>
         )}
       </body>
     </html>
-  )
+  );
 }
 
 function DevTools() {
-  const [Comp, setComp] = React.useState<React.ComponentType | null>(null)
+  const [Comp, setComp] = React.useState<React.ComponentType | null>(null);
   React.useEffect(() => {
     Promise.all([
       import("@tanstack/react-devtools"),
       import("@tanstack/react-router-devtools"),
       import("@tanstack/react-query-devtools"),
     ]).then(([devtools, router, query]) => {
-      setComp(() =>
-        function Loaded() {
-          return (
-            <devtools.TanStackDevtools
-              config={{ position: "bottom-right" }}
-              plugins={[
-                { name: "Router", render: <router.TanStackRouterDevtoolsPanel /> },
-                { name: "React Query", render: <query.ReactQueryDevtoolsPanel /> },
-              ]}
-            />
-          )
-        }
-      )
-    })
-  }, [])
-  return Comp ? <Comp /> : null
+      setComp(
+        () =>
+          function Loaded() {
+            return (
+              <devtools.TanStackDevtools
+                config={{ position: "bottom-right" }}
+                plugins={[
+                  { name: "Router", render: <router.TanStackRouterDevtoolsPanel /> },
+                  { name: "React Query", render: <query.ReactQueryDevtoolsPanel /> },
+                ]}
+              />
+            );
+          },
+      );
+    });
+  }, []);
+  return Comp ? <Comp /> : null;
 }

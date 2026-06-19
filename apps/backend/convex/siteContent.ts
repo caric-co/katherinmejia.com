@@ -1,7 +1,8 @@
-import { v } from "convex/values"
-import { query, mutation } from "./_generated/server"
+import { v } from "convex/values";
 
-const bilingualText = v.object({ es: v.string(), en: v.string() })
+import { mutation, query } from "./_generated/server";
+
+const bilingualText = v.object({ es: v.string(), en: v.string() });
 
 export const getByKey = query({
   args: { key: v.string() },
@@ -9,32 +10,32 @@ export const getByKey = query({
     return await ctx.db
       .query("siteContent")
       .withIndex("by_key", (q) => q.eq("key", args.key))
-      .first()
+      .first();
   },
-})
+});
 
 export const listAll = query({
   args: {},
   handler: async (ctx) => {
-    return await ctx.db.query("siteContent").collect()
+    return await ctx.db.query("siteContent").collect();
   },
-})
+});
 
 export const listByPrefix = query({
   args: { prefix: v.string() },
   handler: async (ctx, args) => {
-    const all = await ctx.db.query("siteContent").collect()
-    return all.filter((c) => c.key.startsWith(args.prefix))
+    const all = await ctx.db.query("siteContent").collect();
+    return all.filter((c) => c.key.startsWith(args.prefix));
   },
-})
+});
 
 export const hasDrafts = query({
   args: {},
   handler: async (ctx) => {
-    const all = await ctx.db.query("siteContent").collect()
-    return all.some((c) => c.draftValue !== undefined)
+    const all = await ctx.db.query("siteContent").collect();
+    return all.some((c) => c.draftValue !== undefined);
   },
-})
+});
 
 export const saveDraft = mutation({
   args: {
@@ -46,14 +47,14 @@ export const saveDraft = mutation({
     const existing = await ctx.db
       .query("siteContent")
       .withIndex("by_key", (q) => q.eq("key", args.key))
-      .first()
+      .first();
 
     if (existing) {
       await ctx.db.patch(existing._id, {
         draftValue: args.value,
         updatedAt: Date.now(),
-      })
-      return existing._id
+      });
+      return existing._id;
     }
 
     return await ctx.db.insert("siteContent", {
@@ -62,42 +63,42 @@ export const saveDraft = mutation({
       draftValue: args.value,
       type: args.type,
       updatedAt: Date.now(),
-    })
+    });
   },
-})
+});
 
 export const publishAll = mutation({
   args: {},
   handler: async (ctx) => {
-    const all = await ctx.db.query("siteContent").collect()
-    let count = 0
+    const all = await ctx.db.query("siteContent").collect();
+    let count = 0;
     for (const item of all) {
       if (item.draftValue) {
         await ctx.db.patch(item._id, {
           value: item.draftValue,
           draftValue: undefined,
           updatedAt: Date.now(),
-        })
-        count++
+        });
+        count++;
       }
     }
-    return count
+    return count;
   },
-})
+});
 
 export const discardDrafts = mutation({
   args: {},
   handler: async (ctx) => {
-    const all = await ctx.db.query("siteContent").collect()
+    const all = await ctx.db.query("siteContent").collect();
     for (const item of all) {
       if (item.draftValue) {
         await ctx.db.patch(item._id, {
           draftValue: undefined,
-        })
+        });
       }
     }
   },
-})
+});
 
 export const upsert = mutation({
   args: {
@@ -109,15 +110,15 @@ export const upsert = mutation({
     const existing = await ctx.db
       .query("siteContent")
       .withIndex("by_key", (q) => q.eq("key", args.key))
-      .first()
+      .first();
 
     if (existing) {
       await ctx.db.patch(existing._id, {
         value: args.value,
         type: args.type,
         updatedAt: Date.now(),
-      })
-      return existing._id
+      });
+      return existing._id;
     }
 
     return await ctx.db.insert("siteContent", {
@@ -125,13 +126,13 @@ export const upsert = mutation({
       value: args.value,
       type: args.type,
       updatedAt: Date.now(),
-    })
+    });
   },
-})
+});
 
 export const remove = mutation({
   args: { contentId: v.id("siteContent") },
   handler: async (ctx, args) => {
-    await ctx.db.delete(args.contentId)
+    await ctx.db.delete(args.contentId);
   },
-})
+});

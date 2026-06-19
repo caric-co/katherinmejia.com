@@ -1,9 +1,9 @@
 # Handoff — KMakeup Platform MVP
 
-## Project State (as of commit 762b73e)
+## Project State (as of latest push)
 
 **Repo:** https://github.com/caric-co/katherinmejia.com (private, org: caric-co)
-**Stack:** TanStack Start + Convex + Better Auth + shadcn/ui (base-lyra) + Tailwind v4 + Novel + Mistral AI + Framer Motion
+**Stack:** TanStack Start + Convex + Better Auth + shadcn/ui (Base UI) + Tailwind v4 + Novel + Mistral AI + Motion + Biome
 **Monorepo:** Turborepo + pnpm (`pnpm dev` with TUI)
 
 ### Running the project
@@ -106,6 +106,9 @@ katherinmejia.com/
 │   ├── config/               Shared TypeScript configs
 │   └── utils/                cn(), formatCOP/USD, formatDate
 │
+├── biome.json                Linter + formatter + import sorting config
+├── .husky/pre-commit         Husky hook: lint-staged + turbo typecheck
+│
 └── docs/                     PRD, TECH_STACK, ARCHITECTURE, DESIGN, PRODUCT, DATA_TABLE, research
 ```
 
@@ -158,10 +161,18 @@ katherinmejia.com/
 - **Soft delete** — users have `status: active | blocked | deleted`, deleted filtered from queries
 - **Applied to** — users, blog, courses tables (see `docs/DATA_TABLE.md`)
 
+### Code Quality (Biome + Husky)
+- **Biome** — single tool for linting, formatting, and import sorting (replaces ESLint + Prettier)
+- **Import sorting groups:** react → third-party → @repo/@convex/@kmakeup → aliases (#/) → relative paths (blank lines between groups)
+- **Husky pre-commit hook:** lint-staged (Biome check --write on staged files) + turbo typecheck (tsc --noEmit)
+- **0 type errors** across web + quote apps (all pre-existing errors fixed)
+- **Base UI migration:** all `asChild` props replaced with `render` prop (Base UI pattern, not Radix)
+- **SSR hydration fixes:** preloader sessionStorage check moved to useEffect, devtools use isMounted state
+
 ### Deploy
 - **Nitro plugin** for Vercel TanStack Start preset
 - **ssr.noExternal: true** (production only) to bundle all deps in server output
-- **Devtools client-only:** useEffect lazy load to prevent SSR crashes
+- **Devtools client-only:** isMounted state guard to prevent SSR hydration mismatch
 - **Progress bar:** route transition indicator in admin panel (shadcn Progress)
 
 ---
@@ -197,6 +208,7 @@ katherinmejia.com/
 | 9. Blog + Content | ✅ | Novel WYSIWYG, AI features, blog edit page, split-view content editor with live preview |
 | 10. Analytics | ❌ | PostHog + Sentry (not started) |
 | 11. Deploy | ✅ | Vercel (web + quote), Convex prod, auto-deploy on push |
+| 12. Code Quality | ✅ | Biome lint/format/imports, Husky pre-commit, 0 type errors |
 
 ---
 

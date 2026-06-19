@@ -1,38 +1,40 @@
-import { createFileRoute, Link } from "@tanstack/react-router"
-import { useQuery } from "convex/react"
-import { api } from "@convex/_generated/api"
-import { ConvexHttpClient } from "convex/browser"
-import { createServerFn } from "@tanstack/react-start"
-import { useTranslation } from "react-i18next"
-import { Button } from "@repo/ui/components/button"
-import { Navigation } from "#/components/landing/navigation"
-import { Footer } from "#/components/landing/footer"
-import { ArrowLeft } from "lucide-react"
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { createServerFn } from "@tanstack/react-start";
+import { ConvexHttpClient } from "convex/browser";
+import { useQuery } from "convex/react";
+import { ArrowLeft } from "lucide-react";
+import { useTranslation } from "react-i18next";
+
+import { api } from "@convex/_generated/api";
+import { Button } from "@repo/ui/components/button";
+
+import { Footer } from "#/components/landing/footer";
+import { Navigation } from "#/components/landing/navigation";
 
 const fetchPostMeta = createServerFn({ method: "GET" })
   .validator((slug: string) => slug)
   .handler(async ({ data: slug }) => {
-    const convexUrl = process.env.VITE_CONVEX_URL || import.meta.env.VITE_CONVEX_URL
-    if (!convexUrl) return null
-    const client = new ConvexHttpClient(convexUrl)
-    const post = await client.query(api.blogPosts.getBySlug, { slug })
-    if (!post) return null
+    const convexUrl = process.env.VITE_CONVEX_URL || import.meta.env.VITE_CONVEX_URL;
+    if (!convexUrl) return null;
+    const client = new ConvexHttpClient(convexUrl);
+    const post = await client.query(api.blogPosts.getBySlug, { slug });
+    if (!post) return null;
     return {
       title: post.title,
       excerpt: post.excerpt,
       coverImageUrl: post.coverImageUrl,
       publishedAt: post.publishedAt,
-    }
-  })
+    };
+  });
 
 export const Route = createFileRoute("/blog/$slug")({
   loader: ({ params }) => fetchPostMeta({ data: params.slug }),
   head: ({ loaderData }) => {
     if (!loaderData) {
-      return { meta: [{ title: "Artículo no encontrado — Katherin Mejia" }] }
+      return { meta: [{ title: "Artículo no encontrado — Katherin Mejia" }] };
     }
-    const title = `${loaderData.title.es} — Katherin Mejia`
-    const description = loaderData.excerpt.es
+    const title = `${loaderData.title.es} — Katherin Mejia`;
+    const description = loaderData.excerpt.es;
     return {
       meta: [
         { title },
@@ -40,23 +42,21 @@ export const Route = createFileRoute("/blog/$slug")({
         { property: "og:title", content: title },
         { property: "og:description", content: description },
         { property: "og:type", content: "article" },
-        ...(loaderData.coverImageUrl
-          ? [{ property: "og:image", content: loaderData.coverImageUrl }]
-          : []),
+        ...(loaderData.coverImageUrl ? [{ property: "og:image", content: loaderData.coverImageUrl }] : []),
         { name: "twitter:card", content: loaderData.coverImageUrl ? "summary_large_image" : "summary" },
         { name: "twitter:title", content: title },
         { name: "twitter:description", content: description },
       ],
-    }
+    };
   },
   component: BlogPostPage,
-})
+});
 
 function BlogPostPage() {
-  const { slug } = Route.useParams()
-  const { i18n } = useTranslation()
-  const locale = i18n.language as "es" | "en"
-  const post = useQuery(api.blogPosts.getBySlug, { slug })
+  const { slug } = Route.useParams();
+  const { i18n } = useTranslation();
+  const locale = i18n.language as "es" | "en";
+  const post = useQuery(api.blogPosts.getBySlug, { slug });
 
   if (post === undefined) {
     return (
@@ -67,7 +67,7 @@ function BlogPostPage() {
         </div>
         <Footer />
       </div>
-    )
+    );
   }
 
   if (post === null) {
@@ -82,7 +82,7 @@ function BlogPostPage() {
         </div>
         <Footer />
       </div>
-    )
+    );
   }
 
   return (
@@ -109,18 +109,12 @@ function BlogPostPage() {
               </p>
             )}
 
-            <h1 className="font-display text-[clamp(2rem,5vw,3.5rem)] tracking-tight mb-6">
-              {post.title[locale]}
-            </h1>
+            <h1 className="font-display text-[clamp(2rem,5vw,3.5rem)] tracking-tight mb-6">{post.title[locale]}</h1>
           </div>
 
           {post.coverImageUrl && (
             <div className="aspect-[16/9] mb-8 overflow-hidden">
-              <img
-                src={post.coverImageUrl}
-                alt={post.title[locale]}
-                className="w-full h-full object-cover"
-              />
+              <img src={post.coverImageUrl} alt={post.title[locale]} className="w-full h-full object-cover" />
             </div>
           )}
 
@@ -133,5 +127,5 @@ function BlogPostPage() {
 
       <Footer />
     </div>
-  )
+  );
 }

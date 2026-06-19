@@ -1,16 +1,24 @@
-import { DraftModeProvider, PreviewModeProvider, FieldClickProvider, SiteContentProvider, useSiteContentReady } from "#/lib/use-site-content"
-import { Skeleton } from "@repo/ui/components/skeleton"
-import { Navigation } from "./navigation"
-import { Hero } from "./hero"
-import { Services } from "./services"
-import { About } from "./about"
-import { CoursesPreview } from "./courses-preview"
-import { Testimonials } from "./testimonials"
-import { Contact } from "./contact"
-import { Footer } from "./footer"
+import { Skeleton } from "@repo/ui/components/skeleton";
+
+import {
+  DraftModeProvider,
+  FieldClickProvider,
+  PreviewModeProvider,
+  SiteContentProvider,
+  useSiteContentReady,
+} from "#/lib/use-site-content";
+
+import { About } from "./about";
+import { Contact } from "./contact";
+import { CoursesPreview } from "./courses-preview";
+import { Footer } from "./footer";
+import { Hero } from "./hero";
+import { Navigation } from "./navigation";
+import { Services } from "./services";
+import { Testimonials } from "./testimonials";
 
 interface LandingPreviewProps {
-  onFieldClick?: (key: string) => void
+  onFieldClick?: (key: string) => void;
 }
 
 export function LandingPreview({ onFieldClick }: LandingPreviewProps) {
@@ -24,23 +32,23 @@ export function LandingPreview({ onFieldClick }: LandingPreviewProps) {
         </PreviewModeProvider>
       </DraftModeProvider>
     </SiteContentProvider>
-  )
+  );
 }
 
 function PreviewContent() {
-  const isReady = useSiteContentReady()
+  const isReady = useSiteContentReady();
 
-  if (!isReady) return <PreviewSkeleton />
+  if (!isReady) return <PreviewSkeleton />;
 
   return (
     <div
       className="min-h-screen bg-background"
       onClickCapture={(e) => {
-        const target = e.target as HTMLElement
+        const target = e.target as HTMLElement;
         if (target.closest("a, button[type='submit']")) {
           if (!target.closest("[data-field-key]")) {
-            e.preventDefault()
-            e.stopPropagation()
+            e.preventDefault();
+            e.stopPropagation();
           }
         }
       }}
@@ -54,7 +62,7 @@ function PreviewContent() {
       <Contact />
       <Footer />
     </div>
-  )
+  );
 }
 
 function PreviewSkeleton() {
@@ -115,5 +123,5 @@ function PreviewSkeleton() {
         </div>
       </div>
     </div>
-  )
+  );
 }

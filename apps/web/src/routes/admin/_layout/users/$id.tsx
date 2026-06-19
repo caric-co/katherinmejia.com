@@ -1,60 +1,53 @@
-import { createFileRoute, Link } from "@tanstack/react-router"
-import { useQuery, useMutation } from "convex/react"
-import { api } from "@convex/_generated/api"
-import type { Id } from "@convex/_generated/dataModel"
-import { Button } from "@repo/ui/components/button"
-import { Badge } from "@repo/ui/components/badge"
-import { Separator } from "@repo/ui/components/separator"
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from "@repo/ui/components/table"
-import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
-} from "@repo/ui/components/dropdown-menu"
-import { ArrowLeft, Shield, ShieldOff, Plus, Trash2 } from "lucide-react"
-import { useState } from "react"
+import { useState } from "react";
+
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useMutation, useQuery } from "convex/react";
+import { ArrowLeft, Plus, Shield, ShieldOff, Trash2 } from "lucide-react";
+
+import { api } from "@convex/_generated/api";
+import type { Id } from "@convex/_generated/dataModel";
+import { Badge } from "@repo/ui/components/badge";
+import { Button } from "@repo/ui/components/button";
+import { Separator } from "@repo/ui/components/separator";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@repo/ui/components/table";
 
 export const Route = createFileRoute("/admin/_layout/users/$id")({
   component: UserDetailPage,
-})
+});
 
 function UserDetailPage() {
-  const { id } = Route.useParams()
-  const userId = id as Id<"users">
-  const user = useQuery(api.users.getById, { userId })
-  const setStatus = useMutation(api.users.setStatus)
-  const setRole = useMutation(api.users.setRole)
+  const { id } = Route.useParams();
+  const userId = id as Id<"users">;
+  const user = useQuery(api.users.getById, { userId });
+  const setStatus = useMutation(api.users.setStatus);
+  const setRole = useMutation(api.users.setRole);
 
-  const courses = useQuery(api.courses.listAll)
-  const purchases = useQuery(api.purchases.listByUser, { userId: user?.email ?? "" })
+  const courses = useQuery(api.courses.listAll);
+  const purchases = useQuery(api.purchases.listByUser, { userId: user?.email ?? "" });
 
-  const grantAccess = useMutation(api.purchases.grantAccess)
-  const revokeAccess = useMutation(api.purchases.revokeAccess)
+  const grantAccess = useMutation(api.purchases.grantAccess);
+  const revokeAccess = useMutation(api.purchases.revokeAccess);
 
-  const [granting, setGranting] = useState(false)
-  const [selectedCourse, setSelectedCourse] = useState("")
+  const [granting, setGranting] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState("");
 
-  if (user === undefined) return <p className="text-muted-foreground">Cargando...</p>
-  if (user === null) return <p className="text-destructive">Usuario no encontrado</p>
+  if (user === undefined) return <p className="text-muted-foreground">Cargando...</p>;
+  if (user === null) return <p className="text-destructive">Usuario no encontrado</p>;
 
   const handleGrant = async () => {
-    if (!selectedCourse) return
-    setGranting(true)
+    if (!selectedCourse) return;
+    setGranting(true);
     await grantAccess({
       userId: user.email,
       courseId: selectedCourse as Id<"courses">,
-    })
-    setSelectedCourse("")
-    setGranting(false)
-  }
+    });
+    setSelectedCourse("");
+    setGranting(false);
+  };
 
-  const purchasedCourseIds = new Set(
-    (purchases ?? []).filter((p) => p.status === "completed").map((p) => p.courseId)
-  )
+  const purchasedCourseIds = new Set((purchases ?? []).filter((p) => p.status === "completed").map((p) => p.courseId));
 
-  const availableCourses = (courses ?? []).filter(
-    (c) => !purchasedCourseIds.has(c._id)
-  )
+  const availableCourses = (courses ?? []).filter((c) => !purchasedCourseIds.has(c._id));
 
   return (
     <div className="max-w-3xl">
@@ -82,23 +75,27 @@ function UserDetailPage() {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => setStatus({
-            userId,
-            status: user.status === "blocked" ? "active" : "blocked",
-          })}
+          onClick={() =>
+            setStatus({
+              userId,
+              status: user.status === "blocked" ? "active" : "blocked",
+            })
+          }
         >
           {user.status === "blocked" ? (
-            <><ShieldOff data-icon="inline-start" className="size-3.5" /> Desbloquear</>
+            <>
+              <ShieldOff data-icon="inline-start" className="size-3.5" /> Desbloquear
+            </>
           ) : (
-            <><Shield data-icon="inline-start" className="size-3.5" /> Bloquear</>
+            <>
+              <Shield data-icon="inline-start" className="size-3.5" /> Bloquear
+            </>
           )}
         </Button>
         <Button
           variant="outline"
           size="sm"
-          onClick={() =>
-            setRole({ userId, role: user.role === "admin" ? "student" : "admin" })
-          }
+          onClick={() => setRole({ userId, role: user.role === "admin" ? "student" : "admin" })}
         >
           {user.role === "admin" ? "Cambiar a estudiante" : "Hacer admin"}
         </Button>
@@ -125,26 +122,20 @@ function UserDetailPage() {
             {purchases
               .filter((p) => p.status === "completed")
               .map((purchase) => {
-                const course = courses?.find((c) => c._id === purchase.courseId)
+                const course = courses?.find((c) => c._id === purchase.courseId);
                 return (
                   <TableRow key={purchase._id}>
-                    <TableCell className="font-medium">
-                      {course?.title.es ?? "Curso eliminado"}
-                    </TableCell>
+                    <TableCell className="font-medium">{course?.title.es ?? "Curso eliminado"}</TableCell>
                     <TableCell>
                       <Badge variant="outline">{purchase.grantedBy}</Badge>
                     </TableCell>
                     <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => revokeAccess({ purchaseId: purchase._id })}
-                      >
+                      <Button variant="ghost" size="sm" onClick={() => revokeAccess({ purchaseId: purchase._id })}>
                         <Trash2 className="size-3.5" />
                       </Button>
                     </TableCell>
                   </TableRow>
-                )
+                );
               })}
           </TableBody>
         </Table>
@@ -152,9 +143,7 @@ function UserDetailPage() {
 
       <div className="mt-6 flex gap-3 items-end">
         <div className="flex-1">
-          <p className="text-xs uppercase tracking-wider font-medium mb-2">
-            Otorgar acceso a curso
-          </p>
+          <p className="text-xs uppercase tracking-wider font-medium mb-2">Otorgar acceso a curso</p>
           <select
             value={selectedCourse}
             onChange={(e) => setSelectedCourse(e.target.value)}
@@ -168,15 +157,11 @@ function UserDetailPage() {
             ))}
           </select>
         </div>
-        <Button
-          onClick={handleGrant}
-          disabled={!selectedCourse || granting}
-          size="sm"
-        >
+        <Button onClick={handleGrant} disabled={!selectedCourse || granting} size="sm">
           <Plus data-icon="inline-start" className="size-3.5" />
           Otorgar
         </Button>
       </div>
     </div>
-  )
+  );
 }

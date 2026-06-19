@@ -1,14 +1,7 @@
 const stack = [
   {
     category: "Interfaz",
-    items: [
-      "TanStack Start",
-      "TanStack Form + Zod",
-      "React Query",
-      "Tailwind CSS v4",
-      "shadcn/ui + Base UI",
-      "Motion",
-    ],
+    items: ["TanStack Start", "TanStack Form + Zod", "React Query", "Tailwind CSS v4", "shadcn/ui + Base UI", "Motion"],
   },
   {
     category: "Servidor",
@@ -20,10 +13,7 @@ const stack = [
   },
   {
     category: "Pagos",
-    items: [
-      "Bold.co (compras individuales)",
-      "Wompi (suscripciones — por evaluar)",
-    ],
+    items: ["Bold.co (compras individuales)", "Wompi (suscripciones — por evaluar)"],
   },
   {
     category: "Video",
@@ -47,13 +37,8 @@ export function TechStackSection() {
       <h2 className="font-display text-h2 mb-6">Arquitectura Tecnológica</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {stack.map((group) => (
-          <div
-            key={group.category}
-            className="border border-border p-4 bg-card"
-          >
-            <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-2">
-              {group.category}
-            </h3>
+          <div key={group.category} className="border border-border p-4 bg-card">
+            <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-2">{group.category}</h3>
             <ul className="space-y-1">
               {group.items.map((item) => (
                 <li key={item} className="text-muted-foreground">

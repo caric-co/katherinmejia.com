@@ -1,17 +1,19 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router"
-import { useQuery, useMutation, useAction } from "convex/react"
-import { api } from "@convex/_generated/api"
-import { Button } from "@repo/ui/components/button"
-import { Input } from "@repo/ui/components/input"
-import { Label } from "@repo/ui/components/label"
-import { Badge } from "@repo/ui/components/badge"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@repo/ui/components/tooltip"
-import { BookOpen, Languages, Loader2 } from "lucide-react"
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react";
+
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useAction, useMutation, useQuery } from "convex/react";
+import { BookOpen, Languages, Loader2 } from "lucide-react";
+
+import { api } from "@convex/_generated/api";
+import { Badge } from "@repo/ui/components/badge";
+import { Button } from "@repo/ui/components/button";
+import { Input } from "@repo/ui/components/input";
+import { Label } from "@repo/ui/components/label";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@repo/ui/components/tooltip";
 
 export const Route = createFileRoute("/admin/_layout/courses/$slug")({
   component: EditCoursePage,
-})
+});
 
 function slugify(text: string): string {
   return text
@@ -19,73 +21,73 @@ function slugify(text: string): string {
     .normalize("NFD")
     .replace(/[̀-ͯ]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "")
+    .replace(/^-|-$/g, "");
 }
 
 function formatCOP(value: string): string {
-  const num = value.replace(/\D/g, "")
-  if (!num) return ""
-  return Number(num).toLocaleString("es-CO")
+  const num = value.replace(/\D/g, "");
+  if (!num) return "";
+  return Number(num).toLocaleString("es-CO");
 }
 
 function parseCOP(formatted: string): number {
-  return parseInt(formatted.replace(/\D/g, "")) || 0
+  return parseInt(formatted.replace(/\D/g, ""), 10) || 0;
 }
 
 function EditCoursePage() {
-  const { slug: routeSlug } = Route.useParams()
-  const navigate = useNavigate()
-  const course = useQuery(api.courses.getBySlug, { slug: routeSlug })
-  const updateCourse = useMutation(api.courses.update)
-  const updateStatus = useMutation(api.courses.updateStatus)
-  const translateAction = useAction(api.ai.translateText)
-  const [loading, setLoading] = useState(false)
-  const [translating, setTranslating] = useState(false)
-  const [error, setError] = useState("")
+  const { slug: routeSlug } = Route.useParams();
+  const navigate = useNavigate();
+  const course = useQuery(api.courses.getBySlug, { slug: routeSlug });
+  const updateCourse = useMutation(api.courses.update);
+  const updateStatus = useMutation(api.courses.updateStatus);
+  const translateAction = useAction(api.ai.translateText);
+  const [loading, setLoading] = useState(false);
+  const [translating, setTranslating] = useState(false);
+  const [error, setError] = useState("");
 
-  const [titleEs, setTitleEs] = useState("")
-  const [titleEn, setTitleEn] = useState("")
-  const [descEs, setDescEs] = useState("")
-  const [descEn, setDescEn] = useState("")
-  const [priceDisplay, setPriceDisplay] = useState("")
-  const [slugEs, setSlugEs] = useState("")
-  const [slugEn, setSlugEn] = useState("")
+  const [titleEs, setTitleEs] = useState("");
+  const [titleEn, setTitleEn] = useState("");
+  const [descEs, setDescEs] = useState("");
+  const [descEn, setDescEn] = useState("");
+  const [priceDisplay, setPriceDisplay] = useState("");
+  const [slugEs, setSlugEs] = useState("");
+  const [slugEn, setSlugEn] = useState("");
 
   useEffect(() => {
     if (course) {
-      setTitleEs(course.title.es)
-      setTitleEn(course.title.en)
-      setDescEs(course.description.es)
-      setDescEn(course.description.en)
-      setPriceDisplay(formatCOP(course.price.toString()))
-      setSlugEs(course.slug.es)
-      setSlugEn(course.slug.en)
+      setTitleEs(course.title.es);
+      setTitleEn(course.title.en);
+      setDescEs(course.description.es);
+      setDescEn(course.description.en);
+      setPriceDisplay(formatCOP(course.price.toString()));
+      setSlugEs(course.slug.es);
+      setSlugEn(course.slug.en);
     }
-  }, [course])
+  }, [course]);
 
   const handleTranslate = async () => {
-    setTranslating(true)
+    setTranslating(true);
     try {
       if (titleEs && !titleEn) {
-        const result = await translateAction({ text: titleEs })
-        setTitleEn(result.translated)
-        setSlugEn(slugify(result.translated))
+        const result = await translateAction({ text: titleEs });
+        setTitleEn(result.translated);
+        setSlugEn(slugify(result.translated));
       }
       if (descEs && !descEn) {
-        const result = await translateAction({ text: descEs })
-        setDescEn(result.translated)
+        const result = await translateAction({ text: descEs });
+        setDescEn(result.translated);
       }
     } catch {}
-    setTranslating(false)
-  }
+    setTranslating(false);
+  };
 
-  if (course === undefined) return <p className="text-muted-foreground">Cargando...</p>
-  if (course === null) return <p className="text-destructive">Curso no encontrado</p>
+  if (course === undefined) return <p className="text-muted-foreground">Cargando...</p>;
+  if (course === null) return <p className="text-destructive">Curso no encontrado</p>;
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError("")
+    e.preventDefault();
+    setLoading(true);
+    setError("");
     try {
       await updateCourse({
         courseId: course._id,
@@ -93,47 +95,47 @@ function EditCoursePage() {
         description: { es: descEs, en: descEn },
         slug: { es: slugEs, en: slugEn },
         price: parseCOP(priceDisplay),
-      })
-      navigate({ to: "/admin/courses" })
+      });
+      navigate({ to: "/admin/courses" });
     } catch (err: any) {
-      setError(err.message ?? "Error al actualizar")
+      setError(err.message ?? "Error al actualizar");
     }
-    setLoading(false)
-  }
+    setLoading(false);
+  };
 
-  const statusLabel = { draft: "Borrador", published: "Publicado", archived: "Archivado" }
+  const statusLabel = { draft: "Borrador", published: "Publicado", archived: "Archivado" };
 
   return (
     <div className="max-w-2xl">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <h1 className="font-display text-h2">Editar Curso</h1>
-          <Badge variant={course.status === "published" ? "default" : "outline"}>
-            {statusLabel[course.status]}
-          </Badge>
+          <Badge variant={course.status === "published" ? "default" : "outline"}>{statusLabel[course.status]}</Badge>
         </div>
         <div className="flex items-center gap-2">
-          <TooltipProvider delayDuration={300}>
+          <TooltipProvider delay={300}>
             <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleTranslate}
-                  disabled={translating || (!titleEs && !descEs)}
-                >
-                  {translating ? (
-                    <Loader2 data-icon="inline-start" className="size-3.5 animate-spin" />
-                  ) : (
-                    <Languages data-icon="inline-start" className="size-3.5" />
-                  )}
-                  {translating ? "Traduciendo..." : "Auto-traducir EN"}
-                </Button>
+              <TooltipTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleTranslate}
+                    disabled={translating || (!titleEs && !descEs)}
+                  />
+                }
+              >
+                {translating ? (
+                  <Loader2 data-icon="inline-start" className="size-3.5 animate-spin" />
+                ) : (
+                  <Languages data-icon="inline-start" className="size-3.5" />
+                )}
+                {translating ? "Traduciendo..." : "Auto-traducir EN"}
               </TooltipTrigger>
               <TooltipContent>Traduce los campos vacíos EN desde ES con IA</TooltipContent>
             </Tooltip>
           </TooltipProvider>
-          <Link to={`/admin/courses/${routeSlug}/lessons`}>
+          <Link to={`/admin/courses/${routeSlug}/lessons` as string}>
             <Button variant="outline" size="sm">
               <BookOpen data-icon="inline-start" className="size-3.5" />
               Lecciones
@@ -168,11 +170,20 @@ function EditCoursePage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <Label className="text-xs uppercase tracking-wider font-medium mb-2 block">Descripción (ES)</Label>
-            <textarea value={descEs} onChange={(e) => setDescEs(e.target.value)} className="flex field-sizing-content min-h-24 w-full rounded-none border-0 border-b border-input bg-transparent px-0 py-2 transition-colors outline-none placeholder:text-muted-foreground/60 focus-visible:border-foreground/40" required />
+            <textarea
+              value={descEs}
+              onChange={(e) => setDescEs(e.target.value)}
+              className="flex field-sizing-content min-h-24 w-full rounded-none border-0 border-b border-input bg-transparent px-0 py-2 transition-colors outline-none placeholder:text-muted-foreground/60 focus-visible:border-foreground/40"
+              required
+            />
           </div>
           <div>
             <Label className="text-xs uppercase tracking-wider font-medium mb-2 block">Descripción (EN)</Label>
-            <textarea value={descEn} onChange={(e) => setDescEn(e.target.value)} className="flex field-sizing-content min-h-24 w-full rounded-none border-0 border-b border-input bg-transparent px-0 py-2 transition-colors outline-none placeholder:text-muted-foreground/60 focus-visible:border-foreground/40" />
+            <textarea
+              value={descEn}
+              onChange={(e) => setDescEn(e.target.value)}
+              className="flex field-sizing-content min-h-24 w-full rounded-none border-0 border-b border-input bg-transparent px-0 py-2 transition-colors outline-none placeholder:text-muted-foreground/60 focus-visible:border-foreground/40"
+            />
           </div>
         </div>
 
@@ -196,12 +207,20 @@ function EditCoursePage() {
             {loading ? "Guardando..." : "Guardar cambios"}
           </Button>
           {course.status === "draft" && (
-            <Button type="button" variant="outline" onClick={() => updateStatus({ courseId: course._id, status: "published" })}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => updateStatus({ courseId: course._id, status: "published" })}
+            >
               Publicar
             </Button>
           )}
           {course.status === "published" && (
-            <Button type="button" variant="outline" onClick={() => updateStatus({ courseId: course._id, status: "draft" })}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => updateStatus({ courseId: course._id, status: "draft" })}
+            >
               Despublicar
             </Button>
           )}
@@ -211,5 +230,5 @@ function EditCoursePage() {
         </div>
       </form>
     </div>
-  )
+  );
 }

@@ -1,10 +1,6 @@
-import {
-  HeadContent,
-  Outlet,
-  Scripts,
-  createRootRoute,
-} from "@tanstack/react-router"
-import appCss from "#/index.css?url"
+import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-router";
+
+import appCss from "#/index.css?url";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -28,7 +24,7 @@ export const Route = createRootRoute({
     ],
   }),
   component: RootComponent,
-})
+});
 
 function RootComponent() {
   return (
@@ -41,5 +37,5 @@ function RootComponent() {
         <Scripts />
       </body>
     </html>
-  )
+  );
 }

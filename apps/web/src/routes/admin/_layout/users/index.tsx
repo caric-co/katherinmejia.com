@@ -1,43 +1,42 @@
-import { createFileRoute, Link } from "@tanstack/react-router"
-import { useQuery, useMutation } from "convex/react"
-import { api } from "@convex/_generated/api"
-import type { Doc } from "@convex/_generated/dataModel"
-import { Badge } from "@repo/ui/components/badge"
-import { Button } from "@repo/ui/components/button"
-import { Input } from "@repo/ui/components/input"
-import { DataTable, type ColumnDef } from "@repo/ui/components/data-table"
-import { DataTableColumnHeader } from "@repo/ui/components/data-table-column-header"
+import { useState } from "react";
+
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useMutation, useQuery } from "convex/react";
+import { Check, Search, Settings2, SlidersHorizontal, Trash2, Users, X } from "lucide-react";
+
+import { api } from "@convex/_generated/api";
+import type { Doc } from "@convex/_generated/dataModel";
+import { Badge } from "@repo/ui/components/badge";
+import { Button } from "@repo/ui/components/button";
+import { type ColumnDef, DataTable } from "@repo/ui/components/data-table";
+import { DataTableColumnHeader } from "@repo/ui/components/data-table-column-header";
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
-} from "@repo/ui/components/dropdown-menu"
-import {
-  Tooltip, TooltipTrigger, TooltipContent, TooltipProvider,
-} from "@repo/ui/components/tooltip"
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@repo/ui/components/select"
-import {
-  Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle,
-} from "@repo/ui/components/sheet"
-import { Users, Trash2, Search, SlidersHorizontal, X, Settings2, Check } from "lucide-react"
-import { useState } from "react"
-import { formatDate } from "@repo/utils"
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@repo/ui/components/dropdown-menu";
+import { Input } from "@repo/ui/components/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@repo/ui/components/select";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@repo/ui/components/sheet";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@repo/ui/components/tooltip";
+import { formatDate } from "@repo/utils";
 
 export const Route = createFileRoute("/admin/_layout/users/")({
   component: UsersListPage,
-})
+});
 
-type User = Doc<"users">
+type User = Doc<"users">;
 
 const roleLabels: Record<string, string> = {
   admin: "Admin",
   student: "Estudiante",
-}
+};
 
 const statusLabels: Record<string, string> = {
   active: "Activo",
   blocked: "Bloqueado",
-}
+};
 
 const columnLabels: Record<string, string> = {
   name: "Nombre",
@@ -45,32 +44,29 @@ const columnLabels: Record<string, string> = {
   role: "Rol",
   status: "Estado",
   createdAt: "Registrado el",
-}
+};
 
 interface Filters {
-  role: string
-  status: string
+  role: string;
+  status: string;
 }
 
 const roleItems = {
   all: "Todos los roles",
   admin: "Admin",
   student: "Estudiante",
-}
+};
 
 const statusItems = {
   all: "Todos",
   active: "Activo",
   blocked: "Bloqueado",
-}
+};
 
-function FilterSelects({ filters, onChange }: {
-  filters: Filters
-  onChange: (filters: Filters) => void
-}) {
+function FilterSelects({ filters, onChange }: { filters: Filters; onChange: (filters: Filters) => void }) {
   return (
     <>
-      <Select items={roleItems} value={filters.role} onValueChange={(v) => onChange({ ...filters, role: v })}>
+      <Select items={roleItems} value={filters.role} onValueChange={(v) => onChange({ ...filters, role: v ?? "" })}>
         <SelectTrigger className="w-36 h-8 text-xs">
           <SelectValue placeholder="Rol" />
         </SelectTrigger>
@@ -80,7 +76,11 @@ function FilterSelects({ filters, onChange }: {
           <SelectItem value="student">Estudiante</SelectItem>
         </SelectContent>
       </Select>
-      <Select items={statusItems} value={filters.status} onValueChange={(v) => onChange({ ...filters, status: v })}>
+      <Select
+        items={statusItems}
+        value={filters.status}
+        onValueChange={(v) => onChange({ ...filters, status: v ?? "" })}
+      >
         <SelectTrigger className="w-36 h-8 text-xs">
           <SelectValue placeholder="Estado" />
         </SelectTrigger>
@@ -91,41 +91,39 @@ function FilterSelects({ filters, onChange }: {
         </SelectContent>
       </Select>
     </>
-  )
+  );
 }
 
 function UsersListPage() {
-  const users = useQuery(api.users.list, {})
-  const setStatus = useMutation(api.users.setStatus)
-  const [search, setSearch] = useState("")
-  const [filters, setFilters] = useState<Filters>({ role: "all", status: "all" })
-  const [sheetOpen, setSheetOpen] = useState(false)
+  const users = useQuery(api.users.list, {});
+  const setStatus = useMutation(api.users.setStatus);
+  const [search, setSearch] = useState("");
+  const [filters, setFilters] = useState<Filters>({ role: "all", status: "all" });
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   const handleDelete = (userId: string, userName: string) => {
-    if (!confirm(`¿Eliminar a ${userName}? Esta acción no se puede deshacer.`)) return
-    setStatus({ userId: userId as any, status: "deleted" })
-  }
+    if (!confirm(`¿Eliminar a ${userName}? Esta acción no se puede deshacer.`)) return;
+    setStatus({ userId: userId as any, status: "deleted" });
+  };
 
-  const activeFilters = Object.entries(filters).filter(([, v]) => v !== "all")
-  const hasActiveFilters = activeFilters.length > 0
+  const activeFilters = Object.entries(filters).filter(([, v]) => v !== "all");
+  const hasActiveFilters = activeFilters.length > 0;
 
   const clearFilter = (key: keyof Filters) => {
-    setFilters((prev) => ({ ...prev, [key]: "all" }))
-  }
+    setFilters((prev) => ({ ...prev, [key]: "all" }));
+  };
 
   const clearAllFilters = () => {
-    setFilters({ role: "all", status: "all" })
-  }
+    setFilters({ role: "all", status: "all" });
+  };
 
   const columns: ColumnDef<User, any>[] = [
     {
       accessorKey: "name",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Nombre" />
-      ),
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Nombre" />,
       cell: ({ row }) => (
         <Link
-          to={`/admin/users/${row.original._id}`}
+          to={`/admin/users/${row.original._id}` as string}
           className="font-medium hover:opacity-70 transition-opacity"
         >
           {row.original.name} {row.original.lastName ?? ""}
@@ -134,19 +132,13 @@ function UsersListPage() {
     },
     {
       accessorKey: "email",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Correo" />
-      ),
-      cell: ({ row }) => (
-        <span className="text-muted-foreground">{row.original.email}</span>
-      ),
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Correo" />,
+      cell: ({ row }) => <span className="text-muted-foreground">{row.original.email}</span>,
     },
     {
       accessorKey: "role",
       size: 120,
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Rol" />
-      ),
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Rol" />,
       cell: ({ row }) => (
         <Badge variant={row.original.role === "admin" ? "default" : "outline"}>
           {roleLabels[row.original.role] ?? row.original.role}
@@ -156,20 +148,16 @@ function UsersListPage() {
     {
       accessorKey: "status",
       size: 150,
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Estado" />
-      ),
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Estado" />,
       cell: ({ row }) => {
-        if (row.original.status === "blocked") return <Badge variant="destructive">Bloqueado</Badge>
-        return <span className="text-muted-foreground text-sm">Activo</span>
+        if (row.original.status === "blocked") return <Badge variant="destructive">Bloqueado</Badge>;
+        return <span className="text-muted-foreground text-sm">Activo</span>;
       },
     },
     {
       accessorKey: "createdAt",
       size: 200,
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Registrado el" />
-      ),
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Registrado el" />,
       cell: ({ row }) => (
         <span className="text-muted-foreground text-sm whitespace-nowrap">
           {formatDate(row.original.createdAt, "d MMM yyyy, h:mm a")}
@@ -179,22 +167,17 @@ function UsersListPage() {
     {
       id: "actions",
       header: ({ table }) => {
-        const toggleable = table.getAllColumns().filter((c) => c.getCanHide())
-        const hasHidden = toggleable.some((c) => !c.getIsVisible())
+        const toggleable = table.getAllColumns().filter((c) => c.getCanHide());
+        const hasHidden = toggleable.some((c) => !c.getIsVisible());
         return (
           <div className="flex justify-end">
             <DropdownMenu>
-              <DropdownMenuTrigger
-                className="flex items-center justify-center size-7 rounded-md hover:bg-background/50 transition-colors"
-              >
+              <DropdownMenuTrigger className="flex items-center justify-center size-7 rounded-md hover:bg-background/50 transition-colors">
                 <Settings2 className={`size-3.5 ${hasHidden ? "text-foreground" : "text-muted-foreground"}`} />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 {toggleable.map((col) => (
-                  <DropdownMenuItem
-                    key={col.id}
-                    onClick={() => col.toggleVisibility(!col.getIsVisible())}
-                  >
+                  <DropdownMenuItem key={col.id} onClick={() => col.toggleVisibility(!col.getIsVisible())}>
                     <Check className={`size-3.5 ${col.getIsVisible() ? "opacity-100" : "opacity-0"}`} />
                     <span>{columnLabels[col.id] ?? col.id}</span>
                   </DropdownMenuItem>
@@ -202,19 +185,21 @@ function UsersListPage() {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-        )
+        );
       },
       cell: ({ row }) => {
-        const user = row.original
+        const user = row.original;
         return (
           <div className="flex justify-end gap-1">
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setStatus({
-                userId: user._id,
-                status: user.status === "blocked" ? "active" : "blocked",
-              })}
+              onClick={() =>
+                setStatus({
+                  userId: user._id,
+                  status: user.status === "blocked" ? "active" : "blocked",
+                })
+              }
             >
               {user.status === "blocked" ? "Desbloquear" : "Bloquear"}
             </Button>
@@ -236,28 +221,28 @@ function UsersListPage() {
               </Tooltip>
             </TooltipProvider>
           </div>
-        )
+        );
       },
       enableSorting: false,
       enableHiding: false,
     },
-  ]
+  ];
 
   const filteredData = (users ?? []).filter((u) => {
-    if (filters.role !== "all" && u.role !== filters.role) return false
-    if (filters.status !== "all" && u.status !== filters.status) return false
+    if (filters.role !== "all" && u.role !== filters.role) return false;
+    if (filters.status !== "all" && u.status !== filters.status) return false;
     if (search) {
-      const term = search.toLowerCase()
-      const fullName = `${u.name} ${u.lastName ?? ""}`.toLowerCase()
-      if (!fullName.includes(term) && !u.email.toLowerCase().includes(term)) return false
+      const term = search.toLowerCase();
+      const fullName = `${u.name} ${u.lastName ?? ""}`.toLowerCase();
+      if (!fullName.includes(term) && !u.email.toLowerCase().includes(term)) return false;
     }
-    return true
-  })
+    return true;
+  });
 
   const filterLabels: Record<string, Record<string, string>> = {
     role: { label: "Rol", ...roleLabels },
     status: { label: "Estado", ...statusLabels },
-  }
+  };
 
   return (
     <div className="flex flex-col h-full">
@@ -289,11 +274,7 @@ function UsersListPage() {
 
             <div className="md:hidden">
               <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-                <SheetTrigger
-                  render={
-                    <Button variant="outline" size="sm" className="relative" />
-                  }
-                >
+                <SheetTrigger render={<Button variant="outline" size="sm" className="relative" />}>
                   <SlidersHorizontal className="size-4" />
                   {hasActiveFilters && (
                     <span className="absolute -top-1 -right-1 size-4 rounded-full bg-foreground text-background text-[10px] flex items-center justify-center">
@@ -311,7 +292,7 @@ function UsersListPage() {
                       <Select
                         items={roleItems}
                         value={filters.role}
-                        onValueChange={(v) => setFilters((p) => ({ ...p, role: v }))}
+                        onValueChange={(v) => setFilters((p) => ({ ...p, role: v ?? "" }))}
                       >
                         <SelectTrigger className="h-10 text-sm">
                           <SelectValue />
@@ -328,7 +309,7 @@ function UsersListPage() {
                       <Select
                         items={statusItems}
                         value={filters.status}
-                        onValueChange={(v) => setFilters((p) => ({ ...p, status: v }))}
+                        onValueChange={(v) => setFilters((p) => ({ ...p, status: v ?? "" }))}
                       >
                         <SelectTrigger className="h-10 text-sm">
                           <SelectValue />
@@ -346,17 +327,13 @@ function UsersListPage() {
                         size="sm"
                         className="flex-1"
                         onClick={() => {
-                          clearAllFilters()
-                          setSheetOpen(false)
+                          clearAllFilters();
+                          setSheetOpen(false);
                         }}
                       >
                         Limpiar
                       </Button>
-                      <Button
-                        size="sm"
-                        className="flex-1"
-                        onClick={() => setSheetOpen(false)}
-                      >
+                      <Button size="sm" className="flex-1" onClick={() => setSheetOpen(false)}>
                         Aplicar
                       </Button>
                     </div>
@@ -404,5 +381,5 @@ function UsersListPage() {
         </>
       )}
     </div>
-  )
+  );
 }

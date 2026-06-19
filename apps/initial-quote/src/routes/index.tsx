@@ -1,5 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router"
-import { ArrowRight, ExternalLink } from "lucide-react"
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ArrowRight, ExternalLink } from "lucide-react";
 
 const documents = [
   {
@@ -41,22 +41,18 @@ const documents = [
       },
     ],
   },
-]
+];
 
 export const Route = createFileRoute("/")({
   component: IndexPage,
-})
+});
 
 function IndexPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-3xl mx-auto px-6 py-16">
-        <p className="text-sm text-muted-foreground uppercase tracking-widest mb-3">
-          Documentación del Proyecto
-        </p>
-        <h1 className="font-display text-h1 tracking-tight mb-3">
-          KMakeup Platform
-        </h1>
+        <p className="text-sm text-muted-foreground uppercase tracking-widest mb-3">Documentación del Proyecto</p>
+        <h1 className="font-display text-h1 tracking-tight mb-3">KMakeup Platform</h1>
         <p className="text-body text-muted-foreground mb-12 max-w-xl">
           Plataforma de marca personal y cursos en línea para{" "}
           <strong className="text-foreground">Katherin Mejia</strong> (
@@ -88,9 +84,7 @@ function IndexPage() {
                       <h3 className="text-body font-semibold group-hover:opacity-70 transition-opacity">
                         {item.title}
                       </h3>
-                      <p className="text-muted-foreground mt-1">
-                        {item.description}
-                      </p>
+                      <p className="text-muted-foreground mt-1">{item.description}</p>
                     </div>
                     <ArrowRight className="size-5 text-muted-foreground shrink-0" />
                   </div>
@@ -139,5 +133,5 @@ function IndexPage() {
         </footer>
       </div>
     </div>
-  )
+  );
 }

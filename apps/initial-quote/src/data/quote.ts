@@ -53,8 +53,7 @@ export const features: QuoteFeature[] = [
   {
     id: "course-catalog",
     name: "Catálogo de Cursos",
-    description:
-      "Listado, detalle, filtros, búsqueda y vista previa de cursos. Vistas pública y protegida",
+    description: "Listado, detalle, filtros, búsqueda y vista previa de cursos. Vistas pública y protegida",
     phase: 1,
     estimatedHours: { min: 24, max: 32 },
     complexity: "medium",
@@ -93,8 +92,7 @@ export const features: QuoteFeature[] = [
   {
     id: "progress-tracking",
     name: "Seguimiento de Progreso",
-    description:
-      "Registro del avance por lección y módulo, porcentaje de completitud y última lección visualizada",
+    description: "Registro del avance por lección y módulo, porcentaje de completitud y última lección visualizada",
     phase: 2,
     estimatedHours: { min: 16, max: 24 },
     complexity: "medium",
@@ -133,8 +131,7 @@ export const features: QuoteFeature[] = [
   {
     id: "live-chat",
     name: "Chat en Vivo",
-    description:
-      "Chat en tiempo real durante las transmisiones en vivo, construido sobre Convex",
+    description: "Chat en tiempo real durante las transmisiones en vivo, construido sobre Convex",
     phase: 2,
     estimatedHours: { min: 12, max: 18 },
     complexity: "medium",
@@ -143,8 +140,7 @@ export const features: QuoteFeature[] = [
   {
     id: "analytics-setup",
     name: "Analítica y Monitoreo",
-    description:
-      "PostHog (analítica de usuario) + Sentry (monitoreo de errores). Planes gratuitos",
+    description: "PostHog (analítica de usuario) + Sentry (monitoreo de errores). Planes gratuitos",
     phase: 1,
     estimatedHours: { min: 8, max: 12 },
     complexity: "low",
@@ -163,8 +159,7 @@ export const features: QuoteFeature[] = [
   {
     id: "certificates",
     name: "Certificados de Curso",
-    description:
-      "Generación automática de certificado en PDF al completar un curso",
+    description: "Generación automática de certificado en PDF al completar un curso",
     phase: 3,
     estimatedHours: { min: 12, max: 18 },
     complexity: "medium",
@@ -173,8 +168,7 @@ export const features: QuoteFeature[] = [
   {
     id: "referrals",
     name: "Programa de Referidos",
-    description:
-      "Sistema de referidos con códigos, seguimiento y recompensas o descuentos",
+    description: "Sistema de referidos con códigos, seguimiento y recompensas o descuentos",
     phase: 3,
     estimatedHours: { min: 20, max: 30 },
     complexity: "medium",
@@ -251,8 +245,7 @@ export const serviceCosts: ServiceCost[] = [
     currency: "USD",
     unit: "USD/mes",
     required: true,
-    notes:
-      "Pago por consumo. Almacenamiento a USD 0,005/GB + ancho de banda LATAM a USD 0,045/GB. DRM básico incluido",
+    notes: "Pago por consumo. Almacenamiento a USD 0,005/GB + ancho de banda LATAM a USD 0,045/GB. DRM básico incluido",
   },
   {
     name: "Mux (alternativa)",
@@ -298,8 +291,7 @@ export const serviceCosts: ServiceCost[] = [
     currency: "COP",
     unit: "comisión/tx",
     required: true,
-    notes:
-      "~2,89 % + $300 COP por transacción con tarjeta; 1,50 % con Nequi/Daviplata. Sin costo fijo mensual",
+    notes: "~2,89 % + $300 COP por transacción con tarjeta; 1,50 % con Nequi/Daviplata. Sin costo fijo mensual",
   },
   {
     name: "Resend",
@@ -418,8 +410,6 @@ export const serviceCosts: ServiceCost[] = [
   },
 ];
 
-export const userScales = [
-  10, 20, 50, 100, 500, 1000, 5000, 10000, 50000, 100000, 500000, 1000000,
-] as const;
+export const userScales = [10, 20, 50, 100, 500, 1000, 5000, 10000, 50000, 100000, 500000, 1000000] as const;
 
 export type UserScale = (typeof userScales)[number];

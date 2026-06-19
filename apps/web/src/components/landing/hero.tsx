@@ -1,21 +1,22 @@
-import { useTranslation } from "react-i18next"
-import { Button } from "@repo/ui/components/button"
-import { ArrowRight } from "lucide-react"
-import { useSiteContent, usePreviewMode, useFieldClick } from "#/lib/use-site-content"
+import { ArrowRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
+
+import { Button } from "@repo/ui/components/button";
+
+import { useFieldClick, usePreviewMode, useSiteContent } from "#/lib/use-site-content";
 
 export function Hero() {
-  const { t } = useTranslation()
-  const { t: c } = useSiteContent("hero.")
-  const isPreview = usePreviewMode()
-  const onFieldClick = useFieldClick()
+  const { t } = useTranslation();
+  const { t: c } = useSiteContent("hero.");
+  const isPreview = usePreviewMode();
+  const onFieldClick = useFieldClick();
 
   return (
     <section className={`relative min-h-screen flex items-end pb-[15vh] px-6 md:px-10 ${isPreview ? "-mt-24" : ""}`}>
       <div
         className="absolute inset-0 bg-cover bg-center"
         style={{
-          backgroundImage:
-            `url('${c("hero.image", "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=1920&q=80")}')`,
+          backgroundImage: `url('${c("hero.image", "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=1920&q=80")}')`,
         }}
       />
       <div
@@ -38,5 +39,5 @@ export function Hero() {
         </a>
       </div>
     </section>
-  )
+  );
 }

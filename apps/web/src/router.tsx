@@ -1,17 +1,18 @@
-import { createRouter as createTanStackRouter } from "@tanstack/react-router"
-import { QueryClient } from "@tanstack/react-query"
-import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query"
-import { ConvexQueryClient } from "@convex-dev/react-query"
-import { ConvexProvider } from "convex/react"
-import { routeTree } from "./routeTree.gen"
+import { ConvexQueryClient } from "@convex-dev/react-query";
+import { QueryClient } from "@tanstack/react-query";
+import { createRouter as createTanStackRouter } from "@tanstack/react-router";
+import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
+import { ConvexProvider } from "convex/react";
+
+import { routeTree } from "./routeTree.gen";
 
 export function getRouter() {
-  const convexUrl = (import.meta as any).env.VITE_CONVEX_URL as string
+  const convexUrl = (import.meta as any).env.VITE_CONVEX_URL as string;
   if (!convexUrl) {
-    throw new Error("VITE_CONVEX_URL is not set")
+    throw new Error("VITE_CONVEX_URL is not set");
   }
 
-  const convexQueryClient = new ConvexQueryClient(convexUrl)
+  const convexQueryClient = new ConvexQueryClient(convexUrl);
 
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -20,8 +21,8 @@ export function getRouter() {
         queryFn: convexQueryClient.queryFn(),
       },
     },
-  })
-  convexQueryClient.connect(queryClient)
+  });
+  convexQueryClient.connect(queryClient);
 
   const router = createTanStackRouter({
     routeTree,
@@ -29,20 +30,16 @@ export function getRouter() {
     defaultPreloadStaleTime: 0,
     context: { queryClient, convexQueryClient },
     scrollRestoration: true,
-    Wrap: ({ children }) => (
-      <ConvexProvider client={convexQueryClient.convexClient}>
-        {children}
-      </ConvexProvider>
-    ),
-  })
+    Wrap: ({ children }) => <ConvexProvider client={convexQueryClient.convexClient}>{children}</ConvexProvider>,
+  });
 
-  setupRouterSsrQueryIntegration({ router, queryClient })
+  setupRouterSsrQueryIntegration({ router, queryClient });
 
-  return router
+  return router;
 }
 
 declare module "@tanstack/react-router" {
   interface Register {
-    router: ReturnType<typeof getRouter>
+    router: ReturnType<typeof getRouter>;
   }
 }

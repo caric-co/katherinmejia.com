@@ -1,52 +1,62 @@
-import { createFileRoute, Link } from "@tanstack/react-router"
-import { useQuery, useMutation } from "convex/react"
-import { api } from "@convex/_generated/api"
-import type { Doc } from "@convex/_generated/dataModel"
-import { Button } from "@repo/ui/components/button"
-import { Badge } from "@repo/ui/components/badge"
-import { Input } from "@repo/ui/components/input"
-import { DataTable, type ColumnDef } from "@repo/ui/components/data-table"
-import { DataTableColumnHeader } from "@repo/ui/components/data-table-column-header"
+import { useState } from "react";
+
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useMutation, useQuery } from "convex/react";
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
-} from "@repo/ui/components/dropdown-menu"
+  Archive,
+  BookOpen,
+  Check,
+  Eye,
+  MoreHorizontal,
+  Pencil,
+  Plus,
+  Search,
+  Settings2,
+  SlidersHorizontal,
+  X,
+} from "lucide-react";
+
+import { api } from "@convex/_generated/api";
+import type { Doc } from "@convex/_generated/dataModel";
+import { Badge } from "@repo/ui/components/badge";
+import { Button } from "@repo/ui/components/button";
+import { type ColumnDef, DataTable } from "@repo/ui/components/data-table";
+import { DataTableColumnHeader } from "@repo/ui/components/data-table-column-header";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@repo/ui/components/select"
-import {
-  Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle,
-} from "@repo/ui/components/sheet"
-import {
-  Plus, MoreHorizontal, Eye, Pencil, Archive, BookOpen,
-  Search, SlidersHorizontal, X, Settings2, Check,
-} from "lucide-react"
-import { useState } from "react"
-import { formatCOP, formatDate } from "@repo/utils"
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@repo/ui/components/dropdown-menu";
+import { Input } from "@repo/ui/components/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@repo/ui/components/select";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@repo/ui/components/sheet";
+import { formatCOP, formatDate } from "@repo/utils";
 
 export const Route = createFileRoute("/admin/_layout/courses/")({
   component: CoursesListPage,
-})
+});
 
-type Course = Doc<"courses"> & { lessonCount: number }
+type Course = Doc<"courses"> & { lessonCount: number };
 
 const statusLabels: Record<string, string> = {
   draft: "Borrador",
   published: "Publicado",
   archived: "Archivado",
-}
+};
 
 const statusVariant: Record<string, "default" | "outline" | "secondary"> = {
   draft: "outline",
   published: "default",
   archived: "secondary",
-}
+};
 
 const statusItems = {
   all: "Todos",
   draft: "Borrador",
   published: "Publicado",
   archived: "Archivado",
-}
+};
 
 const columnLabels: Record<string, string> = {
   title: "Curso",
@@ -54,23 +64,21 @@ const columnLabels: Record<string, string> = {
   lessonCount: "Lecciones",
   price: "Precio",
   createdAt: "Creado el",
-}
+};
 
 function CoursesListPage() {
-  const courses = useQuery(api.courses.listAll)
-  const updateStatus = useMutation(api.courses.updateStatus)
-  const [search, setSearch] = useState("")
-  const [statusFilter, setStatusFilter] = useState("all")
-  const [sheetOpen, setSheetOpen] = useState(false)
+  const courses = useQuery(api.courses.listAll);
+  const updateStatus = useMutation(api.courses.updateStatus);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [sheetOpen, setSheetOpen] = useState(false);
 
-  const isFiltered = statusFilter !== "all"
+  const isFiltered = statusFilter !== "all";
 
   const columns: ColumnDef<Course, any>[] = [
     {
       accessorKey: "title",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Curso" />
-      ),
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Curso" />,
       cell: ({ row }) => (
         <div>
           <div className="font-medium">{row.original.title.es}</div>
@@ -82,9 +90,7 @@ function CoursesListPage() {
     {
       accessorKey: "status",
       size: 140,
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Estado" />
-      ),
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Estado" />,
       cell: ({ row }) => (
         <Badge variant={statusVariant[row.original.status] ?? "outline"}>
           {statusLabels[row.original.status] ?? row.original.status}
@@ -94,29 +100,19 @@ function CoursesListPage() {
     {
       accessorKey: "lessonCount",
       size: 120,
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Lecciones" />
-      ),
-      cell: ({ row }) => (
-        <span className="text-muted-foreground">{row.original.lessonCount}</span>
-      ),
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Lecciones" />,
+      cell: ({ row }) => <span className="text-muted-foreground">{row.original.lessonCount}</span>,
     },
     {
       accessorKey: "price",
       size: 150,
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Precio" />
-      ),
-      cell: ({ row }) => (
-        <span className="font-mono text-sm">{formatCOP(row.original.price)}</span>
-      ),
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Precio" />,
+      cell: ({ row }) => <span className="font-mono text-sm">{formatCOP(row.original.price)}</span>,
     },
     {
       accessorKey: "createdAt",
       size: 200,
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Creado el" />
-      ),
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Creado el" />,
       cell: ({ row }) => (
         <span className="text-muted-foreground text-sm whitespace-nowrap">
           {formatDate(row.original.createdAt, "d MMM yyyy, h:mm a")}
@@ -126,22 +122,17 @@ function CoursesListPage() {
     {
       id: "actions",
       header: ({ table }) => {
-        const toggleable = table.getAllColumns().filter((c) => c.getCanHide())
-        const hasHidden = toggleable.some((c) => !c.getIsVisible())
+        const toggleable = table.getAllColumns().filter((c) => c.getCanHide());
+        const hasHidden = toggleable.some((c) => !c.getIsVisible());
         return (
           <div className="flex justify-end">
             <DropdownMenu>
-              <DropdownMenuTrigger
-                className="flex items-center justify-center size-7 rounded-md hover:bg-background/50 transition-colors"
-              >
+              <DropdownMenuTrigger className="flex items-center justify-center size-7 rounded-md hover:bg-background/50 transition-colors">
                 <Settings2 className={`size-3.5 ${hasHidden ? "text-foreground" : "text-muted-foreground"}`} />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 {toggleable.map((col) => (
-                  <DropdownMenuItem
-                    key={col.id}
-                    onClick={() => col.toggleVisibility(!col.getIsVisible())}
-                  >
+                  <DropdownMenuItem key={col.id} onClick={() => col.toggleVisibility(!col.getIsVisible())}>
                     <Check className={`size-3.5 ${col.getIsVisible() ? "opacity-100" : "opacity-0"}`} />
                     <span>{columnLabels[col.id] ?? col.id}</span>
                   </DropdownMenuItem>
@@ -149,10 +140,10 @@ function CoursesListPage() {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-        )
+        );
       },
       cell: ({ row }) => {
-        const course = row.original
+        const course = row.original;
         return (
           <div className="flex justify-end">
             <DropdownMenu>
@@ -160,11 +151,11 @@ function CoursesListPage() {
                 <MoreHorizontal className="size-4" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem render={<Link to={`/admin/courses/${course.slug.es}`} />}>
+                <DropdownMenuItem render={<Link to={`/admin/courses/${course.slug.es}` as string} />}>
                   <Pencil className="size-4" />
                   Editar
                 </DropdownMenuItem>
-                <DropdownMenuItem render={<Link to={`/admin/courses/${course._id}/lessons`} />}>
+                <DropdownMenuItem render={<Link to={`/admin/courses/${course._id}/lessons` as string} />}>
                   <BookOpen className="size-4" />
                   Lecciones
                 </DropdownMenuItem>
@@ -183,21 +174,21 @@ function CoursesListPage() {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-        )
+        );
       },
       enableSorting: false,
       enableHiding: false,
     },
-  ]
+  ];
 
   const filteredData = ((courses as Course[] | undefined) ?? []).filter((c) => {
-    if (statusFilter !== "all" && c.status !== statusFilter) return false
+    if (statusFilter !== "all" && c.status !== statusFilter) return false;
     if (search) {
-      const term = search.toLowerCase()
-      if (!c.title.es.toLowerCase().includes(term) && !c.slug.es.toLowerCase().includes(term)) return false
+      const term = search.toLowerCase();
+      if (!c.title.es.toLowerCase().includes(term) && !c.slug.es.toLowerCase().includes(term)) return false;
     }
-    return true
-  })
+    return true;
+  });
 
   return (
     <div className="flex flex-col h-full">
@@ -235,7 +226,7 @@ function CoursesListPage() {
             </div>
 
             <div className="hidden md:flex items-center gap-2">
-              <Select items={statusItems} value={statusFilter} onValueChange={setStatusFilter}>
+              <Select items={statusItems} value={statusFilter} onValueChange={(v) => setStatusFilter(v ?? "")}>
                 <SelectTrigger className="w-36 h-8 text-xs">
                   <SelectValue placeholder="Estado" />
                 </SelectTrigger>
@@ -250,11 +241,7 @@ function CoursesListPage() {
 
             <div className="md:hidden">
               <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-                <SheetTrigger
-                  render={
-                    <Button variant="outline" size="sm" className="relative" />
-                  }
-                >
+                <SheetTrigger render={<Button variant="outline" size="sm" className="relative" />}>
                   <SlidersHorizontal className="size-4" />
                   {isFiltered && (
                     <span className="absolute -top-1 -right-1 size-4 rounded-full bg-foreground text-background text-[10px] flex items-center justify-center">
@@ -269,11 +256,7 @@ function CoursesListPage() {
                   <div className="flex flex-col gap-4 p-4">
                     <div className="flex flex-col gap-1.5">
                       <span className="text-xs font-medium text-muted-foreground">Estado</span>
-                      <Select
-                        items={statusItems}
-                        value={statusFilter}
-                        onValueChange={setStatusFilter}
-                      >
+                      <Select items={statusItems} value={statusFilter} onValueChange={(v) => setStatusFilter(v ?? "")}>
                         <SelectTrigger className="h-10 text-sm">
                           <SelectValue />
                         </SelectTrigger>
@@ -290,15 +273,14 @@ function CoursesListPage() {
                         variant="outline"
                         size="sm"
                         className="flex-1"
-                        onClick={() => { setStatusFilter("all"); setSheetOpen(false) }}
+                        onClick={() => {
+                          setStatusFilter("all");
+                          setSheetOpen(false);
+                        }}
                       >
                         Limpiar
                       </Button>
-                      <Button
-                        size="sm"
-                        className="flex-1"
-                        onClick={() => setSheetOpen(false)}
-                      >
+                      <Button size="sm" className="flex-1" onClick={() => setSheetOpen(false)}>
                         Aplicar
                       </Button>
                     </div>
@@ -337,5 +319,5 @@ function CoursesListPage() {
         </>
       )}
     </div>
-  )
+  );
 }

@@ -1,41 +1,34 @@
-import * as React from "react"
+import * as React from "react";
+
 import {
   type ColumnDef,
   type ColumnFiltersState,
-  type SortingState,
-  type VisibilityState,
-  type TableOptions,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
+  type SortingState,
+  type TableOptions,
   useReactTable,
-} from "@tanstack/react-table"
+  type VisibilityState,
+} from "@tanstack/react-table";
 
-import { cn } from "@repo/ui/lib/utils"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-  TableFooter,
-} from "@repo/ui/components/table"
+import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@repo/ui/components/table";
+import { cn } from "@repo/ui/lib/utils";
 
 interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[]
-  data: TData[]
-  filterColumn?: string
-  filterPlaceholder?: string
-  showPagination?: boolean
-  showColumnToggle?: boolean
-  pageSize?: number
-  footer?: React.ReactNode
-  emptyMessage?: string
-  tableOptions?: Partial<TableOptions<TData>>
-  className?: string
+  columns: ColumnDef<TData, TValue>[];
+  data: TData[];
+  filterColumn?: string;
+  filterPlaceholder?: string;
+  showPagination?: boolean;
+  showColumnToggle?: boolean;
+  pageSize?: number;
+  footer?: React.ReactNode;
+  emptyMessage?: string;
+  tableOptions?: Partial<TableOptions<TData>>;
+  className?: string;
 }
 
 function DataTable<TData, TValue>({
@@ -50,13 +43,9 @@ function DataTable<TData, TValue>({
   tableOptions,
   className,
 }: DataTableProps<TData, TValue>) {
-  const [sorting, setSorting] = React.useState<SortingState>(
-    (tableOptions?.initialState as any)?.sorting ?? []
-  )
-  const [columnFilters, setColumnFilters] =
-    React.useState<ColumnFiltersState>([])
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({})
+  const [sorting, setSorting] = React.useState<SortingState>((tableOptions?.initialState as any)?.sorting ?? []);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
 
   const table = useReactTable({
     data,
@@ -81,7 +70,7 @@ function DataTable<TData, TValue>({
       pagination: { pageSize },
       ...tableOptions?.initialState,
     },
-  })
+  });
 
   return (
     <div className={cn("flex flex-col", className)}>
@@ -89,12 +78,8 @@ function DataTable<TData, TValue>({
         <div className="flex shrink-0 items-center py-4">
           <input
             placeholder={filterPlaceholder}
-            value={
-              (table.getColumn(filterColumn)?.getFilterValue() as string) ?? ""
-            }
-            onChange={(event) =>
-              table.getColumn(filterColumn)?.setFilterValue(event.target.value)
-            }
+            value={(table.getColumn(filterColumn)?.getFilterValue() as string) ?? ""}
+            onChange={(event) => table.getColumn(filterColumn)?.setFilterValue(event.target.value)}
             className="max-w-sm h-10 rounded-none border-0 border-b border-input bg-transparent px-0 py-2 text-sm placeholder:text-muted-foreground/60 focus:outline-none focus:border-foreground/40"
           />
         </div>
@@ -109,12 +94,7 @@ function DataTable<TData, TValue>({
                     key={header.id}
                     style={header.column.columnDef.size ? { width: header.column.columnDef.size } : undefined}
                   >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                   </TableHead>
                 ))}
               </TableRow>
@@ -123,26 +103,15 @@ function DataTable<TData, TValue>({
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
+                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
+                    <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center text-muted-foreground"
-                >
+                <TableCell colSpan={columns.length} className="h-24 text-center text-muted-foreground">
                   {emptyMessage}
                 </TableCell>
               </TableRow>
@@ -153,9 +122,7 @@ function DataTable<TData, TValue>({
       </div>
       {showPagination && (
         <div className="flex shrink-0 items-center justify-between border-t py-3">
-          <p className="text-xs text-muted-foreground">
-            {table.getFilteredRowModel().rows.length} resultado(s)
-          </p>
+          <p className="text-xs text-muted-foreground">{table.getFilteredRowModel().rows.length} resultado(s)</p>
           <div className="flex items-center gap-2">
             <button
               onClick={() => table.previousPage()}
@@ -165,8 +132,7 @@ function DataTable<TData, TValue>({
               Anterior
             </button>
             <span className="text-xs text-muted-foreground">
-              {table.getState().pagination.pageIndex + 1} /{" "}
-              {table.getPageCount()}
+              {table.getState().pagination.pageIndex + 1} / {table.getPageCount()}
             </span>
             <button
               onClick={() => table.nextPage()}
@@ -179,17 +145,14 @@ function DataTable<TData, TValue>({
         </div>
       )}
     </div>
-  )
+  );
 }
 
-export {
-  DataTable,
-  type DataTableProps,
-}
+export type {
+  ColumnDef,
+  ColumnFiltersState,
+  SortingState,
+  VisibilityState,
+} from "@tanstack/react-table";
 
-export {
-  type ColumnDef,
-  type SortingState,
-  type ColumnFiltersState,
-  type VisibilityState,
-} from "@tanstack/react-table"
+export { DataTable, type DataTableProps };

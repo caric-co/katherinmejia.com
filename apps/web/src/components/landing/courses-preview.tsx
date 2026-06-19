@@ -1,19 +1,21 @@
-import { useTranslation } from "react-i18next"
-import { useQuery } from "convex/react"
-import { api } from "@convex/_generated/api"
-import { Button } from "@repo/ui/components/button"
-import { Link } from "@tanstack/react-router"
-import { useSiteContent, usePreviewMode, useFieldClick } from "#/lib/use-site-content"
+import { Link } from "@tanstack/react-router";
+import { useQuery } from "convex/react";
+import { useTranslation } from "react-i18next";
+
+import { api } from "@convex/_generated/api";
+import { Button } from "@repo/ui/components/button";
+
+import { useFieldClick, usePreviewMode, useSiteContent } from "#/lib/use-site-content";
 
 export function CoursesPreview() {
-  const { t, i18n } = useTranslation()
-  const locale = i18n.language as "es" | "en"
-  const { t: c } = useSiteContent("courses.")
-  const isPreview = usePreviewMode()
-  const onFieldClick = useFieldClick()
-  const courses = useQuery(api.courses.listPublished)
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language as "es" | "en";
+  const { t: c } = useSiteContent("courses.");
+  const isPreview = usePreviewMode();
+  const onFieldClick = useFieldClick();
+  const courses = useQuery(api.courses.listPublished);
 
-  const displayCourses = (courses ?? []).slice(0, 3)
+  const displayCourses = (courses ?? []).slice(0, 3);
 
   return (
     <section id="courses" className="py-24 md:py-32 px-6 md:px-10">
@@ -39,27 +41,17 @@ export function CoursesPreview() {
         </div>
 
         {displayCourses.length === 0 ? (
-          <p className="text-muted-foreground py-8 text-center">
-            Próximamente: nuevos cursos disponibles
-          </p>
+          <p className="text-muted-foreground py-8 text-center">Próximamente: nuevos cursos disponibles</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {displayCourses.map((course) => (
-              <Link
-                key={course._id}
-                to={`/courses/${course.slug[locale]}`}
-                className="group"
-              >
+              <Link key={course._id} to={`/courses/${course.slug[locale]}` as string} className="group">
                 <div
                   className="aspect-[4/3] bg-accent/30 bg-cover bg-center mb-4 overflow-hidden"
                   style={course.thumbnailUrl ? { backgroundImage: `url('${course.thumbnailUrl}')` } : undefined}
                 />
-                <h3 className="font-semibold mb-1 group-hover:opacity-70 transition-opacity">
-                  {course.title[locale]}
-                </h3>
-                <p className="text-muted-foreground mb-2">
-                  {course.description[locale]}
-                </p>
+                <h3 className="font-semibold mb-1 group-hover:opacity-70 transition-opacity">{course.title[locale]}</h3>
+                <p className="text-muted-foreground mb-2">{course.description[locale]}</p>
                 {course.lessonCount > 0 && (
                   <p className="text-sm text-muted-foreground">
                     {course.lessonCount} {course.lessonCount === 1 ? "lección" : "lecciones"}
@@ -79,5 +71,5 @@ export function CoursesPreview() {
         </div>
       </div>
     </section>
-  )
+  );
 }

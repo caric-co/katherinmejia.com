@@ -1,57 +1,57 @@
-import { Link } from "@tanstack/react-router"
-import { useTranslation } from "react-i18next"
-import { useState, useEffect, useRef } from "react"
-import { Button } from "@repo/ui/components/button"
-import { Avatar, AvatarFallback } from "@repo/ui/components/avatar"
+import { useEffect, useRef, useState } from "react";
+
+import { Link } from "@tanstack/react-router";
+import { useQuery } from "convex/react";
+import { LogOut, Menu, Settings, User, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
+
+import { api } from "@convex/_generated/api";
+import { Avatar, AvatarFallback } from "@repo/ui/components/avatar";
+import { Button } from "@repo/ui/components/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@repo/ui/components/dropdown-menu"
-import { Menu, X, Settings, LogOut, User } from "lucide-react"
-import { useQuery } from "convex/react"
-import { api } from "@convex/_generated/api"
-import { authClient } from "#/lib/auth-client"
-import { usePreviewMode } from "#/lib/use-site-content"
+} from "@repo/ui/components/dropdown-menu";
+
+import { authClient } from "#/lib/auth-client";
+import { usePreviewMode } from "#/lib/use-site-content";
 
 const navLinks = [
   { labelKey: "nav.courses", href: "/courses" },
   { labelKey: "nav.about", href: "/#about" },
   { labelKey: "nav.blog", href: "/blog" },
   { labelKey: "nav.contact", href: "/#contact" },
-] as const
+] as const;
 
 export function Navigation() {
-  const { t, i18n } = useTranslation()
-  const { data: realSession, isPending: isSessionPending } = authClient.useSession()
-  const isPreview = usePreviewMode()
-  const session = isPreview ? null : realSession
-  const userProfile = useQuery(
-    api.users.getByEmail,
-    session?.user?.email ? { email: session.user.email } : "skip"
-  )
-  const isAdmin = userProfile?.role === "admin"
-  const navRef = useRef<HTMLElement>(null)
-  const [scrolled, setScrolled] = useState(false)
-  const [menuOpen, setMenuOpen] = useState(false)
+  const { t, i18n } = useTranslation();
+  const { data: realSession, isPending: isSessionPending } = authClient.useSession();
+  const isPreview = usePreviewMode();
+  const session = isPreview ? null : realSession;
+  const userProfile = useQuery(api.users.getByEmail, session?.user?.email ? { email: session.user.email } : "skip");
+  const isAdmin = userProfile?.role === "admin";
+  const navRef = useRef<HTMLElement>(null);
+  const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     if (isPreview) {
-      const scrollParent = navRef.current?.closest("[data-scroll-container]")
-      if (!scrollParent) return
-      const handleScroll = () => setScrolled(scrollParent.scrollTop > 50)
-      scrollParent.addEventListener("scroll", handleScroll, { passive: true })
-      return () => scrollParent.removeEventListener("scroll", handleScroll)
+      const scrollParent = navRef.current?.closest("[data-scroll-container]");
+      if (!scrollParent) return;
+      const handleScroll = () => setScrolled(scrollParent.scrollTop > 50);
+      scrollParent.addEventListener("scroll", handleScroll, { passive: true });
+      return () => scrollParent.removeEventListener("scroll", handleScroll);
     }
-    const handleScroll = () => setScrolled(window.scrollY > 50)
-    window.addEventListener("scroll", handleScroll, { passive: true })
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [isPreview])
+    const handleScroll = () => setScrolled(window.scrollY > 50);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [isPreview]);
 
   const toggleLocale = () => {
-    i18n.changeLanguage(i18n.language === "es" ? "en" : "es")
-  }
+    i18n.changeLanguage(i18n.language === "es" ? "en" : "es");
+  };
 
   const initials = session?.user?.name
     ? session.user.name
@@ -60,7 +60,7 @@ export function Navigation() {
         .join("")
         .toUpperCase()
         .slice(0, 2)
-    : ""
+    : "";
 
   return (
     <nav
@@ -100,9 +100,7 @@ export function Navigation() {
             <DropdownMenu>
               <DropdownMenuTrigger className="cursor-pointer">
                 <Avatar className="size-8">
-                  <AvatarFallback className="text-xs">
-                    {initials}
-                  </AvatarFallback>
+                  <AvatarFallback className="text-xs">{initials}</AvatarFallback>
                 </Avatar>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
@@ -144,10 +142,7 @@ export function Navigation() {
         </div>
 
         {/* Mobile hamburger */}
-        <button
-          onClick={() => setMenuOpen(!menuOpen)}
-          className="md:hidden cursor-pointer"
-        >
+        <button onClick={() => setMenuOpen(!menuOpen)} className="md:hidden cursor-pointer">
           {menuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
         </button>
       </div>
@@ -168,10 +163,7 @@ export function Navigation() {
             ))}
 
             <div className="pt-4 border-t border-border">
-              <button
-                onClick={toggleLocale}
-                className="text-sm text-foreground/50 cursor-pointer mb-4 block"
-              >
+              <button onClick={toggleLocale} className="text-sm text-foreground/50 cursor-pointer mb-4 block">
                 {i18n.language === "es" ? "English" : "Español"}
               </button>
 
@@ -181,7 +173,11 @@ export function Navigation() {
                 <div className="space-y-3">
                   <p className="text-sm font-medium">{session.user.name}</p>
                   {isAdmin && (
-                    <Link to="/admin" onClick={() => setMenuOpen(false)} className="text-sm text-muted-foreground hover:text-foreground block">
+                    <Link
+                      to="/admin"
+                      onClick={() => setMenuOpen(false)}
+                      className="text-sm text-muted-foreground hover:text-foreground block"
+                    >
                       Admin
                     </Link>
                   )}
@@ -204,5 +200,5 @@ export function Navigation() {
         </div>
       )}
     </nav>
-  )
+  );
 }

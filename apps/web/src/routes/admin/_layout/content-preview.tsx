@@ -1,14 +1,16 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router"
-import { Button } from "@repo/ui/components/button"
-import { ArrowLeft } from "lucide-react"
-import { LandingPreview } from "#/components/landing/landing-preview"
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { ArrowLeft } from "lucide-react";
+
+import { Button } from "@repo/ui/components/button";
+
+import { LandingPreview } from "#/components/landing/landing-preview";
 
 export const Route = createFileRoute("/admin/_layout/content-preview")({
   component: ContentPreviewPage,
-})
+});
 
 function ContentPreviewPage() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   return (
     <div className="-m-6 md:-m-8">
@@ -20,5 +22,5 @@ function ContentPreviewPage() {
       </div>
       <LandingPreview />
     </div>
-  )
+  );
 }

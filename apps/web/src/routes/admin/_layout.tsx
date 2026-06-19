@@ -3,24 +3,23 @@ import {
   Link,
   Outlet,
   redirect,
+  useLocation,
   useNavigate,
   useRouterState,
-  useLocation,
-} from "@tanstack/react-router"
-import { useState } from "react"
-import { useQuery } from "convex/react"
-import { api } from "@convex/_generated/api"
-import { Progress } from "@repo/ui/components/progress"
+} from "@tanstack/react-router";
+import { useQuery } from "convex/react";
+import { BookOpen, FileText, LayoutDashboard, Link2, LogOut, PenLine, Settings, Users } from "lucide-react";
+
+import { api } from "@convex/_generated/api";
+import { Avatar, AvatarFallback } from "@repo/ui/components/avatar";
 import {
-  LayoutDashboard,
-  BookOpen,
-  Users,
-  FileText,
-  Link2,
-  PenLine,
-  Settings,
-  LogOut,
-} from "lucide-react"
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@repo/ui/components/dropdown-menu";
+import { Progress } from "@repo/ui/components/progress";
+import { Separator } from "@repo/ui/components/separator";
 import {
   Sidebar,
   SidebarContent,
@@ -34,33 +33,23 @@ import {
   SidebarMenuItem,
   SidebarProvider,
   SidebarTrigger,
-} from "@repo/ui/components/sidebar"
-import { Avatar, AvatarFallback } from "@repo/ui/components/avatar"
-import { Separator } from "@repo/ui/components/separator"
-import { ScrollArea } from "@repo/ui/components/scroll-area"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@repo/ui/components/dropdown-menu"
-import { authClient } from "#/lib/auth-client"
+} from "@repo/ui/components/sidebar";
+
+import { authClient } from "#/lib/auth-client";
 
 export const Route = createFileRoute("/admin/_layout")({
   beforeLoad: async ({ context }) => {
     if (!context.isAuthenticated) {
-      throw redirect({ to: "/auth/login" })
+      throw redirect({ to: "/auth/login" });
     }
   },
   component: AdminLayout,
-})
+});
 
 const navGroups = [
   {
     label: "General",
-    items: [
-      { to: "/admin", label: "Tablero", icon: LayoutDashboard },
-    ],
+    items: [{ to: "/admin", label: "Tablero", icon: LayoutDashboard }],
   },
   {
     label: "Contenido",
@@ -77,28 +66,25 @@ const navGroups = [
       { to: "/admin/invitations", label: "Invitaciones", icon: Link2 },
     ],
   },
-] as const
+] as const;
 
 function AdminLayout() {
-  const { data: session } = authClient.useSession()
-  const navigate = useNavigate()
-  const currentPath = useLocation({ select: (l) => l.pathname })
-  const userProfile = useQuery(
-    api.users.getByEmail,
-    session?.user?.email ? { email: session.user.email } : "skip"
-  )
+  const { data: session } = authClient.useSession();
+  const navigate = useNavigate();
+  const currentPath = useLocation({ select: (l) => l.pathname });
+  const userProfile = useQuery(api.users.getByEmail, session?.user?.email ? { email: session.user.email } : "skip");
 
   if (userProfile === undefined) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <p className="text-muted-foreground">Cargando...</p>
       </div>
-    )
+    );
   }
 
-  if (!userProfile || userProfile.role !== "admin") {
-    navigate({ to: "/" })
-    return null
+  if (userProfile?.role !== "admin") {
+    navigate({ to: "/" });
+    return null;
   }
 
   const initials = session?.user?.name
@@ -108,7 +94,7 @@ function AdminLayout() {
         .join("")
         .toUpperCase()
         .slice(0, 2)
-    : "?"
+    : "?";
 
   return (
     <SidebarProvider>
@@ -120,9 +106,7 @@ function AdminLayout() {
                 <div className="flex h-7 w-7 items-center justify-center rounded-full bg-accent">
                   <Settings className="h-4 w-4 text-foreground" />
                 </div>
-                <span className="font-display text-sm tracking-tight">
-                  KMakeup Admin
-                </span>
+                <span className="font-display text-sm tracking-tight">KMakeup Admin</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
@@ -162,17 +146,11 @@ function AdminLayout() {
               <DropdownMenu>
                 <DropdownMenuTrigger render={<SidebarMenuButton size="lg" />}>
                   <Avatar className="h-7 w-7">
-                    <AvatarFallback className="text-xs">
-                      {initials}
-                    </AvatarFallback>
+                    <AvatarFallback className="text-xs">{initials}</AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left leading-tight">
-                    <span className="truncate text-sm font-medium">
-                      {session?.user?.name ?? "Admin"}
-                    </span>
-                    <span className="truncate text-xs text-muted-foreground">
-                      {session?.user?.email}
-                    </span>
+                    <span className="truncate text-sm font-medium">{session?.user?.name ?? "Admin"}</span>
+                    <span className="truncate text-xs text-muted-foreground">{session?.user?.email}</span>
                   </div>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent side="top" align="start" className="w-56">
@@ -211,15 +189,13 @@ function AdminLayout() {
         </div>
       </main>
     </SidebarProvider>
-  )
+  );
 }
 
 function RouteProgressBar() {
-  const isLoading = useRouterState({ select: (s) => s.isLoading })
+  const isLoading = useRouterState({ select: (s) => s.isLoading });
 
-  if (!isLoading) return null
+  if (!isLoading) return null;
 
-  return (
-    <Progress value={80} className="absolute top-0 left-0 right-0 z-50 h-0.5 rounded-none bg-transparent" />
-  )
+  return <Progress value={80} className="absolute top-0 left-0 right-0 z-50 h-0.5 rounded-none bg-transparent" />;
 }

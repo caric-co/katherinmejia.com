@@ -1,5 +1,5 @@
-import { format } from "date-fns"
-import { es } from "date-fns/locale"
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 
 export function formatCOP(amount: number): string {
   return new Intl.NumberFormat("es-CO", {
@@ -7,7 +7,7 @@ export function formatCOP(amount: number): string {
     currency: "COP",
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-  }).format(amount)
+  }).format(amount);
 }
 
 export function formatUSD(amount: number): string {
@@ -16,11 +16,11 @@ export function formatUSD(amount: number): string {
     currency: "USD",
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-  }).format(amount)
+  }).format(amount);
 }
 
 export function formatDate(date: Date | number, pattern = "d MMM yyyy"): string {
-  return format(date, pattern, { locale: es })
+  return format(date, pattern, { locale: es });
 }
 
 export function formatPercent(value: number): string {
@@ -28,5 +28,5 @@ export function formatPercent(value: number): string {
     style: "percent",
     minimumFractionDigits: 0,
     maximumFractionDigits: 1,
-  }).format(value)
+  }).format(value);
 }

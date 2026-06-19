@@ -1,6 +1,7 @@
-import { formatCOP } from "../data/format";
 import { Input } from "@repo/ui/components/input";
 import { Label } from "@repo/ui/components/label";
+
+import { formatCOP } from "../data/format";
 
 interface TrmInputProps {
   trm: number;
@@ -15,9 +16,7 @@ export function TrmInput({ trm, onTrmChange }: TrmInputProps) {
           TRM (USD → COP)
         </Label>
         <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
-            $
-          </span>
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
           <Input
             id="trm"
             type="number"
@@ -31,9 +30,8 @@ export function TrmInput({ trm, onTrmChange }: TrmInputProps) {
         </div>
       </div>
       <p className="text-xs text-muted-foreground">
-        1 USD = {formatCOP(trm)} — Los costos originales en dólares se
-        convierten a pesos colombianos con esta tasa. Los precios de Bold.co se
-        expresan directamente en COP.
+        1 USD = {formatCOP(trm)} — Los costos originales en dólares se convierten a pesos colombianos con esta tasa. Los
+        precios de Bold.co se expresan directamente en COP.
       </p>
     </div>
   );

@@ -1,115 +1,124 @@
-import { useRef, useEffect, useCallback, useState } from "react"
-import { useAnimationControls } from "motion/react"
-import type { AnimationControls } from "motion/react"
+import { useCallback, useEffect, useRef } from "react";
 
-const pulseRegistry = new Map<string, () => void>()
+import { useAnimationControls } from "motion/react";
+
+type AnimationControls = ReturnType<typeof useAnimationControls>;
+
+const pulseRegistry = new Map<string, () => void>();
 
 export function triggerPulse(id: string) {
-  pulseRegistry.get(id)?.()
+  pulseRegistry.get(id)?.();
 }
 
 export function usePulse(id: string): AnimationControls {
-  const controls = useAnimationControls()
+  const controls = useAnimationControls();
 
   useEffect(() => {
     pulseRegistry.set(id, () => {
       controls.start({
         scale: [1, 1.03, 1],
         transition: { duration: 0.35, ease: "easeOut" },
-      })
-    })
-    return () => { pulseRegistry.delete(id) }
-  }, [id, controls])
+      });
+    });
+    return () => {
+      pulseRegistry.delete(id);
+    };
+  }, [id, controls]);
 
-  return controls
+  return controls;
 }
 
 export function useSubmitPulse(id: string): AnimationControls {
-  const controls = useAnimationControls()
+  const controls = useAnimationControls();
 
   useEffect(() => {
     pulseRegistry.set(id, () => {
       controls.start({
         scale: [1, 1.04, 1],
         transition: { duration: 0.35, ease: "easeOut" },
-      })
-    })
-    return () => { pulseRegistry.delete(id) }
-  }, [id, controls])
+      });
+    });
+    return () => {
+      pulseRegistry.delete(id);
+    };
+  }, [id, controls]);
 
-  return controls
+  return controls;
 }
 
 interface UseAutoAdvanceOptions {
-  fieldId: string
-  nextFieldId?: string
-  submitId?: string
-  isFormValid?: boolean
-  hasErrors: boolean
-  debounceMs?: number
+  fieldId: string;
+  nextFieldId?: string;
+  submitId?: string;
+  isFormValid?: boolean;
+  hasErrors: boolean;
+  debounceMs?: number;
 }
 
 export function useAutoAdvance({
-  fieldId,
+  fieldId: _fieldId,
   nextFieldId,
   submitId,
   isFormValid,
   hasErrors,
   debounceMs = 700,
 }: UseAutoAdvanceOptions) {
-  const inputRef = useRef<HTMLInputElement>(null)
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const isFormValidRef = useRef(isFormValid)
-  isFormValidRef.current = isFormValid
+  const inputRef = useRef<HTMLInputElement>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isFormValidRef = useRef(isFormValid);
+  isFormValidRef.current = isFormValid;
 
   const focusTarget = useCallback(() => {
     if (isFormValidRef.current && submitId) {
-      triggerPulse(submitId)
-      document.getElementById(submitId)?.focus()
-      return
+      triggerPulse(submitId);
+      document.getElementById(submitId)?.focus();
+      return;
     }
     if (nextFieldId) {
-      triggerPulse(nextFieldId)
-      document.getElementById(nextFieldId)?.focus()
+      triggerPulse(nextFieldId);
+      document.getElementById(nextFieldId)?.focus();
     }
-  }, [submitId, nextFieldId])
+  }, [submitId, nextFieldId]);
 
   const clearTimer = useCallback(() => {
     if (timerRef.current) {
-      clearTimeout(timerRef.current)
-      timerRef.current = null
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
     }
-  }, [])
+  }, []);
 
-  useEffect(() => () => clearTimer(), [clearTimer])
+  useEffect(() => () => clearTimer(), [clearTimer]);
 
   const startTimer = useCallback(() => {
-    clearTimer()
-    if (!inputRef.current?.value) return
-    if (!nextFieldId && !submitId) return
+    clearTimer();
+    if (!inputRef.current?.value) return;
+    if (!nextFieldId && !submitId) return;
 
     timerRef.current = setTimeout(() => {
-      if (document.activeElement !== inputRef.current) return
-      if (hasErrors) return
-      focusTarget()
-    }, debounceMs)
-  }, [clearTimer, nextFieldId, submitId, hasErrors, debounceMs, focusTarget])
+      if (document.activeElement !== inputRef.current) return;
+      if (hasErrors) return;
+      focusTarget();
+    }, debounceMs);
+  }, [clearTimer, nextFieldId, submitId, hasErrors, debounceMs, focusTarget]);
 
-  const onKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      e.preventDefault()
-      clearTimer()
-      focusTarget()
-      return
-    }
-    if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)) {
-      clearTimer()
-    }
-  }, [clearTimer, focusTarget])
+  const onKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        clearTimer();
+        focusTarget();
+        return;
+      }
+      if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)) {
+        clearTimer();
+      }
+    },
+    [clearTimer, focusTarget],
+  );
 
   const onBlur = useCallback(() => {
-    clearTimer()
-  }, [clearTimer])
+    clearTimer();
+  }, [clearTimer]);
 
-  return { inputRef, startTimer, onKeyDown, onBlur }
+  return { inputRef, startTimer, onKeyDown, onBlur };
 }

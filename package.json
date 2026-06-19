@@ -9,9 +9,20 @@
     "dev:quote": "turbo dev --filter=@kmakeup/initial-quote --ui tui",
     "build": "turbo build",
     "typecheck": "turbo typecheck",
-    "lint": "turbo lint"
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,json,css}": [
+      "biome check --write --no-errors-on-unmatched"
+    ]
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.5.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.7",
     "turbo": "^2.5.0"
   },
   "pnpm": {

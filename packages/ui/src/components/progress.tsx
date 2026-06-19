@@ -1,6 +1,8 @@
-import * as React from "react"
-import { Progress as ProgressPrimitive } from "@base-ui/react/progress"
-import { cn } from "@repo/ui/lib/utils"
+import type * as React from "react";
+
+import { Progress as ProgressPrimitive } from "@base-ui/react/progress";
+
+import { cn } from "@repo/ui/lib/utils";
 
 function Progress({
   className,
@@ -21,7 +23,7 @@ function Progress({
         />
       </ProgressPrimitive.Track>
     </ProgressPrimitive.Root>
-  )
+  );
 }
 
-export { Progress }
+export { Progress };

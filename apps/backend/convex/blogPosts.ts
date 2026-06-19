@@ -1,14 +1,15 @@
-import { v } from "convex/values"
-import { query, mutation } from "./_generated/server"
+import { v } from "convex/values";
 
-const bilingualText = v.object({ es: v.string(), en: v.string() })
+import { mutation, query } from "./_generated/server";
+
+const bilingualText = v.object({ es: v.string(), en: v.string() });
 
 export const listAll = query({
   args: {},
   handler: async (ctx) => {
-    return await ctx.db.query("blogPosts").order("desc").collect()
+    return await ctx.db.query("blogPosts").order("desc").collect();
   },
-})
+});
 
 export const listPublished = query({
   args: {},
@@ -16,9 +17,9 @@ export const listPublished = query({
     return await ctx.db
       .query("blogPosts")
       .withIndex("by_status", (q) => q.eq("status", "published"))
-      .collect()
+      .collect();
   },
-})
+});
 
 export const getBySlug = query({
   args: { slug: v.string() },
@@ -26,22 +27,22 @@ export const getBySlug = query({
     const byEs = await ctx.db
       .query("blogPosts")
       .withIndex("by_slug_es", (q) => q.eq("slug.es", args.slug))
-      .first()
-    if (byEs) return byEs
+      .first();
+    if (byEs) return byEs;
 
     return await ctx.db
       .query("blogPosts")
       .withIndex("by_slug_en", (q) => q.eq("slug.en", args.slug))
-      .first()
+      .first();
   },
-})
+});
 
 export const getById = query({
   args: { postId: v.id("blogPosts") },
   handler: async (ctx, args) => {
-    return await ctx.db.get(args.postId)
+    return await ctx.db.get(args.postId);
   },
-})
+});
 
 export const create = mutation({
   args: {
@@ -56,9 +57,9 @@ export const create = mutation({
       ...args,
       status: "draft",
       createdAt: Date.now(),
-    })
+    });
   },
-})
+});
 
 export const update = mutation({
   args: {
@@ -70,15 +71,13 @@ export const update = mutation({
     coverImageUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const { postId, ...updates } = args
-    const filtered = Object.fromEntries(
-      Object.entries(updates).filter(([, val]) => val !== undefined)
-    )
+    const { postId, ...updates } = args;
+    const filtered = Object.fromEntries(Object.entries(updates).filter(([, val]) => val !== undefined));
     if (Object.keys(filtered).length > 0) {
-      await ctx.db.patch(postId, filtered)
+      await ctx.db.patch(postId, filtered);
     }
   },
-})
+});
 
 export const publish = mutation({
   args: { postId: v.id("blogPosts") },
@@ -86,20 +85,20 @@ export const publish = mutation({
     await ctx.db.patch(args.postId, {
       status: "published",
       publishedAt: Date.now(),
-    })
+    });
   },
-})
+});
 
 export const unpublish = mutation({
   args: { postId: v.id("blogPosts") },
   handler: async (ctx, args) => {
-    await ctx.db.patch(args.postId, { status: "draft" })
+    await ctx.db.patch(args.postId, { status: "draft" });
   },
-})
+});
 
 export const remove = mutation({
   args: { postId: v.id("blogPosts") },
   handler: async (ctx, args) => {
-    await ctx.db.delete(args.postId)
+    await ctx.db.delete(args.postId);
   },
-})
+});

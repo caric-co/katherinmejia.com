@@ -1,17 +1,20 @@
-import { createFileRoute } from "@tanstack/react-router"
-import { useQuery, useMutation, useAction } from "convex/react"
-import { api } from "@convex/_generated/api"
-import { Button } from "@repo/ui/components/button"
-import { Input } from "@repo/ui/components/input"
-import { Badge } from "@repo/ui/components/badge"
-import { Save, Loader2, Pencil, X, Upload, Undo2 } from "lucide-react"
-import { useState, useCallback, useRef, useEffect } from "react"
-import { motion, useAnimationControls } from "motion/react"
-import { LandingPreview } from "#/components/landing/landing-preview"
+import { useCallback, useEffect, useRef, useState } from "react";
+
+import { createFileRoute } from "@tanstack/react-router";
+import { useAction, useMutation, useQuery } from "convex/react";
+import { Loader2, Pencil, Save, Undo2, Upload, X } from "lucide-react";
+import { motion, useAnimationControls } from "motion/react";
+
+import { api } from "@convex/_generated/api";
+import { Badge } from "@repo/ui/components/badge";
+import { Button } from "@repo/ui/components/button";
+import { Input } from "@repo/ui/components/input";
+
+import { LandingPreview } from "#/components/landing/landing-preview";
 
 export const Route = createFileRoute("/admin/_layout/content")({
   component: ContentPage,
-})
+});
 
 const sections = [
   {
@@ -77,9 +80,9 @@ const sections = [
       { key: "contact.description", label: "Descripción", long: true },
     ],
   },
-]
+];
 
-const isImageKey = (key: string) => key.endsWith(".image")
+const isImageKey = (key: string) => key.endsWith(".image");
 
 function ContentField({
   fieldKey,
@@ -96,30 +99,30 @@ function ContentField({
   onCancel,
   saving,
 }: {
-  fieldKey: string
-  label: string
-  long: boolean
-  isEditing: boolean
-  hasDraft: boolean
-  displayValue: string
-  editValue: string
-  pulseKey: number
-  onEdit: () => void
-  onEditValueChange: (value: string) => void
-  onSave: () => void
-  onCancel: () => void
-  saving: boolean
+  fieldKey: string;
+  label: string;
+  long: boolean;
+  isEditing: boolean;
+  hasDraft: boolean;
+  displayValue: string;
+  editValue: string;
+  pulseKey: number;
+  onEdit: () => void;
+  onEditValueChange: (value: string) => void;
+  onSave: () => void;
+  onCancel: () => void;
+  saving: boolean;
 }) {
-  const controls = useAnimationControls()
+  const controls = useAnimationControls();
 
   useEffect(() => {
     if (pulseKey > 0) {
       controls.start({
         scale: [1, 1.02, 1],
         transition: { duration: 0.3, ease: "easeOut" },
-      })
+      });
     }
-  }, [pulseKey, controls])
+  }, [pulseKey, controls]);
 
   return (
     <motion.div
@@ -134,7 +137,6 @@ function ContentField({
             <textarea
               value={editValue}
               onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => onEditValueChange(e.target.value)}
-              autoFocus
               className="flex field-sizing-content min-h-16 w-full rounded-none border-0 border-b border-input bg-transparent px-0 py-1.5 text-sm transition-colors outline-none placeholder:text-muted-foreground/60 focus-visible:border-foreground/40"
             />
           ) : (
@@ -161,16 +163,11 @@ function ContentField({
           </div>
         </div>
       ) : (
-        <div
-          className="flex items-start justify-between gap-2 group"
-          onClick={onEdit}
-        >
+        <div className="flex items-start justify-between gap-2 group" onClick={onEdit}>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5 mb-0.5">
               <p className="text-xs text-muted-foreground">{label}</p>
-              {hasDraft && (
-                <span className="size-1.5 rounded-full bg-foreground/40" />
-              )}
+              {hasDraft && <span className="size-1.5 rounded-full bg-foreground/40" />}
             </div>
             <p className="text-sm break-words line-clamp-2">
               {displayValue || <span className="text-muted-foreground/40 italic">vacío</span>}
@@ -180,73 +177,75 @@ function ContentField({
         </div>
       )}
     </motion.div>
-  )
+  );
 }
 
 function ContentPage() {
-  const allContent = useQuery(api.siteContent.listAll)
-  const hasDrafts = useQuery(api.siteContent.hasDrafts)
-  const saveDraft = useMutation(api.siteContent.saveDraft)
-  const publishAll = useMutation(api.siteContent.publishAll)
-  const discardDrafts = useMutation(api.siteContent.discardDrafts)
-  const translateAction = useAction(api.ai.translateText)
+  const allContent = useQuery(api.siteContent.listAll);
+  const hasDrafts = useQuery(api.siteContent.hasDrafts);
+  const saveDraft = useMutation(api.siteContent.saveDraft);
+  const publishAll = useMutation(api.siteContent.publishAll);
+  const discardDrafts = useMutation(api.siteContent.discardDrafts);
+  const translateAction = useAction(api.ai.translateText);
 
-  const [editingKey, setEditingKey] = useState<string | null>(null)
-  const [editValue, setEditValue] = useState("")
-  const [saving, setSaving] = useState(false)
-  const [publishing, setPublishing] = useState(false)
-  const [pulseCounter, setPulseCounter] = useState(0)
-  const editorPanelRef = useRef<HTMLDivElement>(null)
+  const [editingKey, setEditingKey] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const [pulseCounter, setPulseCounter] = useState(0);
+  const editorPanelRef = useRef<HTMLDivElement>(null);
 
-  const contentMap = new Map(
-    (allContent ?? []).map((c) => [c.key, c])
-  )
+  const contentMap = new Map((allContent ?? []).map((c) => [c.key, c]));
 
   const startEdit = (key: string, currentEs: string) => {
-    setEditingKey(key)
-    setEditValue(currentEs)
-    setPulseCounter((c) => c + 1)
-  }
+    setEditingKey(key);
+    setEditValue(currentEs);
+    setPulseCounter((c) => c + 1);
+  };
 
-  const handleFieldClick = useCallback((key: string) => {
-    const content = contentMap.get(key)
-    const hasDraft = content?.draftValue !== undefined
-    const displayValue = hasDraft ? content?.draftValue?.es : content?.value.es
-    setEditingKey(key)
-    setEditValue(displayValue ?? "")
-    setPulseCounter((c) => c + 1)
+  const handleFieldClick = useCallback(
+    (key: string) => {
+      const content = contentMap.get(key);
+      const hasDraft = content?.draftValue !== undefined;
+      const displayValue = hasDraft ? content?.draftValue?.es : content?.value.es;
+      setEditingKey(key);
+      setEditValue(displayValue ?? "");
+      setPulseCounter((c) => c + 1);
 
-    setTimeout(() => {
-      const panel = editorPanelRef.current
-      const el = panel?.querySelector(`[data-field="${key}"]`) as HTMLElement | null
-      if (panel && el) {
-        const panelRect = panel.getBoundingClientRect()
-        const elRect = el.getBoundingClientRect()
-        const targetScroll = panel.scrollTop + (elRect.top - panelRect.top) - (panelRect.height / 2) + (elRect.height / 2)
-        panel.scrollTo({ top: targetScroll, behavior: "smooth" })
-      }
-    }, 50)
-  }, [contentMap])
+      setTimeout(() => {
+        const panel = editorPanelRef.current;
+        const el = panel?.querySelector(`[data-field="${key}"]`) as HTMLElement | null;
+        if (panel && el) {
+          const panelRect = panel.getBoundingClientRect();
+          const elRect = el.getBoundingClientRect();
+          const targetScroll =
+            panel.scrollTop + (elRect.top - panelRect.top) - panelRect.height / 2 + elRect.height / 2;
+          panel.scrollTo({ top: targetScroll, behavior: "smooth" });
+        }
+      }, 50);
+    },
+    [contentMap],
+  );
 
   const handleSave = async () => {
-    if (!editingKey || !editValue) return
+    if (!editingKey || !editValue) return;
 
-    const current = contentMap.get(editingKey)
-    const originalValue = current?.draftValue?.es ?? current?.value.es ?? ""
+    const current = contentMap.get(editingKey);
+    const originalValue = current?.draftValue?.es ?? current?.value.es ?? "";
     if (editValue === originalValue) {
-      setEditingKey(null)
-      return
+      setEditingKey(null);
+      return;
     }
 
-    setSaving(true)
+    setSaving(true);
 
-    let en = editValue
+    let en = editValue;
     if (!isImageKey(editingKey)) {
       try {
-        const result = await translateAction({ text: editValue })
-        en = result.translated
+        const result = await translateAction({ text: editValue });
+        en = result.translated;
       } catch {
-        en = editValue
+        en = editValue;
       }
     }
 
@@ -254,18 +253,18 @@ function ContentPage() {
       key: editingKey,
       value: { es: editValue, en },
       type: isImageKey(editingKey) ? "image" : "text",
-    })
-    setSaving(false)
-    setEditingKey(null)
-  }
+    });
+    setSaving(false);
+    setEditingKey(null);
+  };
 
   const handlePublish = async () => {
-    setPublishing(true)
-    await publishAll()
-    setPublishing(false)
-  }
+    setPublishing(true);
+    await publishAll();
+    setPublishing(false);
+  };
 
-  const draftCount = allContent?.filter((c) => c.draftValue !== undefined).length ?? 0
+  const draftCount = allContent?.filter((c) => c.draftValue !== undefined).length ?? 0;
 
   return (
     <div className="-m-6 flex h-[calc(100vh-3.5rem)]">
@@ -273,15 +272,15 @@ function ContentPage() {
       <div className="w-[420px] shrink-0 border-r border-border flex flex-col overflow-hidden">
         <div className="px-5 py-4 border-b border-border">
           <h1 className="font-display text-lg mb-1">Contenido del Sitio</h1>
-          <p className="text-sm text-muted-foreground">
-            Escribe en español. Se traduce al guardar.
-          </p>
+          <p className="text-sm text-muted-foreground">Escribe en español. Se traduce al guardar.</p>
         </div>
 
         {hasDrafts && (
           <div className="px-5 py-3 border-b border-border bg-muted flex items-center justify-between">
             <span className="text-sm">
-              <Badge variant="outline" className="mr-2">{draftCount}</Badge>
+              <Badge variant="outline" className="mr-2">
+                {draftCount}
+              </Badge>
               {draftCount === 1 ? "cambio pendiente" : "cambios pendientes"}
             </span>
             <div className="flex gap-2">
@@ -309,10 +308,10 @@ function ContentPage() {
               </h2>
               <div className="space-y-1.5">
                 {section.keys.map(({ key, label, long }) => {
-                  const content = contentMap.get(key)
-                  const isEditing = editingKey === key
-                  const hasDraft = content?.draftValue !== undefined
-                  const displayValue = hasDraft ? content?.draftValue?.es : content?.value.es
+                  const content = contentMap.get(key);
+                  const isEditing = editingKey === key;
+                  const hasDraft = content?.draftValue !== undefined;
+                  const displayValue = hasDraft ? content?.draftValue?.es : content?.value.es;
 
                   return (
                     <ContentField
@@ -331,7 +330,7 @@ function ContentPage() {
                       onCancel={() => setEditingKey(null)}
                       saving={saving}
                     />
-                  )
+                  );
                 })}
               </div>
             </div>
@@ -344,5 +343,5 @@ function ContentPage() {
         <LandingPreview onFieldClick={handleFieldClick} />
       </div>
     </div>
-  )
+  );
 }

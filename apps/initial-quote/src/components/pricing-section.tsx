@@ -1,7 +1,8 @@
-import { DataTable, type ColumnDef } from "@repo/ui/components/data-table"
-import { TableRow, TableCell } from "@repo/ui/components/table"
-import { features } from "../data/quote"
-import { formatCOP } from "../data/format"
+import { type ColumnDef, DataTable } from "@repo/ui/components/data-table";
+import { TableCell, TableRow } from "@repo/ui/components/table";
+
+import { formatCOP } from "../data/format";
+import { features } from "../data/quote";
 
 const MONTHLY_SALARY = 29_000_000;
 const HOURS_PER_MONTH = 160;
@@ -35,9 +36,7 @@ const columns: ColumnDef<PhaseRow>[] = [
       <span className={`font-medium ${row.original.included ? "" : "opacity-40"}`}>
         {row.original.label}
         {!row.original.included && (
-          <span className="ml-2 text-xs text-muted-foreground font-normal">
-            (no incluida)
-          </span>
+          <span className="ml-2 text-xs text-muted-foreground font-normal">(no incluida)</span>
         )}
       </span>
     ),
@@ -72,7 +71,7 @@ export function PricingSection() {
         min: acc.min + f.estimatedHours.min,
         max: acc.max + f.estimatedHours.max,
       }),
-      { min: 0, max: 0 }
+      { min: 0, max: 0 },
     );
     const included = (INCLUDED_PHASES as readonly number[]).includes(phase);
     return {
@@ -88,16 +87,15 @@ export function PricingSection() {
 
   const includedData = phaseData.filter((p) => p.included);
 
-  const includedHours = includedData.reduce(
-    (acc, p) => ({ min: acc.min + p.hoursMin, max: acc.max + p.hoursMax }),
-    { min: 0, max: 0 }
-  );
+  const includedHours = includedData.reduce((acc, p) => ({ min: acc.min + p.hoursMin, max: acc.max + p.hoursMax }), {
+    min: 0,
+    max: 0,
+  });
 
   const includedCostMin = includedHours.min * HOURLY_RATE;
   const includedCostMax = includedHours.max * HOURLY_RATE;
   const avgIncludedCost = (includedCostMin + includedCostMax) / 2;
-  const discountPercent =
-    ((avgIncludedCost - FINAL_PRICE) / avgIncludedCost) * 100;
+  const discountPercent = ((avgIncludedCost - FINAL_PRICE) / avgIncludedCost) * 100;
 
   const footerRow = (
     <TableRow className="bg-muted font-semibold">
@@ -115,22 +113,18 @@ export function PricingSection() {
     <section className="mb-12">
       <h2 className="font-display text-h2 mb-2">Inversión del Proyecto</h2>
       <p className="text-muted-foreground mb-6">
-        Desglose del valor real del proyecto basado en la tarifa por hora del
-        desarrollador. La presente cotización cubre las Fases 1 y 2, con
-        descuento de socio aplicado. La Fase 3 se cotizará por separado.
+        Desglose del valor real del proyecto basado en la tarifa por hora del desarrollador. La presente cotización
+        cubre las Fases 1 y 2, con descuento de socio aplicado. La Fase 3 se cotizará por separado.
       </p>
 
       <div className="border border-border overflow-hidden mb-6">
         <div className="bg-muted px-4 py-3 border-b border-border">
           <div className="flex justify-between items-center text-sm">
             <span className="text-muted-foreground">Tarifa base por hora</span>
-            <span className="font-mono font-semibold">
-              {formatCOP(HOURLY_RATE)}/h
-            </span>
+            <span className="font-mono font-semibold">{formatCOP(HOURLY_RATE)}/h</span>
           </div>
           <p className="text-xs text-muted-foreground mt-1">
-            Calculada sobre salario de {formatCOP(MONTHLY_SALARY)}/mes ÷{" "}
-            {HOURS_PER_MONTH} horas laborales
+            Calculada sobre salario de {formatCOP(MONTHLY_SALARY)}/mes ÷ {HOURS_PER_MONTH} horas laborales
           </p>
         </div>
 
@@ -140,12 +134,8 @@ export function PricingSection() {
       <div className="border border-border overflow-hidden">
         <div className="divide-y divide-border">
           <div className="flex justify-between items-center px-4 py-3">
-            <span className="text-sm text-muted-foreground">
-              Valor promedio estimado (Fases 1 y 2)
-            </span>
-            <span className="font-mono text-sm">
-              {formatCOP(avgIncludedCost)}
-            </span>
+            <span className="text-sm text-muted-foreground">Valor promedio estimado (Fases 1 y 2)</span>
+            <span className="font-mono text-sm">{formatCOP(avgIncludedCost)}</span>
           </div>
           <div className="flex justify-between items-center px-4 py-3 bg-accent">
             <span className="text-sm text-accent-foreground font-medium">
@@ -156,20 +146,15 @@ export function PricingSection() {
             </span>
           </div>
           <div className="flex justify-between items-center px-4 py-4 bg-muted">
-            <span className="font-bold text-lg">
-              Precio final acordado
-            </span>
-            <span className="font-mono font-bold text-2xl">
-              {formatCOP(FINAL_PRICE)}
-            </span>
+            <span className="font-bold text-lg">Precio final acordado</span>
+            <span className="font-mono font-bold text-2xl">{formatCOP(FINAL_PRICE)}</span>
           </div>
         </div>
       </div>
 
       <p className="text-xs text-muted-foreground mt-3">
-        * La Fase 3 (Asistente de Redes Sociales, Certificados, Programa de
-        Referidos) será cotizada de forma independiente una vez concluidas las
-        Fases 1 y 2.
+        * La Fase 3 (Asistente de Redes Sociales, Certificados, Programa de Referidos) será cotizada de forma
+        independiente una vez concluidas las Fases 1 y 2.
       </p>
     </section>
   );

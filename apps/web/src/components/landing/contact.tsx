@@ -1,10 +1,11 @@
-import { Button } from "@repo/ui/components/button"
-import { Input } from "@repo/ui/components/input"
-import { Label } from "@repo/ui/components/label"
-import { useSiteContent } from "#/lib/use-site-content"
+import { Button } from "@repo/ui/components/button";
+import { Input } from "@repo/ui/components/input";
+import { Label } from "@repo/ui/components/label";
+
+import { useSiteContent } from "#/lib/use-site-content";
 
 export function Contact() {
-  const { t: c } = useSiteContent("contact.")
+  const { t: c } = useSiteContent("contact.");
 
   return (
     <section id="contact" className="py-24 md:py-32 px-6 md:px-10">
@@ -18,31 +19,28 @@ export function Contact() {
               {c("contact.heading", "¿Lista para comenzar?")}
             </h2>
             <p className="text-muted-foreground leading-relaxed max-w-md">
-              {c("contact.description", "Escríbeme y te responderé en menos de 24 horas. También puedes contactarme directamente por Instagram.")}
+              {c(
+                "contact.description",
+                "Escríbeme y te responderé en menos de 24 horas. También puedes contactarme directamente por Instagram.",
+              )}
             </p>
           </div>
 
           <form className="space-y-8" onSubmit={(e) => e.preventDefault()}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div>
-                <Label className="text-xs uppercase tracking-wider font-medium mb-3 block">
-                  Nombre
-                </Label>
+                <Label className="text-xs uppercase tracking-wider font-medium mb-3 block">Nombre</Label>
                 <Input placeholder="Tu nombre aquí" />
               </div>
               <div>
-                <Label className="text-xs uppercase tracking-wider font-medium mb-3 block">
-                  Correo electrónico
-                </Label>
+                <Label className="text-xs uppercase tracking-wider font-medium mb-3 block">Correo electrónico</Label>
                 <Input type="email" placeholder="tu@correo.com" />
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div>
-                <Label className="text-xs uppercase tracking-wider font-medium mb-3 block">
-                  Tipo de servicio
-                </Label>
+                <Label className="text-xs uppercase tracking-wider font-medium mb-3 block">Tipo de servicio</Label>
                 <select className="w-full h-10 rounded-none border-0 border-b border-input bg-transparent px-0 py-2 transition-colors outline-none text-muted-foreground/60 focus-visible:border-foreground/40 cursor-pointer">
                   <option value="">Seleccionar...</option>
                   <option value="curso">Cursos en línea</option>
@@ -52,17 +50,13 @@ export function Contact() {
                 </select>
               </div>
               <div>
-                <Label className="text-xs uppercase tracking-wider font-medium mb-3 block">
-                  Fecha del evento
-                </Label>
+                <Label className="text-xs uppercase tracking-wider font-medium mb-3 block">Fecha del evento</Label>
                 <Input type="date" />
               </div>
             </div>
 
             <div>
-              <Label className="text-xs uppercase tracking-wider font-medium mb-3 block">
-                Mensaje
-              </Label>
+              <Label className="text-xs uppercase tracking-wider font-medium mb-3 block">Mensaje</Label>
               <textarea
                 placeholder="Escríbeme tus preguntas o comentarios."
                 className="flex field-sizing-content min-h-24 w-full rounded-none border-0 border-b border-input bg-transparent px-0 py-2 transition-colors outline-none placeholder:text-muted-foreground/60 focus-visible:border-foreground/40"
@@ -76,5 +70,5 @@ export function Contact() {
         </div>
       </div>
     </section>
-  )
+  );
 }
