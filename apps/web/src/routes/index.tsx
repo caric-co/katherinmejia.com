@@ -31,7 +31,7 @@ function HomeContent() {
   return (
     <>
       <Preloader isContentReady={isReady} onComplete={handlePreloaderComplete} />
-      <div className={`min-h-screen bg-background ${preloaderDone ? "" : "opacity-0 overflow-hidden max-h-screen"}`}>
+      <div className="min-h-screen bg-background">
         <Navigation />
         <Hero />
         <Services />
