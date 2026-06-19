@@ -17,5 +17,11 @@ export default defineConfig({
     noExternal: ["@convex-dev/better-auth", "@base-ui/react"],
   },
   server: { host: true },
-  plugins: [devtools(), tailwindcss(), tanstackStart(), nitro(), viteReact()],
+  plugins: [
+    ...(process.env.NODE_ENV !== "production" ? [devtools()] : []),
+    tailwindcss(),
+    tanstackStart(),
+    nitro(),
+    viteReact(),
+  ],
 })
