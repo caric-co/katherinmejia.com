@@ -12,7 +12,8 @@ export const Route = createFileRoute("/auth/register")({
 
 function RegisterPage() {
   const navigate = useNavigate()
-  const [name, setName] = useState("")
+  const [firstName, setFirstName] = useState("")
+  const [lastName, setLastName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
@@ -23,7 +24,7 @@ function RegisterPage() {
     setLoading(true)
     setError("")
     const result = await authClient.signUp.email({
-      name,
+      name: `${firstName} ${lastName}`.trim(),
       email,
       password,
       callbackURL: "/",
@@ -65,17 +66,31 @@ function RegisterPage() {
         </div>
 
         <form onSubmit={handleRegister} className="space-y-5">
-          <div>
-            <Label className="text-xs uppercase tracking-wider font-medium mb-2 block">
-              Nombre completo
-            </Label>
-            <Input
-              type="text"
-              placeholder="Tu nombre"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label className="text-xs uppercase tracking-wider font-medium mb-2 block">
+                Nombre
+              </Label>
+              <Input
+                type="text"
+                placeholder="Katherin"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                required
+              />
+            </div>
+            <div>
+              <Label className="text-xs uppercase tracking-wider font-medium mb-2 block">
+                Apellido
+              </Label>
+              <Input
+                type="text"
+                placeholder="Mejia"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                required
+              />
+            </div>
           </div>
           <div>
             <Label className="text-xs uppercase tracking-wider font-medium mb-2 block">

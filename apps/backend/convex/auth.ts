@@ -19,9 +19,13 @@ export const createAuth = (ctx: GenericCtx<DataModel>) => {
       user: {
         create: {
           after: async (user) => {
+            const parts = user.name.trim().split(/\s+/)
+            const firstName = parts[0]
+            const lastName = parts.length > 1 ? parts.slice(1).join(" ") : undefined
             await ctx.runMutation(internal.users.upsertFromAuth, {
               email: user.email,
-              name: user.name,
+              name: firstName,
+              lastName,
               authProvider: "email",
               avatar: user.image ?? undefined,
             })

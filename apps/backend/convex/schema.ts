@@ -7,6 +7,7 @@ export default defineSchema({
   users: defineTable({
     email: v.string(),
     name: v.string(),
+    lastName: v.optional(v.string()),
     role: v.union(v.literal("student"), v.literal("admin")),
     avatar: v.optional(v.string()),
     authProvider: v.union(

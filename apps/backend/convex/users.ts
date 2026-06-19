@@ -78,6 +78,7 @@ export const upsertFromAuth = internalMutation({
   args: {
     email: v.string(),
     name: v.string(),
+    lastName: v.optional(v.string()),
     authProvider: v.union(
       v.literal("email"),
       v.literal("google"),
@@ -98,6 +99,7 @@ export const upsertFromAuth = internalMutation({
     return await ctx.db.insert("users", {
       email: args.email,
       name: args.name,
+      lastName: args.lastName,
       role: "student",
       authProvider: args.authProvider,
       avatar: args.avatar,
