@@ -6,7 +6,7 @@ import {
   useNavigate,
   useRouterState,
 } from "@tanstack/react-router"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useQuery } from "convex/react"
 import { api } from "@convex/_generated/api"
 import { Progress } from "@repo/ui/components/progress"
@@ -216,20 +216,26 @@ function AdminLayout() {
 }
 
 function RouteProgressBar() {
-  const isLoading = useRouterState({ select: (s) => s.isLoading })
+  const { isLoading, location } = useRouterState({ select: (s) => ({ isLoading: s.isLoading, location: s.location.pathname }) })
   const [progress, setProgress] = useState(0)
+  const prevLocationRef = useRef(location)
 
   useEffect(() => {
     if (!isLoading) {
-      setProgress(100)
-      const t = setTimeout(() => setProgress(0), 300)
-      return () => clearTimeout(t)
+      if (prevLocationRef.current !== location) {
+        setProgress(100)
+        const t = setTimeout(() => setProgress(0), 300)
+        prevLocationRef.current = location
+        return () => clearTimeout(t)
+      }
+      setProgress(0)
+      return
     }
     setProgress(20)
     const t1 = setTimeout(() => setProgress(50), 200)
     const t2 = setTimeout(() => setProgress(80), 600)
     return () => { clearTimeout(t1); clearTimeout(t2) }
-  }, [isLoading])
+  }, [isLoading, location])
 
   if (!isLoading && progress === 0) return null
 
