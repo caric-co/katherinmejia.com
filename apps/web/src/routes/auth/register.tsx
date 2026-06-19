@@ -1,41 +1,67 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
+import { useForm } from "@tanstack/react-form"
+import { z } from "zod"
 import { Button } from "@repo/ui/components/button"
-import { Input } from "@repo/ui/components/input"
-import { Label } from "@repo/ui/components/label"
 import { Separator } from "@repo/ui/components/separator"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@repo/ui/components/tooltip"
 import { authClient } from "#/lib/auth-client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { FormField, fieldAnimations } from "#/components/form-field"
+import { motion, useAnimationControls, AnimatePresence } from "motion/react"
 
 export const Route = createFileRoute("/auth/register")({
   component: RegisterPage,
 })
 
+const registerSchema = z.object({
+  firstName: z.string().min(2, "Mínimo 2 caracteres"),
+  lastName: z.string().min(2, "Mínimo 2 caracteres"),
+  email: z.string().email("Correo no válido"),
+  password: z.string().min(8, "Mínimo 8 caracteres"),
+})
+
+const SUBMIT_ID = "register-submit"
+
 function RegisterPage() {
   const navigate = useNavigate()
-  const [firstName, setFirstName] = useState("")
-  const [lastName, setLastName] = useState("")
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [error, setError] = useState("")
-  const [loading, setLoading] = useState(false)
+  const [serverError, setServerError] = useState("")
+  const submitControls = useAnimationControls()
 
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError("")
-    const result = await authClient.signUp.email({
-      name: `${firstName} ${lastName}`.trim(),
-      email,
-      password,
-      callbackURL: "/",
+  useEffect(() => {
+    fieldAnimations.set(SUBMIT_ID, () => {
+      submitControls.start({
+        scale: [1, 1.04, 1],
+        transition: { duration: 0.35, ease: "easeOut" },
+      })
     })
-    if (result.error) {
-      setError(result.error.message ?? "Error al crear cuenta")
-    } else {
+    return () => { fieldAnimations.delete(SUBMIT_ID) }
+  }, [submitControls])
+
+  const form = useForm({
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      password: "",
+    },
+    validators: {
+      onChange: registerSchema,
+    },
+    onSubmit: async ({ value }) => {
+      setServerError("")
+      const result = await authClient.signUp.email({
+        name: `${value.firstName} ${value.lastName}`,
+        email: value.email,
+        password: value.password,
+        callbackURL: "/",
+      })
+      if (result.error) {
+        setServerError(result.error.message ?? "Error al crear cuenta")
+        return
+      }
       navigate({ to: "/" })
-    }
-    setLoading(false)
-  }
+    },
+  })
 
   const handleGoogleLogin = async () => {
     await authClient.signIn.social({ provider: "google", callbackURL: "/" })
@@ -65,64 +91,119 @@ function RegisterPage() {
           <Separator className="flex-1" />
         </div>
 
-        <form onSubmit={handleRegister} className="space-y-5">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label className="text-xs uppercase tracking-wider font-medium mb-2 block">
-                Nombre
-              </Label>
-              <Input
-                type="text"
-                placeholder="Katherin"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <Label className="text-xs uppercase tracking-wider font-medium mb-2 block">
-                Apellido
-              </Label>
-              <Input
-                type="text"
-                placeholder="Mejia"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                required
-              />
-            </div>
-          </div>
-          <div>
-            <Label className="text-xs uppercase tracking-wider font-medium mb-2 block">
-              Correo electrónico
-            </Label>
-            <Input
-              type="email"
-              placeholder="tu@correo.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-          <div>
-            <Label className="text-xs uppercase tracking-wider font-medium mb-2 block">
-              Contraseña
-            </Label>
-            <Input
-              type="password"
-              placeholder="Mínimo 8 caracteres"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={8}
-            />
-          </div>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            form.handleSubmit()
+          }}
+          className="space-y-5"
+        >
+          <form.Subscribe
+            selector={(state) => [state.canSubmit, state.isPristine] as const}
+            children={([canSubmit, isPristine]) => {
+              const isFormValid = canSubmit && !isPristine
 
-          {error && <p className="text-sm text-destructive">{error}</p>}
+              return (
+                <>
+                  <div className="grid grid-cols-2 gap-4">
+                    <form.Field
+                      name="firstName"
+                      children={(field) => (
+                        <FormField field={field} label="Nombre" placeholder="Katherin" autoFocus nextFieldId="lastName" submitId={SUBMIT_ID} isFormValid={isFormValid} />
+                      )}
+                    />
+                    <form.Field
+                      name="lastName"
+                      children={(field) => (
+                        <FormField field={field} label="Apellido" placeholder="Mejia" nextFieldId="email" submitId={SUBMIT_ID} isFormValid={isFormValid} />
+                      )}
+                    />
+                  </div>
 
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Creando cuenta..." : "Crear cuenta"}
-          </Button>
+                  <form.Field
+                    name="email"
+                    children={(field) => (
+                      <FormField field={field} label="Correo electrónico" type="email" placeholder="tu@correo.com" nextFieldId="password" submitId={SUBMIT_ID} isFormValid={isFormValid} />
+                    )}
+                  />
+
+                  <form.Field
+                    name="password"
+                    children={(field) => (
+                      <FormField field={field} label="Contraseña" type="password" placeholder="Mínimo 8 caracteres" submitId={SUBMIT_ID} isFormValid={isFormValid} />
+                    )}
+                  />
+                </>
+              )
+            }}
+          />
+
+          {serverError && <p className="text-sm text-destructive">{serverError}</p>}
+
+          <form.Subscribe
+            selector={(state) => [state.isSubmitting, state.canSubmit, state.isPristine, state.values] as const}
+            children={([isSubmitting, canSubmit, isPristine, values]) => {
+              const isDisabled = isSubmitting || !canSubmit || isPristine
+              const fieldLabels: Record<string, string> = {
+                firstName: "Nombre",
+                lastName: "Apellido",
+                email: "Correo electrónico",
+                password: "Contraseña",
+              }
+              const emptyFields = Object.entries(values as Record<string, string>)
+                .filter(([, v]) => !v)
+                .map(([k]) => fieldLabels[k] ?? k)
+
+              const isReady = !isDisabled && !emptyFields.length
+
+              const submitButton = (
+                <motion.div animate={submitControls}>
+                  <Button id={SUBMIT_ID} type="submit" className="w-full h-11" disabled={isDisabled}>
+                    {isSubmitting ? "Creando cuenta..." : "Crear cuenta"}
+                  </Button>
+                </motion.div>
+              )
+
+              if (isReady) {
+                return (
+                  <div>
+                    {submitButton}
+                    <AnimatePresence>
+                      <motion.p
+                        key="hint"
+                        initial={{ height: 0, opacity: 0, clipPath: "inset(0 100% 0 0)" }}
+                        animate={{ height: "auto", opacity: 1, clipPath: "inset(0 0% 0 0)" }}
+                        transition={{ height: { duration: 0.3 }, opacity: { duration: 0.2 }, clipPath: { duration: 0.4, delay: 0.15 } }}
+                        className="text-xs text-muted-foreground text-center mt-2 overflow-hidden"
+                      >
+                        Presiona Enter para finalizar el registro
+                      </motion.p>
+                    </AnimatePresence>
+                  </div>
+                )
+              }
+
+              if (emptyFields.length) {
+                return (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger render={<div className="w-full" />}>
+                        {submitButton}
+                      </TooltipTrigger>
+                      <TooltipContent className="block">
+                        <p className="mb-1">Completa los campos:</p>
+                        <ul className="list-disc pl-4">
+                          {emptyFields.map((f) => <li key={f}>{f}</li>)}
+                        </ul>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )
+              }
+
+              return submitButton
+            }}
+          />
         </form>
 
         <p className="mt-6 text-center text-sm text-muted-foreground">
