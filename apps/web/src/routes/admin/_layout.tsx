@@ -4,9 +4,11 @@ import {
   Outlet,
   redirect,
   useNavigate,
+  useRouterState,
 } from "@tanstack/react-router"
 import { useQuery } from "convex/react"
 import { api } from "@convex/_generated/api"
+import { motion } from "motion/react"
 import {
   LayoutDashboard,
   BookOpen,
@@ -194,6 +196,7 @@ function AdminLayout() {
       </Sidebar>
 
       <main className="flex h-dvh flex-1 flex-col overflow-hidden">
+        <RouteProgressBar />
         <header className="flex shrink-0 items-center border-b px-4 py-2">
           <SidebarTrigger />
           <Separator orientation="vertical" className="mx-2 h-4" />
@@ -208,5 +211,22 @@ function AdminLayout() {
         </div>
       </main>
     </SidebarProvider>
+  )
+}
+
+function RouteProgressBar() {
+  const isLoading = useRouterState({ select: (s) => s.isLoading })
+
+  if (!isLoading) return null
+
+  return (
+    <div className="absolute top-0 left-0 right-0 z-50 h-0.5">
+      <motion.div
+        className="h-full bg-foreground/60"
+        initial={{ width: "0%" }}
+        animate={{ width: "90%" }}
+        transition={{ duration: 2, ease: "easeOut" }}
+      />
+    </div>
   )
 }
