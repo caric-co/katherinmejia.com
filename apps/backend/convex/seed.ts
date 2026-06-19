@@ -18,7 +18,7 @@ export const seedTestData = internalMutation({
         role: "admin",
         authProvider: "email",
         locale: "es",
-        isBlocked: false,
+        status: "active",
         createdAt: Date.now(),
       })
 
@@ -28,7 +28,7 @@ export const seedTestData = internalMutation({
         role: "student",
         authProvider: "email",
         locale: "es",
-        isBlocked: false,
+        status: "active",
         createdAt: Date.now(),
       })
     }

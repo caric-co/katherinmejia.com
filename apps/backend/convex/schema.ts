@@ -16,7 +16,7 @@ export default defineSchema({
       v.literal("apple")
     ),
     locale: v.union(v.literal("es"), v.literal("en")),
-    isBlocked: v.boolean(),
+    status: v.union(v.literal("active"), v.literal("blocked"), v.literal("deleted")),
     createdAt: v.number(),
   })
     .index("by_email", ["email"])

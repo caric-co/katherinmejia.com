@@ -206,12 +206,8 @@ function AdminLayout() {
           <Separator orientation="vertical" className="mx-2 h-4" />
           <span className="text-sm font-medium">Administración</span>
         </header>
-        <div className="min-h-0 flex-1">
-          <ScrollArea className="h-full">
-            <div className="p-6">
-              <Outlet />
-            </div>
-          </ScrollArea>
+        <div className="min-h-0 flex-1 p-6 flex flex-col overflow-auto">
+          <Outlet />
         </div>
       </main>
     </SidebarProvider>

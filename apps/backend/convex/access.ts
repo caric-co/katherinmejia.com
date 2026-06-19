@@ -14,7 +14,7 @@ export const hasAccess = query({
       .first()
 
     if (!user) return { hasAccess: false, reason: "none" as const }
-    if (user.isBlocked) return { hasAccess: false, reason: "blocked" as const }
+    if (user.status !== "active") return { hasAccess: false, reason: "blocked" as const }
     if (user.role === "admin") return { hasAccess: true, reason: "admin" as const }
 
     const subscription = await ctx.db

@@ -13,6 +13,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table"
 
+import { cn } from "@repo/ui/lib/utils"
 import {
   Table,
   TableBody,
@@ -34,6 +35,7 @@ interface DataTableProps<TData, TValue> {
   footer?: React.ReactNode
   emptyMessage?: string
   tableOptions?: Partial<TableOptions<TData>>
+  className?: string
 }
 
 function DataTable<TData, TValue>({
@@ -46,8 +48,11 @@ function DataTable<TData, TValue>({
   footer,
   emptyMessage = "Sin resultados.",
   tableOptions,
+  className,
 }: DataTableProps<TData, TValue>) {
-  const [sorting, setSorting] = React.useState<SortingState>([])
+  const [sorting, setSorting] = React.useState<SortingState>(
+    (tableOptions?.initialState as any)?.sorting ?? []
+  )
   const [columnFilters, setColumnFilters] =
     React.useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] =
@@ -60,6 +65,7 @@ function DataTable<TData, TValue>({
     ...(showPagination && {
       getPaginationRowModel: getPaginationRowModel(),
     }),
+    enableMultiSort: true,
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
     onColumnFiltersChange: setColumnFilters,
@@ -70,16 +76,17 @@ function DataTable<TData, TValue>({
       columnFilters,
       columnVisibility,
     },
+    ...tableOptions,
     initialState: {
       pagination: { pageSize },
+      ...tableOptions?.initialState,
     },
-    ...tableOptions,
   })
 
   return (
-    <div>
+    <div className={cn("flex flex-col", className)}>
       {filterColumn && (
-        <div className="flex items-center py-4">
+        <div className="flex shrink-0 items-center py-4">
           <input
             placeholder={filterPlaceholder}
             value={
@@ -92,13 +99,16 @@ function DataTable<TData, TValue>({
           />
         </div>
       )}
-      <div className="overflow-hidden">
+      <div className="min-h-0 flex-1 overflow-auto">
         <Table>
-          <TableHeader>
+          <TableHeader className="sticky top-0 z-10 bg-muted">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id} className="bg-muted hover:bg-muted">
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
+                  <TableHead
+                    key={header.id}
+                    style={header.column.columnDef.size ? { width: header.column.columnDef.size } : undefined}
+                  >
                     {header.isPlaceholder
                       ? null
                       : flexRender(
@@ -142,7 +152,7 @@ function DataTable<TData, TValue>({
         </Table>
       </div>
       {showPagination && (
-        <div className="flex items-center justify-between py-4">
+        <div className="flex shrink-0 items-center justify-between border-t py-3">
           <p className="text-xs text-muted-foreground">
             {table.getFilteredRowModel().rows.length} resultado(s)
           </p>

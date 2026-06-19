@@ -1,5 +1,5 @@
 import type { Column } from "@tanstack/react-table"
-import { ArrowDown, ArrowUp, ArrowUpDown, EyeOff } from "lucide-react"
+import { ArrowDown, ArrowUp, ArrowUpDown, EyeOff, X } from "lucide-react"
 
 import { cn } from "@repo/ui/lib/utils"
 import { Button } from "@repo/ui/components/button"
@@ -26,6 +26,9 @@ function DataTableColumnHeader<TData, TValue>({
     return <div className={cn(className)}>{title}</div>
   }
 
+  const sorted = column.getIsSorted()
+  const sortIndex = column.getSortIndex()
+
   return (
     <div className={cn("flex items-center space-x-2", className)}>
       <DropdownMenu>
@@ -36,24 +39,41 @@ function DataTableColumnHeader<TData, TValue>({
             className="-ml-3 h-8 data-[state=open]:bg-accent"
           >
             <span>{title}</span>
-            {column.getIsSorted() === "desc" ? (
-              <ArrowDown />
-            ) : column.getIsSorted() === "asc" ? (
-              <ArrowUp />
-            ) : (
-              <ArrowUpDown />
-            )}
+            <span className="inline-flex items-center gap-0.5 w-8 justify-start">
+              {sorted === "desc" ? (
+                <ArrowDown className="size-3.5" />
+              ) : sorted === "asc" ? (
+                <ArrowUp className="size-3.5" />
+              ) : (
+                <ArrowUpDown className="size-3.5" />
+              )}
+              <span className={cn(
+                "text-[10px] tabular-nums text-muted-foreground w-3",
+                sortIndex >= 0 ? "visible" : "invisible"
+              )}>
+                {sortIndex >= 0 ? sortIndex + 1 : ""}
+              </span>
+            </span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
-          <DropdownMenuItem onClick={() => column.toggleSorting(false)}>
+          <DropdownMenuItem onClick={() => column.toggleSorting(false, true)}>
             <ArrowUp className="text-muted-foreground/70" />
             Ascendente
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => column.toggleSorting(true)}>
+          <DropdownMenuItem onClick={() => column.toggleSorting(true, true)}>
             <ArrowDown className="text-muted-foreground/70" />
             Descendente
           </DropdownMenuItem>
+          {sorted && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => column.clearSorting()}>
+                <X className="text-muted-foreground/70" />
+                Quitar orden
+              </DropdownMenuItem>
+            </>
+          )}
           {column.getCanHide() && (
             <>
               <DropdownMenuSeparator />

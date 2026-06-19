@@ -24,6 +24,7 @@ export const list = query({
   },
   handler: async (ctx, args) => {
     let users = await ctx.db.query("users").collect()
+    users = users.filter((u) => u.status !== "deleted")
     if (args.search) {
       const term = args.search.toLowerCase()
       users = users.filter(
@@ -64,13 +65,13 @@ export const setRole = mutation({
   },
 })
 
-export const blockUser = mutation({
+export const setStatus = mutation({
   args: {
     userId: v.id("users"),
-    isBlocked: v.boolean(),
+    status: v.union(v.literal("active"), v.literal("blocked"), v.literal("deleted")),
   },
   handler: async (ctx, args) => {
-    await ctx.db.patch(args.userId, { isBlocked: args.isBlocked })
+    await ctx.db.patch(args.userId, { status: args.status })
   },
 })
 
@@ -104,7 +105,7 @@ export const upsertFromAuth = internalMutation({
       authProvider: args.authProvider,
       avatar: args.avatar,
       locale: "es",
-      isBlocked: false,
+      status: "active",
       createdAt: Date.now(),
     })
   },

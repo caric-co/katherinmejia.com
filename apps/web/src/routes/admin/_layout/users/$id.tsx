@@ -22,7 +22,7 @@ function UserDetailPage() {
   const { id } = Route.useParams()
   const userId = id as Id<"users">
   const user = useQuery(api.users.getById, { userId })
-  const blockUser = useMutation(api.users.blockUser)
+  const setStatus = useMutation(api.users.setStatus)
   const setRole = useMutation(api.users.setRole)
 
   const courses = useQuery(api.courses.listAll)
@@ -74,7 +74,7 @@ function UserDetailPage() {
           <Badge variant={user.role === "admin" ? "default" : "outline"}>
             {user.role === "admin" ? "Admin" : "Estudiante"}
           </Badge>
-          {user.isBlocked && <Badge variant="destructive">Bloqueado</Badge>}
+          {user.status === "blocked" && <Badge variant="destructive">Bloqueado</Badge>}
         </div>
       </div>
 
@@ -82,9 +82,12 @@ function UserDetailPage() {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => blockUser({ userId, isBlocked: !user.isBlocked })}
+          onClick={() => setStatus({
+            userId,
+            status: user.status === "blocked" ? "active" : "blocked",
+          })}
         >
-          {user.isBlocked ? (
+          {user.status === "blocked" ? (
             <><ShieldOff data-icon="inline-start" className="size-3.5" /> Desbloquear</>
           ) : (
             <><Shield data-icon="inline-start" className="size-3.5" /> Bloquear</>

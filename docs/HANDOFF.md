@@ -48,13 +48,13 @@ katherinmejia.com/
 │   │   │   ├── blog/$slug.tsx         Blog post detail (SSR SEO, HTML rendering)
 │   │   │   └── admin/_layout.tsx      Admin sidebar (role-guarded, collapsible, progress bar)
 │   │   │       ├── index.tsx          Dashboard
-│   │   │       ├── courses/index.tsx  Course list
+│   │   │       ├── courses/index.tsx  Course DataTable (search, status filter, multi-sort)
 │   │   │       ├── courses/new.tsx    Create course (bilingual slugs, COP input, AI translate)
 │   │   │       ├── courses/$slug.tsx  Edit course (AI translate)
 │   │   │       ├── courses/$slug/lessons.tsx  Lesson management (inline edit, reorder, AI translate)
-│   │   │       ├── users/index.tsx    User list + block
+│   │   │       ├── users/index.tsx    User DataTable (search, filters, soft delete, multi-sort)
 │   │   │       ├── users/$id.tsx      User detail + grant/revoke access
-│   │   │       ├── blog/index.tsx     Blog list + publish/unpublish
+│   │   │       ├── blog/index.tsx     Blog DataTable (search, status filter, multi-sort)
 │   │   │       ├── blog/new.tsx       Notion-style editor (Novel + AI, draft/publish flow)
 │   │   │       ├── blog/$slug.tsx     Blog edit page (Novel + AI)
 │   │   │       ├── content.tsx        Split-view site content editor + live preview
@@ -84,13 +84,13 @@ katherinmejia.com/
 │   │
 │   ├── backend/              Convex (apps/backend/convex/)
 │   │   └── convex/
-│   │       ├── schema.ts     9 tables (users has lastName, siteContent has draftValue)
+│   │       ├── schema.ts     9 tables (users has status field, siteContent has draftValue)
 │   │       ├── auth.ts       Better Auth + email/password + databaseHooks (user sync)
 │   │       ├── http.ts       HTTP routes for auth
 │   │       ├── ai.ts         Mistral AI (translate, translateText, excerpt, improve, review, capitalize)
 │   │       ├── courses.ts    CRUD + bilingual slug lookup + lessonCount
 │   │       ├── lessons.ts    CRUD + reorder
-│   │       ├── users.ts      CRUD + block + role + upsertFromAuth
+│   │       ├── users.ts      CRUD + setStatus (active/blocked/deleted) + role + upsertFromAuth
 │   │       ├── purchases.ts  Grant/revoke access
 │   │       ├── invitations.ts Code gen + redeem
 │   │       ├── blogPosts.ts  CRUD + bilingual slugs + publish/unpublish
@@ -102,11 +102,11 @@ katherinmejia.com/
 │       └── 5 routes: /, /quote, /plan, /pricing, /video-costs
 │
 ├── packages/
-│   ├── ui/                   25 shadcn components (base-lyra, evamuah.com theme, + Progress)
+│   ├── ui/                   25 shadcn components (base-lyra, evamuah.com theme, + Progress, DataTable)
 │   ├── config/               Shared TypeScript configs
 │   └── utils/                cn(), formatCOP/USD, formatDate
 │
-└── docs/                     PRD, TECH_STACK, ARCHITECTURE, DESIGN, PRODUCT, research
+└── docs/                     PRD, TECH_STACK, ARCHITECTURE, DESIGN, PRODUCT, DATA_TABLE, research
 ```
 
 ---
@@ -145,6 +145,16 @@ katherinmejia.com/
 - **JSON-LD:** Person schema on landing page
 - **robots.txt + sitemap.xml**
 
+### Admin DataTables (Notion-style)
+- **DataTable component** — TanStack Table with multi-sort, pagination, column visibility toggle
+- **Notion-style toolbar** — search (left) + filter selects (right desktop) + Sheet (mobile) + filter chips
+- **Multi-sort** — columns stack sort criteria with priority numbers (1, 2, 3...)
+- **Column visibility** — hide via column header dropdown, restore via Settings2 toggle in actions header
+- **Sticky layout** — header columns sticky top, table body scrolls, pagination anchored at bottom
+- **Fixed column widths** — `size` prop prevents layout shift on header interaction
+- **Soft delete** — users have `status: active | blocked | deleted`, deleted filtered from queries
+- **Applied to** — users, blog, courses tables (see `docs/DATA_TABLE.md`)
+
 ### Deploy
 - **Nitro plugin** for Vercel TanStack Start preset
 - **ssr.noExternal: true** (production only) to bundle all deps in server output
@@ -157,7 +167,7 @@ katherinmejia.com/
 
 | Table | Key Fields | Slugs |
 |-------|-----------|-------|
-| users | email, name, lastName, role, isBlocked, authProvider, locale | — |
+| users | email, name, lastName, role, status (active/blocked/deleted), authProvider, locale | — |
 | courses | title {es,en}, description, slug {es,en}, price, status, thumbnailUrl | bilingual indexed |
 | lessons | courseId, title {es,en}, videoId, duration, order, isFree | — |
 | progress | userId, lessonId, watchedSeconds, completed | — |
@@ -180,7 +190,7 @@ katherinmejia.com/
 | 5. Course CRUD | ✅ | List, create, edit, lessons (inline edit, reorder), AI translate, COP input |
 | 6. Catalog | ✅ | Public listing with real DB data, detail with syllabus + SEO |
 | 7. Video Player | ❌ | Needs Bunny Stream or R2+FFmpeg (not started) |
-| 8. User Mgmt | ✅ | List, detail, block, role toggle, grant/revoke course access |
+| 8. User Mgmt | ✅ | DataTable, detail, status (active/blocked/deleted), role toggle, grant/revoke access |
 | 9. Blog + Content | ✅ | Novel WYSIWYG, AI features, blog edit page, split-view content editor with live preview |
 | 10. Analytics | ❌ | PostHog + Sentry (not started) |
 | 11. Deploy | ✅ | Vercel (web + quote), Convex prod, auto-deploy on push |
