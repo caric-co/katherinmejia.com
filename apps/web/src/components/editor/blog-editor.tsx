@@ -22,8 +22,10 @@ import {
   TextStyle,
   Color,
   HighlightExtension,
+  Command,
   createSuggestionItems,
   handleCommandNavigation,
+  renderItems,
 } from "novel"
 import { forwardRef, useImperativeHandle, useRef } from "react"
 import {
@@ -183,6 +185,12 @@ const extensions = [
       return "Escribe aquí o usa '/' para insertar bloques..."
     },
     includeChildren: true,
+  }),
+  Command.configure({
+    suggestion: {
+      items: () => slashItems,
+      render: renderItems,
+    },
   }),
 ]
 
