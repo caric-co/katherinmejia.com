@@ -24,7 +24,7 @@ export function SmartSubmit({
   submittingLabel = "Enviando...",
   hint = "Presiona Enter para continuar",
 }: SmartSubmitProps) {
-  const isReady = !isDisabled && !emptyFieldLabels.length
+  const isReady = (!isDisabled || isSubmitting) && !emptyFieldLabels.length
 
   const submitButton = (
     <motion.div animate={controls}>

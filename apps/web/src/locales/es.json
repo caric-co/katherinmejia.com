@@ -13,6 +13,11 @@
     "subtitle": "Maquilladora profesional. Cursos en línea para que aprendas a tu ritmo.",
     "cta": "Ver Cursos"
   },
+  "auth": {
+    "invalidCredentials": "Correo o contraseña incorrectos",
+    "createAccountError": "No se pudo crear la cuenta",
+    "welcome": "Bienvenida, {{name}}"
+  },
   "common": {
     "loading": "Cargando...",
     "error": "Ha ocurrido un error",

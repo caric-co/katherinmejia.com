@@ -13,6 +13,11 @@
     "subtitle": "Professional makeup artist. Online courses so you can learn at your own pace.",
     "cta": "View Courses"
   },
+  "auth": {
+    "invalidCredentials": "Invalid email or password",
+    "createAccountError": "Could not create account",
+    "welcome": "Welcome, {{name}}"
+  },
   "common": {
     "loading": "Loading...",
     "error": "An error occurred",

@@ -4,6 +4,7 @@ import { z } from "zod"
 import { Button } from "@repo/ui/components/button"
 import { Separator } from "@repo/ui/components/separator"
 import { toast } from "sonner"
+import { useTranslation } from "react-i18next"
 import { authClient } from "#/lib/auth-client"
 import { useState } from "react"
 import { useSubmitPulse } from "#/lib/form-primitives"
@@ -32,6 +33,7 @@ const fieldLabels: Record<string, string> = {
 
 function RegisterPage() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const [serverError, setServerError] = useState("")
   const submitControls = useSubmitPulse(SUBMIT_ID)
 
@@ -54,11 +56,10 @@ function RegisterPage() {
         callbackURL: "/",
       })
       if (result.error) {
-        setServerError(result.error.message ?? "Error al crear cuenta")
-        toast.error("No se pudo crear la cuenta")
+        setServerError(t("auth.createAccountError"))
         return
       }
-      toast.success(`Bienvenida, ${value.firstName}`)
+      toast.success(t("auth.welcome", { name: value.firstName }))
       navigate({ to: "/" })
     },
   })

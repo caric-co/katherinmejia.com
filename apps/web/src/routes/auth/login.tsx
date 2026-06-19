@@ -49,7 +49,7 @@ function LoginPage() {
         callbackURL: "/",
       })
       if (result.error) {
-        setServerError("Correo o contraseña incorrectos")
+        setServerError(t("auth.invalidCredentials"))
         return
       }
       toast.success("Sesión iniciada")
