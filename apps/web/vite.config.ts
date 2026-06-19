@@ -21,7 +21,7 @@ export default defineConfig({
     ...(process.env.NODE_ENV !== "production" ? [devtools()] : []),
     tailwindcss(),
     tanstackStart(),
-    nitro({ compatibilityDate: "2025-01-01" }),
+    nitro(),
     viteReact(),
   ],
 })

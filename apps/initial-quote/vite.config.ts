@@ -8,5 +8,5 @@ import { nitro } from "nitro/vite"
 export default defineConfig({
   resolve: { tsconfigPaths: true },
   server: { port: 5173 },
-  plugins: [devtools(), tailwindcss(), tanstackStart(), nitro({ compatibilityDate: "2025-01-01" }), viteReact()],
+  plugins: [devtools(), tailwindcss(), tanstackStart(), nitro(), viteReact()],
 })
