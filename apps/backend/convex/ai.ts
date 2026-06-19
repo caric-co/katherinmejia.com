@@ -108,3 +108,16 @@ export const reviewText = action({
     return { suggestions: JSON.parse(jsonMatch[0]), tokensUsed }
   },
 })
+
+export const capitalizeTitle = action({
+  args: { title: v.string() },
+  handler: async (_ctx, args) => {
+    if (args.title.trim().length < 3) return { title: args.title, tokensUsed: 0 }
+    const { text, tokensUsed } = await callMistral(
+      "You are a Spanish copy editor. Capitalize the given title following proper Spanish title capitalization rules. Return ONLY the capitalized title, nothing else. Do not add quotes.",
+      args.title,
+      100
+    )
+    return { title: text.trim().replace(/^["']|["']$/g, ""), tokensUsed }
+  },
+})
