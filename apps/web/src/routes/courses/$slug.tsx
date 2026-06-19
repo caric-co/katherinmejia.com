@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { useQuery } from "convex/react"
 import { api } from "@convex/_generated/api"
+import { ConvexHttpClient } from "convex/browser"
+import { createServerFn } from "@tanstack/react-start"
 import { useTranslation } from "react-i18next"
 import { Button } from "@repo/ui/components/button"
 import { Badge } from "@repo/ui/components/badge"
@@ -9,7 +11,45 @@ import { Navigation } from "#/components/landing/navigation"
 import { Footer } from "#/components/landing/footer"
 import { ArrowLeft, Clock, Lock, PlayCircle } from "lucide-react"
 
+const fetchCourseMeta = createServerFn({ method: "GET" })
+  .validator((slug: string) => slug)
+  .handler(async ({ data: slug }) => {
+    const convexUrl = process.env.VITE_CONVEX_URL || import.meta.env.VITE_CONVEX_URL
+    if (!convexUrl) return null
+    const client = new ConvexHttpClient(convexUrl)
+    const course = await client.query(api.courses.getBySlug, { slug })
+    if (!course) return null
+    return {
+      title: course.title,
+      description: course.description,
+      thumbnailUrl: course.thumbnailUrl,
+    }
+  })
+
 export const Route = createFileRoute("/courses/$slug")({
+  loader: ({ params }) => fetchCourseMeta({ data: params.slug }),
+  head: ({ loaderData }) => {
+    if (!loaderData) {
+      return { meta: [{ title: "Curso no encontrado — Katherin Mejia" }] }
+    }
+    const title = `${loaderData.title.es} — Katherin Mejia`
+    const description = loaderData.description.es
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:type", content: "website" },
+        ...(loaderData.thumbnailUrl
+          ? [{ property: "og:image", content: loaderData.thumbnailUrl }]
+          : []),
+        { name: "twitter:card", content: loaderData.thumbnailUrl ? "summary_large_image" : "summary" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
+      ],
+    }
+  },
   component: CourseDetailPage,
 })
 

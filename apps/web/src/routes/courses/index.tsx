@@ -6,6 +6,14 @@ import { Navigation } from "#/components/landing/navigation"
 import { Footer } from "#/components/landing/footer"
 
 export const Route = createFileRoute("/courses/")({
+  head: () => ({
+    meta: [
+      { title: "Cursos — Katherin Mejia" },
+      { name: "description", content: "Cursos de maquillaje profesional por Katherin Mejia. Aprende técnicas de maquillaje natural, glam y más." },
+      { property: "og:title", content: "Cursos — Katherin Mejia" },
+      { property: "og:description", content: "Cursos de maquillaje profesional por Katherin Mejia. Aprende técnicas de maquillaje natural, glam y más." },
+    ],
+  }),
   component: CourseCatalogPage,
 })
 
