@@ -114,10 +114,12 @@ export function Navigation() {
                     Admin
                   </DropdownMenuItem>
                 )}
-                <DropdownMenuItem render={<Link to="/courses" />}>
-                  <User className="size-4" />
-                  Mis cursos
-                </DropdownMenuItem>
+                {!isAdmin && (
+                  <DropdownMenuItem render={<Link to="/courses" />}>
+                    <User className="size-4" />
+                    Mis cursos
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem
                   onClick={() =>
                     authClient.signOut({
