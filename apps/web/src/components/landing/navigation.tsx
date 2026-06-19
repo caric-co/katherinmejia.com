@@ -24,7 +24,7 @@ const navLinks = [
 
 export function Navigation() {
   const { t, i18n } = useTranslation()
-  const { data: realSession } = authClient.useSession()
+  const { data: realSession, isPending: isSessionPending } = authClient.useSession()
   const isPreview = usePreviewMode()
   const session = isPreview ? null : realSession
   const userProfile = useQuery(
@@ -94,7 +94,9 @@ export function Navigation() {
             {i18n.language === "es" ? "EN" : "ES"}
           </button>
 
-          {session?.user ? (
+          {isSessionPending ? (
+            <div className="size-8 rounded-full bg-foreground/10 animate-pulse" />
+          ) : session?.user ? (
             <DropdownMenu>
               <DropdownMenuTrigger className="cursor-pointer">
                 <Avatar className="size-8">
@@ -173,7 +175,9 @@ export function Navigation() {
                 {i18n.language === "es" ? "English" : "Español"}
               </button>
 
-              {session?.user ? (
+              {isSessionPending ? (
+                <div className="h-4 w-24 rounded bg-foreground/10 animate-pulse" />
+              ) : session?.user ? (
                 <div className="space-y-3">
                   <p className="text-sm font-medium">{session.user.name}</p>
                   {isAdmin && (
