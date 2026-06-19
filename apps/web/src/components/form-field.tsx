@@ -69,9 +69,9 @@ export function FormField({
         aria-invalid={hasError}
         autoFocus={autoFocus}
       />
-      {errorMessage && (
-        <p className="text-sm text-destructive mt-1">{errorMessage}</p>
-      )}
+      <p className={`text-sm mt-1 min-h-5 ${errorMessage ? "text-destructive" : "text-transparent"}`}>
+        {errorMessage ?? " "}
+      </p>
     </motion.div>
   )
 }
