@@ -1,40 +1,62 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
+import { useForm } from "@tanstack/react-form"
+import { z } from "zod"
 import { useTranslation } from "react-i18next"
 import { Button } from "@repo/ui/components/button"
-import { Input } from "@repo/ui/components/input"
-import { Label } from "@repo/ui/components/label"
 import { Separator } from "@repo/ui/components/separator"
+import { toast } from "sonner"
 import { authClient } from "#/lib/auth-client"
 import { useState } from "react"
+import { useSubmitPulse } from "#/lib/form-primitives"
+import { FormField } from "#/components/form-field"
+import { SmartSubmit } from "#/components/smart-submit"
 
 export const Route = createFileRoute("/auth/login")({
   component: LoginPage,
 })
 
+const loginSchema = z.object({
+  email: z.string().email("Correo no válido"),
+  password: z.string().min(1, "Ingresa tu contraseña"),
+})
+
+const SUBMIT_ID = "login-submit"
+
+const fieldLabels: Record<string, string> = {
+  email: "Correo electrónico",
+  password: "Contraseña",
+}
+
 function LoginPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [error, setError] = useState("")
-  const [loading, setLoading] = useState(false)
+  const [serverError, setServerError] = useState("")
+  const submitControls = useSubmitPulse(SUBMIT_ID)
 
-  const handleEmailLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError("")
-    const result = await authClient.signIn.email({
-      email,
-      password,
-      callbackURL: "/",
-    })
-    if (result.error) {
-      setError(result.error.message ?? "Error al iniciar sesión")
-    } else {
+  const form = useForm({
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+    validators: {
+      onChange: loginSchema,
+    },
+    onSubmit: async ({ value }) => {
+      setServerError("")
+      const result = await authClient.signIn.email({
+        email: value.email,
+        password: value.password,
+        callbackURL: "/",
+      })
+      if (result.error) {
+        setServerError(result.error.message ?? "Error al iniciar sesión")
+        toast.error("Credenciales incorrectas")
+        return
+      }
+      toast.success("Sesión iniciada")
       navigate({ to: "/" })
-    }
-    setLoading(false)
-  }
+    },
+  })
 
   const handleGoogleLogin = async () => {
     await authClient.signIn.social({ provider: "google", callbackURL: "/" })
@@ -77,39 +99,62 @@ function LoginPage() {
           <Separator className="flex-1" />
         </div>
 
-        <form onSubmit={handleEmailLogin} className="space-y-5">
-          <div>
-            <Label className="text-xs uppercase tracking-wider font-medium mb-2 block">
-              Correo electrónico
-            </Label>
-            <Input
-              type="email"
-              placeholder="tu@correo.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-          <div>
-            <Label className="text-xs uppercase tracking-wider font-medium mb-2 block">
-              Contraseña
-            </Label>
-            <Input
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            form.handleSubmit()
+          }}
+          className="space-y-5"
+        >
+          <form.Subscribe
+            selector={(state) => [state.canSubmit, state.isPristine] as const}
+            children={([canSubmit, isPristine]) => {
+              const isFormValid = canSubmit && !isPristine
 
-          {error && (
-            <p className="text-sm text-destructive">{error}</p>
-          )}
+              return (
+                <>
+                  <form.Field
+                    name="email"
+                    children={(field) => (
+                      <FormField field={field} label="Correo electrónico" type="email" placeholder="tu@correo.com" autoFocus nextFieldId="password" submitId={SUBMIT_ID} isFormValid={isFormValid} />
+                    )}
+                  />
 
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Ingresando..." : "Iniciar sesión"}
-          </Button>
+                  <form.Field
+                    name="password"
+                    children={(field) => (
+                      <FormField field={field} label="Contraseña" type="password" placeholder="••••••••" submitId={SUBMIT_ID} isFormValid={isFormValid} />
+                    )}
+                  />
+                </>
+              )
+            }}
+          />
+
+          {serverError && <p className="text-sm text-destructive">{serverError}</p>}
+
+          <form.Subscribe
+            selector={(state) => [state.isSubmitting, state.canSubmit, state.isPristine, state.values] as const}
+            children={([isSubmitting, canSubmit, isPristine, values]) => {
+              const isDisabled = isSubmitting || !canSubmit || isPristine
+              const emptyFields = Object.entries(values as Record<string, string>)
+                .filter(([, v]) => !v)
+                .map(([k]) => fieldLabels[k] ?? k)
+
+              return (
+                <SmartSubmit
+                  id={SUBMIT_ID}
+                  controls={submitControls}
+                  isSubmitting={isSubmitting}
+                  isDisabled={isDisabled}
+                  emptyFieldLabels={emptyFields}
+                  label="Iniciar sesión"
+                  submittingLabel="Ingresando..."
+                  hint="Presiona Enter para iniciar sesión"
+                />
+              )
+            }}
+          />
         </form>
 
         <div className="mt-6 text-center space-y-2">
