@@ -1,15 +1,15 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
-import { useMutation, useAction } from "convex/react"
+import { useQuery, useMutation, useAction } from "convex/react"
 import { api } from "@convex/_generated/api"
 import { Button } from "@repo/ui/components/button"
 import { Separator } from "@repo/ui/components/separator"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@repo/ui/components/tooltip"
-import { Sparkles, Loader2, Languages, Save, Eye, ArrowLeft } from "lucide-react"
-import { useState, useRef } from "react"
+import { Sparkles, Loader2, Save, Eye, ArrowLeft } from "lucide-react"
+import { useState, useRef, useEffect } from "react"
 import { BlogEditor, type BlogEditorRef } from "#/components/editor/blog-editor"
 
-export const Route = createFileRoute("/admin/_layout/blog/new")({
-  component: NewBlogPostPage,
+export const Route = createFileRoute("/admin/_layout/blog/$slug")({
+  component: EditBlogPostPage,
 })
 
 function slugify(text: string): string {
@@ -23,10 +23,13 @@ function slugify(text: string): string {
 
 type View = "editor" | "preview"
 
-function NewBlogPostPage() {
+function EditBlogPostPage() {
+  const { slug: routeSlug } = Route.useParams()
   const navigate = useNavigate()
-  const createPost = useMutation(api.blogPosts.create)
+  const post = useQuery(api.blogPosts.getBySlug, { slug: routeSlug })
+  const updatePost = useMutation(api.blogPosts.update)
   const publishPost = useMutation(api.blogPosts.publish)
+  const unpublishPost = useMutation(api.blogPosts.unpublish)
   const translateAction = useAction(api.ai.translateToEnglish)
   const generateExcerptAction = useAction(api.ai.generateExcerpt)
   const capitalizeTitleAction = useAction(api.ai.capitalizeTitle)
@@ -41,7 +44,6 @@ function NewBlogPostPage() {
   const [titleEn, setTitleEn] = useState("")
   const [excerptEn, setExcerptEn] = useState("")
   const [contentEn, setContentEn] = useState("")
-  const [translated, setTranslated] = useState(false)
 
   const [previewLang, setPreviewLang] = useState<"es" | "en">("es")
   const [generatingExcerpt, setGeneratingExcerpt] = useState(false)
@@ -50,6 +52,22 @@ function NewBlogPostPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
   const [tokensUsed, setTokensUsed] = useState(0)
+  const [initialized, setInitialized] = useState(false)
+
+  useEffect(() => {
+    if (post && !initialized) {
+      setTitleEs(post.title.es)
+      setTitleEn(post.title.en)
+      setExcerptEs(post.excerpt.es)
+      setExcerptEn(post.excerpt.en)
+      setContentHtml(post.content.es)
+      setContentEn(post.content.en)
+      setInitialized(true)
+    }
+  }, [post, initialized])
+
+  if (post === undefined) return <p className="text-muted-foreground">Cargando...</p>
+  if (post === null) return <p className="text-destructive">Artículo no encontrado</p>
 
   const handleTitleBlur = async () => {
     if (!titleEs || titleEs.length < 5 || capitalizing) return
@@ -74,7 +92,7 @@ function NewBlogPostPage() {
   }
 
   const handleTranslateAndPreview = async () => {
-    if (!titleEs || !contentEs) {
+    if (!titleEs || !contentEs && !contentHtml) {
       setError("Escribe el título y contenido primero")
       return
     }
@@ -92,24 +110,40 @@ function NewBlogPostPage() {
       setTitleEn(result.title)
       setExcerptEn(result.excerpt)
       setContentEn(result.content)
-      setTranslated(true)
       setTokensUsed((p) => p + result.tokensUsed)
       setView("preview")
     } catch (err: any) { setError(err.message) }
     setTranslating(false)
   }
 
-  const handlePublish = async () => {
+  const handleSave = async () => {
     setSaving(true)
     setError("")
     try {
-      const postId = await createPost({
+      await updatePost({
+        postId: post._id,
         title: { es: titleEs, en: titleEn || titleEs },
         slug: { es: slugify(titleEs), en: slugify(titleEn || titleEs) },
         excerpt: { es: excerptEs, en: excerptEn || excerptEs },
         content: { es: contentHtml || contentEs, en: contentEn || contentHtml || contentEs },
       })
-      await publishPost({ postId })
+      navigate({ to: "/admin/blog" })
+    } catch (err: any) { setError(err.message) }
+    setSaving(false)
+  }
+
+  const handlePublish = async () => {
+    setSaving(true)
+    setError("")
+    try {
+      await updatePost({
+        postId: post._id,
+        title: { es: titleEs, en: titleEn || titleEs },
+        slug: { es: slugify(titleEs), en: slugify(titleEn || titleEs) },
+        excerpt: { es: excerptEs, en: excerptEn || excerptEs },
+        content: { es: contentHtml || contentEs, en: contentEn || contentHtml || contentEs },
+      })
+      await publishPost({ postId: post._id })
       navigate({ to: "/admin/blog" })
     } catch (err: any) { setError(err.message) }
     setSaving(false)
@@ -122,7 +156,6 @@ function NewBlogPostPage() {
 
     return (
       <div className="max-w-3xl mx-auto">
-        {/* Preview toolbar */}
         <div className="flex items-center justify-between mb-8 sticky top-0 bg-background/90 backdrop-blur-sm z-10 py-3">
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="sm" onClick={() => setView("editor")}>
@@ -149,10 +182,17 @@ function NewBlogPostPage() {
                 EN
               </Button>
             </div>
-            <Button size="sm" onClick={handlePublish} disabled={saving}>
-              <Save data-icon="inline-start" className="size-3.5" />
-              {saving ? "Publicando..." : "Confirmar y publicar"}
-            </Button>
+            {post.status === "draft" ? (
+              <Button size="sm" onClick={handlePublish} disabled={saving}>
+                <Save data-icon="inline-start" className="size-3.5" />
+                {saving ? "Publicando..." : "Guardar y publicar"}
+              </Button>
+            ) : (
+              <Button size="sm" onClick={handleSave} disabled={saving}>
+                <Save data-icon="inline-start" className="size-3.5" />
+                {saving ? "Guardando..." : "Guardar cambios"}
+              </Button>
+            )}
           </div>
         </div>
 
@@ -186,13 +226,12 @@ function NewBlogPostPage() {
 
   return (
     <div className="max-w-3xl mx-auto">
-      {/* Editor toolbar */}
       <div className="flex items-center justify-between mb-8 sticky top-0 bg-background/90 backdrop-blur-sm z-10 py-3">
         <div className="flex items-center gap-2">
           <TooltipProvider delayDuration={300}>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon-sm" onClick={handleGenerateExcerpt} disabled={generatingExcerpt || !contentEs}>
+                <Button variant="ghost" size="icon-sm" onClick={handleGenerateExcerpt} disabled={generatingExcerpt || (!contentEs && !contentHtml)}>
                   {generatingExcerpt ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
                 </Button>
               </TooltipTrigger>
@@ -207,11 +246,20 @@ function NewBlogPostPage() {
           <Button variant="ghost" size="sm" onClick={() => navigate({ to: "/admin/blog" })}>
             Cancelar
           </Button>
+          {post.status === "published" && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => unpublishPost({ postId: post._id })}
+            >
+              Despublicar
+            </Button>
+          )}
           <Button
             variant="outline"
             size="sm"
             onClick={handleTranslateAndPreview}
-            disabled={translating || !titleEs || !contentEs}
+            disabled={translating || !titleEs || (!contentEs && !contentHtml)}
           >
             {translating ? (
               <Loader2 data-icon="inline-start" className="size-3.5 animate-spin" />
@@ -225,11 +273,10 @@ function NewBlogPostPage() {
 
       {error && <p className="text-destructive mb-4">{error}</p>}
 
-      {/* Title */}
       <div className="relative">
         <input
           value={titleEs}
-          onChange={(e) => { setTitleEs(e.target.value); setTranslated(false) }}
+          onChange={(e) => setTitleEs(e.target.value)}
           onBlur={handleTitleBlur}
           placeholder="Título del artículo"
           className="w-full font-display text-[2.5rem] leading-tight tracking-tight bg-transparent outline-none border-none placeholder:text-muted-foreground/30 mb-2"
@@ -243,21 +290,19 @@ function NewBlogPostPage() {
         /{slugify(titleEs) || "..."}
       </p>
 
-      {/* Excerpt */}
       {excerptEs && (
         <p className="text-lg text-muted-foreground italic mb-6 border-l-2 border-foreground/10 pl-4">
           {excerptEs}
         </p>
       )}
 
-      {/* Novel editor */}
       <BlogEditor
         ref={editorRef}
+        initialHtml={contentHtml}
         className="min-h-[60vh]"
         onChange={(_json, text, html) => {
           setContentEs(text)
           setContentHtml(html)
-          setTranslated(false)
         }}
       />
     </div>

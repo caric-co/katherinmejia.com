@@ -6,6 +6,14 @@ import { Navigation } from "#/components/landing/navigation"
 import { Footer } from "#/components/landing/footer"
 
 export const Route = createFileRoute("/blog/")({
+  head: () => ({
+    meta: [
+      { title: "Blog — Katherin Mejia" },
+      { name: "description", content: "Artículos sobre maquillaje profesional, tendencias y consejos de belleza por Katherin Mejia" },
+      { property: "og:title", content: "Blog — Katherin Mejia" },
+      { property: "og:description", content: "Artículos sobre maquillaje profesional, tendencias y consejos de belleza por Katherin Mejia" },
+    ],
+  }),
   component: BlogPage,
 })
 
@@ -18,7 +26,7 @@ function BlogPage() {
     <div className="min-h-screen bg-background">
       <Navigation />
 
-      <div className="pt-24 pb-16 px-6 md:px-10">
+      <div className="py-24 md:py-32 px-6 md:px-10">
         <div className="max-w-7xl mx-auto">
           <p className="text-sm uppercase tracking-widest text-muted-foreground mb-4">
             Blog

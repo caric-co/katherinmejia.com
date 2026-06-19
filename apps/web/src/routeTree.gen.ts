@@ -21,6 +21,7 @@ import { Route as AdminLayoutRouteImport } from './routes/admin/_layout'
 import { Route as AdminLayoutIndexRouteImport } from './routes/admin/_layout/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as AdminLayoutInvitationsRouteImport } from './routes/admin/_layout/invitations'
+import { Route as AdminLayoutContentPreviewRouteImport } from './routes/admin/_layout/content-preview'
 import { Route as AdminLayoutContentRouteImport } from './routes/admin/_layout/content'
 import { Route as AdminLayoutUsersIndexRouteImport } from './routes/admin/_layout/users/index'
 import { Route as AdminLayoutCoursesIndexRouteImport } from './routes/admin/_layout/courses/index'
@@ -29,6 +30,7 @@ import { Route as AdminLayoutUsersIdRouteImport } from './routes/admin/_layout/u
 import { Route as AdminLayoutCoursesNewRouteImport } from './routes/admin/_layout/courses/new'
 import { Route as AdminLayoutCoursesSlugRouteImport } from './routes/admin/_layout/courses/$slug'
 import { Route as AdminLayoutBlogNewRouteImport } from './routes/admin/_layout/blog/new'
+import { Route as AdminLayoutBlogSlugRouteImport } from './routes/admin/_layout/blog/$slug'
 import { Route as AdminLayoutCoursesSlugLessonsRouteImport } from './routes/admin/_layout/courses/$slug/lessons'
 
 const IndexRoute = IndexRouteImport.update({
@@ -91,6 +93,12 @@ const AdminLayoutInvitationsRoute = AdminLayoutInvitationsRouteImport.update({
   path: '/invitations',
   getParentRoute: () => AdminLayoutRoute,
 } as any)
+const AdminLayoutContentPreviewRoute =
+  AdminLayoutContentPreviewRouteImport.update({
+    id: '/content-preview',
+    path: '/content-preview',
+    getParentRoute: () => AdminLayoutRoute,
+  } as any)
 const AdminLayoutContentRoute = AdminLayoutContentRouteImport.update({
   id: '/content',
   path: '/content',
@@ -131,6 +139,11 @@ const AdminLayoutBlogNewRoute = AdminLayoutBlogNewRouteImport.update({
   path: '/blog/new',
   getParentRoute: () => AdminLayoutRoute,
 } as any)
+const AdminLayoutBlogSlugRoute = AdminLayoutBlogSlugRouteImport.update({
+  id: '/blog/$slug',
+  path: '/blog/$slug',
+  getParentRoute: () => AdminLayoutRoute,
+} as any)
 const AdminLayoutCoursesSlugLessonsRoute =
   AdminLayoutCoursesSlugLessonsRouteImport.update({
     id: '/lessons',
@@ -149,9 +162,11 @@ export interface FileRoutesByFullPath {
   '/blog/': typeof BlogIndexRoute
   '/courses/': typeof CoursesIndexRoute
   '/admin/content': typeof AdminLayoutContentRoute
+  '/admin/content-preview': typeof AdminLayoutContentPreviewRoute
   '/admin/invitations': typeof AdminLayoutInvitationsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/admin/': typeof AdminLayoutIndexRoute
+  '/admin/blog/$slug': typeof AdminLayoutBlogSlugRoute
   '/admin/blog/new': typeof AdminLayoutBlogNewRoute
   '/admin/courses/$slug': typeof AdminLayoutCoursesSlugRouteWithChildren
   '/admin/courses/new': typeof AdminLayoutCoursesNewRoute
@@ -171,9 +186,11 @@ export interface FileRoutesByTo {
   '/blog': typeof BlogIndexRoute
   '/courses': typeof CoursesIndexRoute
   '/admin/content': typeof AdminLayoutContentRoute
+  '/admin/content-preview': typeof AdminLayoutContentPreviewRoute
   '/admin/invitations': typeof AdminLayoutInvitationsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/admin': typeof AdminLayoutIndexRoute
+  '/admin/blog/$slug': typeof AdminLayoutBlogSlugRoute
   '/admin/blog/new': typeof AdminLayoutBlogNewRoute
   '/admin/courses/$slug': typeof AdminLayoutCoursesSlugRouteWithChildren
   '/admin/courses/new': typeof AdminLayoutCoursesNewRoute
@@ -195,9 +212,11 @@ export interface FileRoutesById {
   '/blog/': typeof BlogIndexRoute
   '/courses/': typeof CoursesIndexRoute
   '/admin/_layout/content': typeof AdminLayoutContentRoute
+  '/admin/_layout/content-preview': typeof AdminLayoutContentPreviewRoute
   '/admin/_layout/invitations': typeof AdminLayoutInvitationsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/admin/_layout/': typeof AdminLayoutIndexRoute
+  '/admin/_layout/blog/$slug': typeof AdminLayoutBlogSlugRoute
   '/admin/_layout/blog/new': typeof AdminLayoutBlogNewRoute
   '/admin/_layout/courses/$slug': typeof AdminLayoutCoursesSlugRouteWithChildren
   '/admin/_layout/courses/new': typeof AdminLayoutCoursesNewRoute
@@ -220,9 +239,11 @@ export interface FileRouteTypes {
     | '/blog/'
     | '/courses/'
     | '/admin/content'
+    | '/admin/content-preview'
     | '/admin/invitations'
     | '/api/auth/$'
     | '/admin/'
+    | '/admin/blog/$slug'
     | '/admin/blog/new'
     | '/admin/courses/$slug'
     | '/admin/courses/new'
@@ -242,9 +263,11 @@ export interface FileRouteTypes {
     | '/blog'
     | '/courses'
     | '/admin/content'
+    | '/admin/content-preview'
     | '/admin/invitations'
     | '/api/auth/$'
     | '/admin'
+    | '/admin/blog/$slug'
     | '/admin/blog/new'
     | '/admin/courses/$slug'
     | '/admin/courses/new'
@@ -265,9 +288,11 @@ export interface FileRouteTypes {
     | '/blog/'
     | '/courses/'
     | '/admin/_layout/content'
+    | '/admin/_layout/content-preview'
     | '/admin/_layout/invitations'
     | '/api/auth/$'
     | '/admin/_layout/'
+    | '/admin/_layout/blog/$slug'
     | '/admin/_layout/blog/new'
     | '/admin/_layout/courses/$slug'
     | '/admin/_layout/courses/new'
@@ -377,6 +402,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLayoutInvitationsRouteImport
       parentRoute: typeof AdminLayoutRoute
     }
+    '/admin/_layout/content-preview': {
+      id: '/admin/_layout/content-preview'
+      path: '/content-preview'
+      fullPath: '/admin/content-preview'
+      preLoaderRoute: typeof AdminLayoutContentPreviewRouteImport
+      parentRoute: typeof AdminLayoutRoute
+    }
     '/admin/_layout/content': {
       id: '/admin/_layout/content'
       path: '/content'
@@ -433,6 +465,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLayoutBlogNewRouteImport
       parentRoute: typeof AdminLayoutRoute
     }
+    '/admin/_layout/blog/$slug': {
+      id: '/admin/_layout/blog/$slug'
+      path: '/blog/$slug'
+      fullPath: '/admin/blog/$slug'
+      preLoaderRoute: typeof AdminLayoutBlogSlugRouteImport
+      parentRoute: typeof AdminLayoutRoute
+    }
     '/admin/_layout/courses/$slug/lessons': {
       id: '/admin/_layout/courses/$slug/lessons'
       path: '/lessons'
@@ -459,8 +498,10 @@ const AdminLayoutCoursesSlugRouteWithChildren =
 
 interface AdminLayoutRouteChildren {
   AdminLayoutContentRoute: typeof AdminLayoutContentRoute
+  AdminLayoutContentPreviewRoute: typeof AdminLayoutContentPreviewRoute
   AdminLayoutInvitationsRoute: typeof AdminLayoutInvitationsRoute
   AdminLayoutIndexRoute: typeof AdminLayoutIndexRoute
+  AdminLayoutBlogSlugRoute: typeof AdminLayoutBlogSlugRoute
   AdminLayoutBlogNewRoute: typeof AdminLayoutBlogNewRoute
   AdminLayoutCoursesSlugRoute: typeof AdminLayoutCoursesSlugRouteWithChildren
   AdminLayoutCoursesNewRoute: typeof AdminLayoutCoursesNewRoute
@@ -472,8 +513,10 @@ interface AdminLayoutRouteChildren {
 
 const AdminLayoutRouteChildren: AdminLayoutRouteChildren = {
   AdminLayoutContentRoute: AdminLayoutContentRoute,
+  AdminLayoutContentPreviewRoute: AdminLayoutContentPreviewRoute,
   AdminLayoutInvitationsRoute: AdminLayoutInvitationsRoute,
   AdminLayoutIndexRoute: AdminLayoutIndexRoute,
+  AdminLayoutBlogSlugRoute: AdminLayoutBlogSlugRoute,
   AdminLayoutBlogNewRoute: AdminLayoutBlogNewRoute,
   AdminLayoutCoursesSlugRoute: AdminLayoutCoursesSlugRouteWithChildren,
   AdminLayoutCoursesNewRoute: AdminLayoutCoursesNewRoute,

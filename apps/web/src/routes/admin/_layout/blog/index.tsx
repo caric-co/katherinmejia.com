@@ -74,7 +74,7 @@ function BlogListPage() {
                       <MoreHorizontal className="size-4" />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem render={<Link to={`/admin/blog/${post._id}`} />}>
+                      <DropdownMenuItem render={<Link to={`/admin/blog/${post.slug.es}`} />}>
                         <Pencil className="size-4" />
                         Editar
                       </DropdownMenuItem>
