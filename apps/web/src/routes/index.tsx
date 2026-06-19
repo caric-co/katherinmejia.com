@@ -9,7 +9,7 @@ import { Contact } from "#/components/landing/contact"
 import { Footer } from "#/components/landing/footer"
 import { Preloader } from "#/components/landing/preloader"
 import { SiteContentProvider, useSiteContentReady } from "#/lib/use-site-content"
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 
 export const Route = createFileRoute("/")({
   component: HomePage,
@@ -26,7 +26,15 @@ function HomePage() {
 function HomeContent() {
   const isReady = useSiteContentReady()
   const [preloaderDone, setPreloaderDone] = useState(false)
-  const handlePreloaderComplete = useCallback(() => setPreloaderDone(true), [])
+  const handlePreloaderComplete = useCallback(() => {
+    setPreloaderDone(true)
+    document.body.style.overflow = ""
+  }, [])
+
+  useEffect(() => {
+    document.body.style.overflow = "hidden"
+    return () => { document.body.style.overflow = "" }
+  }, [])
 
   return (
     <>

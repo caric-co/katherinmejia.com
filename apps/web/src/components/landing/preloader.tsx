@@ -78,18 +78,12 @@ export function Preloader({ isContentReady, onComplete }: PreloaderProps) {
           initial={{ color: "rgba(43, 38, 38, 0.1)" }}
           animate={{ color: "rgba(43, 38, 38, 1)" }}
           transition={{ duration: 0.9, ease: EASE }}
-        />
-        <motion.h1
-          className="font-display text-[clamp(2rem,6vw,3.5rem)] tracking-tight select-none absolute"
-          initial={{ color: "rgba(43, 38, 38, 0.1)" }}
-          animate={{ color: "rgba(43, 38, 38, 1)" }}
-          transition={{ duration: 0.9, ease: EASE }}
         >
           Katherin Mejia
         </motion.h1>
 
-        {/* Line + subtitle container */}
-        <div className="flex flex-col items-center mt-6">
+        {/* Line + subtitle */}
+        <div className="flex flex-col items-center mt-4">
           <motion.div
             className="h-px bg-foreground/25"
             initial={{ width: 0 }}
