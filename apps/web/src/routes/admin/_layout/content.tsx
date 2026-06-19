@@ -5,7 +5,8 @@ import { Button } from "@repo/ui/components/button"
 import { Input } from "@repo/ui/components/input"
 import { Badge } from "@repo/ui/components/badge"
 import { Save, Loader2, Pencil, X, Upload, Undo2 } from "lucide-react"
-import { useState, useCallback, useRef } from "react"
+import { useState, useCallback, useRef, useEffect } from "react"
+import { motion, useAnimationControls } from "motion/react"
 import { LandingPreview } from "#/components/landing/landing-preview"
 
 export const Route = createFileRoute("/admin/_layout/content")({
@@ -41,6 +42,7 @@ const sections = [
   {
     label: "Sobre Mí",
     keys: [
+      { key: "about.label", label: "Etiqueta", long: false },
       { key: "about.title", label: "Nombre", long: false },
       { key: "about.bio", label: "Bio (párrafo 1)", long: true },
       { key: "about.bio2", label: "Bio (párrafo 2)", long: true },
@@ -50,6 +52,7 @@ const sections = [
   {
     label: "Cursos",
     keys: [
+      { key: "courses.label", label: "Etiqueta", long: false },
       { key: "courses.heading", label: "Título de sección", long: false },
     ],
   },
@@ -78,6 +81,108 @@ const sections = [
 
 const isImageKey = (key: string) => key.endsWith(".image")
 
+function ContentField({
+  fieldKey,
+  label,
+  long,
+  isEditing,
+  hasDraft,
+  displayValue,
+  editValue,
+  pulseKey,
+  onEdit,
+  onEditValueChange,
+  onSave,
+  onCancel,
+  saving,
+}: {
+  fieldKey: string
+  label: string
+  long: boolean
+  isEditing: boolean
+  hasDraft: boolean
+  displayValue: string
+  editValue: string
+  pulseKey: number
+  onEdit: () => void
+  onEditValueChange: (value: string) => void
+  onSave: () => void
+  onCancel: () => void
+  saving: boolean
+}) {
+  const controls = useAnimationControls()
+
+  useEffect(() => {
+    if (pulseKey > 0) {
+      controls.start({
+        scale: [1, 1.02, 1],
+        transition: { duration: 0.3, ease: "easeOut" },
+      })
+    }
+  }, [pulseKey, controls])
+
+  return (
+    <motion.div
+      data-field={fieldKey}
+      animate={controls}
+      className={`p-3 rounded-sm ${isEditing ? "bg-muted" : "hover:bg-muted/50 cursor-pointer"} ${hasDraft && !isEditing ? "bg-muted/30 ring-1 ring-foreground/5" : ""}`}
+    >
+      {isEditing ? (
+        <div>
+          <p className="text-xs font-medium text-muted-foreground mb-2">{label}</p>
+          {long ? (
+            <textarea
+              value={editValue}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => onEditValueChange(e.target.value)}
+              autoFocus
+              className="flex field-sizing-content min-h-16 w-full rounded-none border-0 border-b border-input bg-transparent px-0 py-1.5 text-sm transition-colors outline-none placeholder:text-muted-foreground/60 focus-visible:border-foreground/40"
+            />
+          ) : (
+            <Input
+              value={editValue}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => onEditValueChange(e.target.value)}
+              autoFocus
+              className="text-sm"
+            />
+          )}
+          <div className="flex gap-2 mt-2">
+            <Button size="xs" onClick={onSave} disabled={saving || !editValue || editValue === displayValue}>
+              {saving ? (
+                <Loader2 data-icon="inline-start" className="size-3 animate-spin" />
+              ) : (
+                <Save data-icon="inline-start" className="size-3" />
+              )}
+              {saving ? "Guardando..." : "Guardar"}
+            </Button>
+            <Button variant="ghost" size="xs" onClick={onCancel}>
+              <X data-icon="inline-start" className="size-3" />
+              Cancelar
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div
+          className="flex items-start justify-between gap-2 group"
+          onClick={onEdit}
+        >
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5 mb-0.5">
+              <p className="text-xs text-muted-foreground">{label}</p>
+              {hasDraft && (
+                <span className="size-1.5 rounded-full bg-foreground/40" />
+              )}
+            </div>
+            <p className="text-sm break-words line-clamp-2">
+              {displayValue || <span className="text-muted-foreground/40 italic">vacío</span>}
+            </p>
+          </div>
+          <Pencil className="size-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0 mt-1" />
+        </div>
+      )}
+    </motion.div>
+  )
+}
+
 function ContentPage() {
   const allContent = useQuery(api.siteContent.listAll)
   const hasDrafts = useQuery(api.siteContent.hasDrafts)
@@ -90,6 +195,7 @@ function ContentPage() {
   const [editValue, setEditValue] = useState("")
   const [saving, setSaving] = useState(false)
   const [publishing, setPublishing] = useState(false)
+  const [pulseCounter, setPulseCounter] = useState(0)
   const editorPanelRef = useRef<HTMLDivElement>(null)
 
   const contentMap = new Map(
@@ -99,6 +205,7 @@ function ContentPage() {
   const startEdit = (key: string, currentEs: string) => {
     setEditingKey(key)
     setEditValue(currentEs)
+    setPulseCounter((c) => c + 1)
   }
 
   const handleFieldClick = useCallback((key: string) => {
@@ -107,6 +214,7 @@ function ContentPage() {
     const displayValue = hasDraft ? content?.draftValue?.es : content?.value.es
     setEditingKey(key)
     setEditValue(displayValue ?? "")
+    setPulseCounter((c) => c + 1)
 
     setTimeout(() => {
       const panel = editorPanelRef.current
@@ -122,6 +230,14 @@ function ContentPage() {
 
   const handleSave = async () => {
     if (!editingKey || !editValue) return
+
+    const current = contentMap.get(editingKey)
+    const originalValue = current?.draftValue?.es ?? current?.value.es ?? ""
+    if (editValue === originalValue) {
+      setEditingKey(null)
+      return
+    }
+
     setSaving(true)
 
     let en = editValue
@@ -199,60 +315,22 @@ function ContentPage() {
                   const displayValue = hasDraft ? content?.draftValue?.es : content?.value.es
 
                   return (
-                    <div key={key} data-field={key} className={`p-3 rounded-sm ${isEditing ? "bg-muted" : "hover:bg-muted/50 cursor-pointer"} ${hasDraft && !isEditing ? "bg-muted/30 ring-1 ring-foreground/5" : ""}`}>
-                      {isEditing ? (
-                        <div>
-                          <p className="text-xs font-medium text-muted-foreground mb-2">{label}</p>
-                          {long ? (
-                            <textarea
-                              value={editValue}
-                              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setEditValue(e.target.value)}
-                              autoFocus
-                              className="flex field-sizing-content min-h-16 w-full rounded-none border-0 border-b border-input bg-transparent px-0 py-1.5 text-sm transition-colors outline-none placeholder:text-muted-foreground/60 focus-visible:border-foreground/40"
-                            />
-                          ) : (
-                            <Input
-                              value={editValue}
-                              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditValue(e.target.value)}
-                              autoFocus
-                              className="text-sm"
-                            />
-                          )}
-                          <div className="flex gap-2 mt-2">
-                            <Button size="xs" onClick={handleSave} disabled={saving || !editValue}>
-                              {saving ? (
-                                <Loader2 data-icon="inline-start" className="size-3 animate-spin" />
-                              ) : (
-                                <Save data-icon="inline-start" className="size-3" />
-                              )}
-                              {saving ? "Guardando..." : "Guardar"}
-                            </Button>
-                            <Button variant="ghost" size="xs" onClick={() => setEditingKey(null)}>
-                              <X data-icon="inline-start" className="size-3" />
-                              Cancelar
-                            </Button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div
-                          className="flex items-start justify-between gap-2 group"
-                          onClick={() => startEdit(key, displayValue ?? "")}
-                        >
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-1.5 mb-0.5">
-                              <p className="text-xs text-muted-foreground">{label}</p>
-                              {hasDraft && (
-                                <span className="size-1.5 rounded-full bg-foreground/40" />
-                              )}
-                            </div>
-                            <p className="text-sm break-words line-clamp-2">
-                              {displayValue || <span className="text-muted-foreground/40 italic">vacío</span>}
-                            </p>
-                          </div>
-                          <Pencil className="size-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0 mt-1" />
-                        </div>
-                      )}
-                    </div>
+                    <ContentField
+                      key={key}
+                      fieldKey={key}
+                      label={label}
+                      long={long}
+                      isEditing={isEditing}
+                      hasDraft={hasDraft}
+                      displayValue={displayValue ?? ""}
+                      editValue={editValue}
+                      pulseKey={isEditing ? pulseCounter : 0}
+                      onEdit={() => startEdit(key, displayValue ?? "")}
+                      onEditValueChange={setEditValue}
+                      onSave={handleSave}
+                      onCancel={() => setEditingKey(null)}
+                      saving={saving}
+                    />
                   )
                 })}
               </div>

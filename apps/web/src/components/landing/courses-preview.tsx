@@ -3,12 +3,14 @@ import { useQuery } from "convex/react"
 import { api } from "@convex/_generated/api"
 import { Button } from "@repo/ui/components/button"
 import { Link } from "@tanstack/react-router"
-import { useSiteContent } from "#/lib/use-site-content"
+import { useSiteContent, usePreviewMode, useFieldClick } from "#/lib/use-site-content"
 
 export function CoursesPreview() {
   const { t, i18n } = useTranslation()
   const locale = i18n.language as "es" | "en"
   const { t: c } = useSiteContent("courses.")
+  const isPreview = usePreviewMode()
+  const onFieldClick = useFieldClick()
   const courses = useQuery(api.courses.listPublished)
 
   const displayCourses = (courses ?? []).slice(0, 3)
@@ -18,10 +20,16 @@ export function CoursesPreview() {
       <div className="max-w-7xl mx-auto">
         <div className="flex items-end justify-between mb-16">
           <div>
-            <p className="text-sm uppercase tracking-widest text-muted-foreground mb-4">
-              {t("nav.courses")}
+            <p
+              className={`text-sm uppercase tracking-widest text-muted-foreground mb-4 ${isPreview ? "cursor-pointer" : ""}`}
+              onClick={isPreview && onFieldClick ? () => onFieldClick("courses.label") : undefined}
+            >
+              {c("courses.label", t("nav.courses"))}
             </p>
-            <h2 className="font-display text-h1 tracking-tight max-w-xl">
+            <h2
+              className={`font-display text-h1 tracking-tight max-w-xl ${isPreview ? "cursor-pointer" : ""}`}
+              onClick={isPreview && onFieldClick ? () => onFieldClick("courses.heading") : undefined}
+            >
               {c("courses.heading", "Aprende a tu ritmo con cursos profesionales")}
             </h2>
           </div>

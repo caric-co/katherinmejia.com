@@ -19,8 +19,11 @@ export function About() {
           onClick={isPreview && onFieldClick ? () => onFieldClick("about.image") : undefined}
         />
         <div>
-          <p className="text-sm uppercase tracking-widest text-muted-foreground mb-4">
-            {t("nav.about")}
+          <p
+            className={`text-sm uppercase tracking-widest text-muted-foreground mb-4 ${isPreview ? "cursor-pointer" : ""}`}
+            onClick={isPreview && onFieldClick ? () => onFieldClick("about.label") : undefined}
+          >
+            {c("about.label", t("nav.about"))}
           </p>
           <h2 className="font-display text-h1 tracking-tight mb-6">
             {c("about.title", "Katherin Mejia")}

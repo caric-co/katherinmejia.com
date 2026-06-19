@@ -123,7 +123,10 @@ katherinmejia.com/
 ### Site Content Editor
 - **Split-view:** editor panel (left) + live landing preview (right)
 - **Draft/publish system:** saveDraft → preview changes → publishAll or discardDrafts
-- **Clickable preview:** click any text/image in preview → editor scrolls to and focuses that field
+- **Clickable preview:** click any text/image in preview → editor scrolls to and focuses that field with pulse animation
+- **Pulse animation:** fields scale-pulse (motion) on enter-edit, including preview clicks
+- **Pristine guard:** save button disabled when value hasn't changed
+- **Editable labels:** all section labels (Sobre mí, Cursos) are editable via siteContent with i18n fallback
 - **AI auto-translate:** write in Spanish, auto-translates to English on save
 - **Server-side data:** landing page fetches siteContent via ConvexHttpClient in loader (no flash)
 

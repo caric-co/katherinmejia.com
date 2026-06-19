@@ -136,6 +136,7 @@ async function seedSiteContent(ctx: any) {
     { key: "hero.image", value: { es: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=1920&q=80", en: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=1920&q=80" }, type: "image" },
 
     // About
+    { key: "about.label", value: { es: "Sobre mí", en: "About me" }, type: "text" },
     { key: "about.title", value: { es: "Katherin Mejia", en: "Katherin Mejia" }, type: "text" },
     { key: "about.bio", value: { es: "Maquilladora profesional con más de 5 años de experiencia en el sector de la belleza. Especializada en maquillaje para eventos, sesiones fotográficas y contenido editorial.", en: "Professional makeup artist with over 5 years of experience in the beauty industry. Specialized in makeup for events, photo shoots and editorial content." }, type: "text" },
     { key: "about.bio2", value: { es: "Con una comunidad de más de 20.000 seguidores en Instagram, Katherin comparte su conocimiento a través de cursos en línea diseñados para que cualquier persona pueda aprender técnicas de maquillaje profesional desde casa.", en: "With a community of over 20,000 followers on Instagram, Katherin shares her knowledge through online courses designed so anyone can learn professional makeup techniques from home." }, type: "text" },
@@ -155,6 +156,7 @@ async function seedSiteContent(ctx: any) {
     { key: "services.3.image", value: { es: "https://images.unsplash.com/photo-1457972729786-0411a3b2b626?w=600&q=80", en: "https://images.unsplash.com/photo-1457972729786-0411a3b2b626?w=600&q=80" }, type: "image" },
 
     // Courses
+    { key: "courses.label", value: { es: "Cursos", en: "Courses" }, type: "text" },
     { key: "courses.heading", value: { es: "Aprende a tu ritmo con cursos profesionales", en: "Learn at your own pace with professional courses" }, type: "text" },
 
     // Testimonials
