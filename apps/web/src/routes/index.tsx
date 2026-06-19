@@ -23,22 +23,33 @@ function HomePage() {
   )
 }
 
+let hasLoadedOnce = false
+
 function HomeContent() {
   const isReady = useSiteContentReady()
-  const [preloaderDone, setPreloaderDone] = useState(false)
+  const skipPreloader = hasLoadedOnce || isReady
+  const [preloaderDone, setPreloaderDone] = useState(skipPreloader)
+
   const handlePreloaderComplete = useCallback(() => {
     setPreloaderDone(true)
+    hasLoadedOnce = true
     document.body.style.overflow = ""
   }, [])
 
   useEffect(() => {
+    if (skipPreloader) {
+      hasLoadedOnce = true
+      return
+    }
     document.body.style.overflow = "hidden"
     return () => { document.body.style.overflow = "" }
-  }, [])
+  }, [skipPreloader])
 
   return (
     <>
-      <Preloader isContentReady={isReady} onComplete={handlePreloaderComplete} />
+      {!preloaderDone && (
+        <Preloader isContentReady={isReady} onComplete={handlePreloaderComplete} />
+      )}
       <div className="min-h-screen bg-background">
         <Navigation />
         <Hero />
