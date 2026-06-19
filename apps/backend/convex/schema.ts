@@ -131,6 +131,7 @@ export default defineSchema({
   siteContent: defineTable({
     key: v.string(),
     value: bilingualText,
+    draftValue: v.optional(bilingualText),
     type: v.union(
       v.literal("text"),
       v.literal("richtext"),

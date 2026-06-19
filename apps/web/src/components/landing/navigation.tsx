@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router"
 import { useTranslation } from "react-i18next"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@repo/ui/components/button"
 import { Avatar, AvatarFallback } from "@repo/ui/components/avatar"
 import {
@@ -11,6 +11,7 @@ import {
 } from "@repo/ui/components/dropdown-menu"
 import { Menu, X, Settings, LogOut, User } from "lucide-react"
 import { authClient } from "#/lib/auth-client"
+import { usePreviewMode } from "#/lib/use-site-content"
 
 const navLinks = [
   { labelKey: "nav.courses", href: "/courses" },
@@ -21,15 +22,25 @@ const navLinks = [
 
 export function Navigation() {
   const { t, i18n } = useTranslation()
-  const { data: session } = authClient.useSession()
+  const { data: realSession } = authClient.useSession()
+  const isPreview = usePreviewMode()
+  const session = isPreview ? null : realSession
+  const navRef = useRef<HTMLElement>(null)
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
 
   useEffect(() => {
+    if (isPreview) {
+      const scrollParent = navRef.current?.closest("[data-scroll-container]")
+      if (!scrollParent) return
+      const handleScroll = () => setScrolled(scrollParent.scrollTop > 50)
+      scrollParent.addEventListener("scroll", handleScroll, { passive: true })
+      return () => scrollParent.removeEventListener("scroll", handleScroll)
+    }
     const handleScroll = () => setScrolled(window.scrollY > 50)
     window.addEventListener("scroll", handleScroll, { passive: true })
     return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
+  }, [isPreview])
 
   const toggleLocale = () => {
     i18n.changeLanguage(i18n.language === "es" ? "en" : "es")
@@ -46,10 +57,11 @@ export function Navigation() {
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 px-6 md:px-10 transition-all duration-300 ${
+      ref={navRef}
+      className={`${isPreview ? "sticky" : "fixed"} top-0 ${isPreview ? "" : "left-0 right-0"} z-50 px-6 md:px-10 transition-all duration-300 ${
         scrolled
           ? "bg-background/85 backdrop-blur-xl border-b border-border"
-          : "bg-gradient-to-b from-background/70 via-background/30 to-transparent pb-10"
+          : "bg-gradient-to-b from-background/60 via-background/25 to-transparent pb-10"
       }`}
     >
       <div className="max-w-7xl mx-auto flex items-center justify-between h-14">

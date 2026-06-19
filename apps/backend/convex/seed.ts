@@ -118,6 +118,77 @@ export const seedTestData = internalMutation({
       isFree: true,
     })
 
+    await seedSiteContent(ctx)
+
     return "seeded successfully"
+  },
+})
+
+async function seedSiteContent(ctx: any) {
+  const existing = await ctx.db.query("siteContent").first()
+  if (existing) return
+
+  const content: Array<{ key: string; value: { es: string; en: string }; type: "text" | "image" }> = [
+    // Hero
+    { key: "hero.title", value: { es: "Katherin Mejia", en: "Katherin Mejia" }, type: "text" },
+    { key: "hero.subtitle", value: { es: "Maquilladora profesional. Cursos en línea y servicios de maquillaje para eventos, editoriales y más.", en: "Professional makeup artist. Online courses and makeup services for events, editorials and more." }, type: "text" },
+    { key: "hero.cta", value: { es: "Ver cursos", en: "View courses" }, type: "text" },
+    { key: "hero.image", value: { es: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=1920&q=80", en: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=1920&q=80" }, type: "image" },
+
+    // About
+    { key: "about.title", value: { es: "Katherin Mejia", en: "Katherin Mejia" }, type: "text" },
+    { key: "about.bio", value: { es: "Maquilladora profesional con más de 5 años de experiencia en el sector de la belleza. Especializada en maquillaje para eventos, sesiones fotográficas y contenido editorial.", en: "Professional makeup artist with over 5 years of experience in the beauty industry. Specialized in makeup for events, photo shoots and editorial content." }, type: "text" },
+    { key: "about.bio2", value: { es: "Con una comunidad de más de 20.000 seguidores en Instagram, Katherin comparte su conocimiento a través de cursos en línea diseñados para que cualquier persona pueda aprender técnicas de maquillaje profesional desde casa.", en: "With a community of over 20,000 followers on Instagram, Katherin shares her knowledge through online courses designed so anyone can learn professional makeup techniques from home." }, type: "text" },
+    { key: "about.image", value: { es: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=800&q=80", en: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=800&q=80" }, type: "image" },
+
+    // Services
+    { key: "services.label", value: { es: "Servicios", en: "Services" }, type: "text" },
+    { key: "services.heading", value: { es: "Transforma tu look con maquillaje profesional", en: "Transform your look with professional makeup" }, type: "text" },
+    { key: "services.1.title", value: { es: "Maquillaje Natural", en: "Natural Makeup" }, type: "text" },
+    { key: "services.1.description", value: { es: "Técnicas para realzar tu belleza natural con productos de alta calidad y acabado profesional.", en: "Techniques to enhance your natural beauty with high-quality products and a professional finish." }, type: "text" },
+    { key: "services.1.image", value: { es: "https://images.unsplash.com/photo-1596704017254-9b121068fb31?w=600&q=80", en: "https://images.unsplash.com/photo-1596704017254-9b121068fb31?w=600&q=80" }, type: "image" },
+    { key: "services.2.title", value: { es: "Maquillaje Editorial", en: "Editorial Makeup" }, type: "text" },
+    { key: "services.2.description", value: { es: "Looks creativos y de alto impacto visual para sesiones fotográficas, campañas y portafolios.", en: "Creative, high-impact looks for photo shoots, campaigns and portfolios." }, type: "text" },
+    { key: "services.2.image", value: { es: "https://images.unsplash.com/photo-1503236823255-94609f598e71?w=600&q=80", en: "https://images.unsplash.com/photo-1503236823255-94609f598e71?w=600&q=80" }, type: "image" },
+    { key: "services.3.title", value: { es: "Maquillaje para Eventos", en: "Event Makeup" }, type: "text" },
+    { key: "services.3.description", value: { es: "Preparación completa para bodas, quinceañeros, graduaciones y eventos especiales.", en: "Complete preparation for weddings, quinceañeras, graduations and special events." }, type: "text" },
+    { key: "services.3.image", value: { es: "https://images.unsplash.com/photo-1457972729786-0411a3b2b626?w=600&q=80", en: "https://images.unsplash.com/photo-1457972729786-0411a3b2b626?w=600&q=80" }, type: "image" },
+
+    // Courses
+    { key: "courses.heading", value: { es: "Aprende a tu ritmo con cursos profesionales", en: "Learn at your own pace with professional courses" }, type: "text" },
+
+    // Testimonials
+    { key: "testimonials.label", value: { es: "Testimonios", en: "Testimonials" }, type: "text" },
+    { key: "testimonials.heading", value: { es: "Lo que dicen nuestras clientas", en: "What our clients say" }, type: "text" },
+    { key: "testimonials.1.name", value: { es: "María García", en: "María García" }, type: "text" },
+    { key: "testimonials.1.text", value: { es: "Los cursos de Katherin transformaron mi manera de maquillarme. Las técnicas son claras y los resultados son increíbles.", en: "Katherin's courses transformed the way I do my makeup. The techniques are clear and the results are incredible." }, type: "text" },
+    { key: "testimonials.2.name", value: { es: "Laura Rodríguez", en: "Laura Rodríguez" }, type: "text" },
+    { key: "testimonials.2.text", value: { es: "Aprendí más en un curso de Katherin que en años intentando por mi cuenta. Su método es práctico y directo.", en: "I learned more in one of Katherin's courses than in years of trying on my own. Her method is practical and direct." }, type: "text" },
+    { key: "testimonials.3.name", value: { es: "Camila Torres", en: "Camila Torres" }, type: "text" },
+    { key: "testimonials.3.text", value: { es: "El maquillaje para mi boda quedó espectacular. Katherin entiende exactamente lo que necesitas y lo ejecuta a la perfección.", en: "The makeup for my wedding was spectacular. Katherin understands exactly what you need and executes it to perfection." }, type: "text" },
+
+    // Contact
+    { key: "contact.label", value: { es: "Contacto", en: "Contact" }, type: "text" },
+    { key: "contact.heading", value: { es: "¿Lista para comenzar?", en: "Ready to get started?" }, type: "text" },
+    { key: "contact.description", value: { es: "Escríbeme y te responderé en menos de 24 horas. También puedes contactarme directamente por Instagram.", en: "Write to me and I'll respond within 24 hours. You can also contact me directly on Instagram." }, type: "text" },
+  ]
+
+  for (const item of content) {
+    await ctx.db.insert("siteContent", {
+      ...item,
+      updatedAt: Date.now(),
+    })
+  }
+}
+
+export const seedSiteContentOnly = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const existing = await ctx.db.query("siteContent").collect()
+    for (const item of existing) {
+      await ctx.db.delete(item._id)
+    }
+    await seedSiteContent(ctx)
+    return "site content seeded"
   },
 })

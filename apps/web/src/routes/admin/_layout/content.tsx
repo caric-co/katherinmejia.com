@@ -1,159 +1,269 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { useQuery, useMutation } from "convex/react"
+import { useQuery, useMutation, useAction } from "convex/react"
 import { api } from "@convex/_generated/api"
 import { Button } from "@repo/ui/components/button"
 import { Input } from "@repo/ui/components/input"
-import { Label } from "@repo/ui/components/label"
-import { Separator } from "@repo/ui/components/separator"
-import { Save, Plus, Trash2 } from "lucide-react"
-import { useState } from "react"
+import { Badge } from "@repo/ui/components/badge"
+import { Save, Loader2, Pencil, X, Upload, Undo2 } from "lucide-react"
+import { useState, useCallback, useRef } from "react"
+import { LandingPreview } from "#/components/landing/landing-preview"
 
 export const Route = createFileRoute("/admin/_layout/content")({
   component: ContentPage,
 })
 
 const sections = [
-  { label: "Hero", keys: ["hero.title", "hero.subtitle", "hero.cta"] },
-  { label: "Sobre Mí", keys: ["about.title", "about.bio"] },
-  { label: "Testimonios", keys: ["testimonial.1", "testimonial.2", "testimonial.3"] },
+  {
+    label: "Hero",
+    keys: [
+      { key: "hero.title", label: "Título", long: false },
+      { key: "hero.subtitle", label: "Subtítulo", long: true },
+      { key: "hero.cta", label: "Botón CTA", long: false },
+      { key: "hero.image", label: "URL imagen de fondo", long: false },
+    ],
+  },
+  {
+    label: "Servicios",
+    keys: [
+      { key: "services.label", label: "Etiqueta", long: false },
+      { key: "services.heading", label: "Título de sección", long: false },
+      { key: "services.1.title", label: "Servicio 1 — Título", long: false },
+      { key: "services.1.description", label: "Servicio 1 — Descripción", long: true },
+      { key: "services.1.image", label: "Servicio 1 — URL imagen", long: false },
+      { key: "services.2.title", label: "Servicio 2 — Título", long: false },
+      { key: "services.2.description", label: "Servicio 2 — Descripción", long: true },
+      { key: "services.2.image", label: "Servicio 2 — URL imagen", long: false },
+      { key: "services.3.title", label: "Servicio 3 — Título", long: false },
+      { key: "services.3.description", label: "Servicio 3 — Descripción", long: true },
+      { key: "services.3.image", label: "Servicio 3 — URL imagen", long: false },
+    ],
+  },
+  {
+    label: "Sobre Mí",
+    keys: [
+      { key: "about.title", label: "Nombre", long: false },
+      { key: "about.bio", label: "Bio (párrafo 1)", long: true },
+      { key: "about.bio2", label: "Bio (párrafo 2)", long: true },
+      { key: "about.image", label: "URL imagen", long: false },
+    ],
+  },
+  {
+    label: "Cursos",
+    keys: [
+      { key: "courses.heading", label: "Título de sección", long: false },
+    ],
+  },
+  {
+    label: "Testimonios",
+    keys: [
+      { key: "testimonials.label", label: "Etiqueta", long: false },
+      { key: "testimonials.heading", label: "Título de sección", long: false },
+      { key: "testimonials.1.name", label: "Testimonio 1 — Nombre", long: false },
+      { key: "testimonials.1.text", label: "Testimonio 1 — Texto", long: true },
+      { key: "testimonials.2.name", label: "Testimonio 2 — Nombre", long: false },
+      { key: "testimonials.2.text", label: "Testimonio 2 — Texto", long: true },
+      { key: "testimonials.3.name", label: "Testimonio 3 — Nombre", long: false },
+      { key: "testimonials.3.text", label: "Testimonio 3 — Texto", long: true },
+    ],
+  },
+  {
+    label: "Contacto",
+    keys: [
+      { key: "contact.label", label: "Etiqueta", long: false },
+      { key: "contact.heading", label: "Título", long: false },
+      { key: "contact.description", label: "Descripción", long: true },
+    ],
+  },
 ]
+
+const isImageKey = (key: string) => key.endsWith(".image")
 
 function ContentPage() {
   const allContent = useQuery(api.siteContent.listAll)
-  const upsert = useMutation(api.siteContent.upsert)
-  const removeContent = useMutation(api.siteContent.remove)
+  const hasDrafts = useQuery(api.siteContent.hasDrafts)
+  const saveDraft = useMutation(api.siteContent.saveDraft)
+  const publishAll = useMutation(api.siteContent.publishAll)
+  const discardDrafts = useMutation(api.siteContent.discardDrafts)
+  const translateAction = useAction(api.ai.translateText)
 
   const [editingKey, setEditingKey] = useState<string | null>(null)
-  const [editEs, setEditEs] = useState("")
-  const [editEn, setEditEn] = useState("")
-  const [newKey, setNewKey] = useState("")
-  const [newEs, setNewEs] = useState("")
-  const [newEn, setNewEn] = useState("")
-
-  const startEdit = (key: string, es: string, en: string) => {
-    setEditingKey(key)
-    setEditEs(es)
-    setEditEn(en)
-  }
-
-  const saveEdit = async () => {
-    if (!editingKey) return
-    await upsert({ key: editingKey, value: { es: editEs, en: editEn }, type: "text" })
-    setEditingKey(null)
-  }
-
-  const handleAdd = async () => {
-    if (!newKey || !newEs) return
-    await upsert({ key: newKey, value: { es: newEs, en: newEn || newEs }, type: "text" })
-    setNewKey("")
-    setNewEs("")
-    setNewEn("")
-  }
+  const [editValue, setEditValue] = useState("")
+  const [saving, setSaving] = useState(false)
+  const [publishing, setPublishing] = useState(false)
+  const editorPanelRef = useRef<HTMLDivElement>(null)
 
   const contentMap = new Map(
     (allContent ?? []).map((c) => [c.key, c])
   )
 
+  const startEdit = (key: string, currentEs: string) => {
+    setEditingKey(key)
+    setEditValue(currentEs)
+  }
+
+  const handleFieldClick = useCallback((key: string) => {
+    const content = contentMap.get(key)
+    const hasDraft = content?.draftValue !== undefined
+    const displayValue = hasDraft ? content?.draftValue?.es : content?.value.es
+    setEditingKey(key)
+    setEditValue(displayValue ?? "")
+
+    setTimeout(() => {
+      const panel = editorPanelRef.current
+      const el = panel?.querySelector(`[data-field="${key}"]`) as HTMLElement | null
+      if (panel && el) {
+        const panelRect = panel.getBoundingClientRect()
+        const elRect = el.getBoundingClientRect()
+        const targetScroll = panel.scrollTop + (elRect.top - panelRect.top) - (panelRect.height / 2) + (elRect.height / 2)
+        panel.scrollTo({ top: targetScroll, behavior: "smooth" })
+      }
+    }, 50)
+  }, [contentMap])
+
+  const handleSave = async () => {
+    if (!editingKey || !editValue) return
+    setSaving(true)
+
+    let en = editValue
+    if (!isImageKey(editingKey)) {
+      try {
+        const result = await translateAction({ text: editValue })
+        en = result.translated
+      } catch {
+        en = editValue
+      }
+    }
+
+    await saveDraft({
+      key: editingKey,
+      value: { es: editValue, en },
+      type: isImageKey(editingKey) ? "image" : "text",
+    })
+    setSaving(false)
+    setEditingKey(null)
+  }
+
+  const handlePublish = async () => {
+    setPublishing(true)
+    await publishAll()
+    setPublishing(false)
+  }
+
+  const draftCount = allContent?.filter((c) => c.draftValue !== undefined).length ?? 0
+
   return (
-    <div className="max-w-4xl">
-      <h1 className="font-display text-h2 mb-6">Contenido del Sitio</h1>
-      <p className="text-muted-foreground mb-8">
-        Edita los textos que aparecen en la página de marca personal. Los cambios se reflejan en tiempo real.
-      </p>
+    <div className="-m-6 flex h-[calc(100vh-3.5rem)]">
+      {/* Left: Editor */}
+      <div className="w-[420px] shrink-0 border-r border-border flex flex-col overflow-hidden">
+        <div className="px-5 py-4 border-b border-border">
+          <h1 className="font-display text-lg mb-1">Contenido del Sitio</h1>
+          <p className="text-sm text-muted-foreground">
+            Escribe en español. Se traduce al guardar.
+          </p>
+        </div>
 
-      {sections.map((section) => (
-        <div key={section.label} className="mb-10">
-          <h2 className="font-semibold text-lg mb-4">{section.label}</h2>
-          <div className="space-y-4">
-            {section.keys.map((key) => {
-              const content = contentMap.get(key)
-              const isEditing = editingKey === key
+        {hasDrafts && (
+          <div className="px-5 py-3 border-b border-border bg-muted flex items-center justify-between">
+            <span className="text-sm">
+              <Badge variant="outline" className="mr-2">{draftCount}</Badge>
+              {draftCount === 1 ? "cambio pendiente" : "cambios pendientes"}
+            </span>
+            <div className="flex gap-2">
+              <Button variant="ghost" size="sm" onClick={() => discardDrafts()}>
+                <Undo2 data-icon="inline-start" className="size-3.5" />
+                Descartar
+              </Button>
+              <Button size="sm" onClick={handlePublish} disabled={publishing}>
+                {publishing ? (
+                  <Loader2 data-icon="inline-start" className="size-3.5 animate-spin" />
+                ) : (
+                  <Upload data-icon="inline-start" className="size-3.5" />
+                )}
+                Publicar
+              </Button>
+            </div>
+          </div>
+        )}
 
-              return (
-                <div key={key} className="bg-muted p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <code className="text-sm text-muted-foreground">{key}</code>
-                    <div className="flex gap-2">
+        <div className="flex-1 overflow-y-auto scroll-smooth px-5 py-4" ref={editorPanelRef}>
+          {sections.map((section) => (
+            <div key={section.label} className="mb-8">
+              <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium mb-3">
+                {section.label}
+              </h2>
+              <div className="space-y-1.5">
+                {section.keys.map(({ key, label, long }) => {
+                  const content = contentMap.get(key)
+                  const isEditing = editingKey === key
+                  const hasDraft = content?.draftValue !== undefined
+                  const displayValue = hasDraft ? content?.draftValue?.es : content?.value.es
+
+                  return (
+                    <div key={key} data-field={key} className={`p-3 rounded-sm ${isEditing ? "bg-muted" : "hover:bg-muted/50 cursor-pointer"} ${hasDraft && !isEditing ? "bg-muted/30 ring-1 ring-foreground/5" : ""}`}>
                       {isEditing ? (
-                        <Button size="sm" onClick={saveEdit}>
-                          <Save data-icon="inline-start" className="size-3.5" />
-                          Guardar
-                        </Button>
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground mb-2">{label}</p>
+                          {long ? (
+                            <textarea
+                              value={editValue}
+                              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setEditValue(e.target.value)}
+                              autoFocus
+                              className="flex field-sizing-content min-h-16 w-full rounded-none border-0 border-b border-input bg-transparent px-0 py-1.5 text-sm transition-colors outline-none placeholder:text-muted-foreground/60 focus-visible:border-foreground/40"
+                            />
+                          ) : (
+                            <Input
+                              value={editValue}
+                              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditValue(e.target.value)}
+                              autoFocus
+                              className="text-sm"
+                            />
+                          )}
+                          <div className="flex gap-2 mt-2">
+                            <Button size="xs" onClick={handleSave} disabled={saving || !editValue}>
+                              {saving ? (
+                                <Loader2 data-icon="inline-start" className="size-3 animate-spin" />
+                              ) : (
+                                <Save data-icon="inline-start" className="size-3" />
+                              )}
+                              {saving ? "Guardando..." : "Guardar"}
+                            </Button>
+                            <Button variant="ghost" size="xs" onClick={() => setEditingKey(null)}>
+                              <X data-icon="inline-start" className="size-3" />
+                              Cancelar
+                            </Button>
+                          </div>
+                        </div>
                       ) : (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() =>
-                            startEdit(key, content?.value.es ?? "", content?.value.en ?? "")
-                          }
+                        <div
+                          className="flex items-start justify-between gap-2 group"
+                          onClick={() => startEdit(key, displayValue ?? "")}
                         >
-                          Editar
-                        </Button>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5 mb-0.5">
+                              <p className="text-xs text-muted-foreground">{label}</p>
+                              {hasDraft && (
+                                <span className="size-1.5 rounded-full bg-foreground/40" />
+                              )}
+                            </div>
+                            <p className="text-sm break-words line-clamp-2">
+                              {displayValue || <span className="text-muted-foreground/40 italic">vacío</span>}
+                            </p>
+                          </div>
+                          <Pencil className="size-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0 mt-1" />
+                        </div>
                       )}
-                      {content && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeContent({ contentId: content._id })}
-                        >
-                          <Trash2 className="size-3.5" />
-                        </Button>
-                      )}
                     </div>
-                  </div>
-
-                  {isEditing ? (
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label className="text-xs uppercase tracking-wider mb-1 block">ES</Label>
-                        <Input value={editEs} onChange={(e) => setEditEs(e.target.value)} />
-                      </div>
-                      <div>
-                        <Label className="text-xs uppercase tracking-wider mb-1 block">EN</Label>
-                        <Input value={editEn} onChange={(e) => setEditEn(e.target.value)} />
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-2 gap-4">
-                      <p className="text-sm">
-                        <span className="text-muted-foreground">ES:</span>{" "}
-                        {content?.value.es || <span className="text-muted-foreground/50 italic">vacío</span>}
-                      </p>
-                      <p className="text-sm">
-                        <span className="text-muted-foreground">EN:</span>{" "}
-                        {content?.value.en || <span className="text-muted-foreground/50 italic">vacío</span>}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-          </div>
+                  )
+                })}
+              </div>
+            </div>
+          ))}
         </div>
-      ))}
+      </div>
 
-      <Separator className="my-8" />
-
-      <h2 className="font-semibold text-lg mb-4">Agregar contenido personalizado</h2>
-      <div className="space-y-4">
-        <div>
-          <Label className="text-xs uppercase tracking-wider font-medium mb-2 block">Clave</Label>
-          <Input value={newKey} onChange={(e) => setNewKey(e.target.value)} placeholder="seccion.campo" />
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label className="text-xs uppercase tracking-wider font-medium mb-2 block">Valor (ES)</Label>
-            <Input value={newEs} onChange={(e) => setNewEs(e.target.value)} placeholder="Texto en español" />
-          </div>
-          <div>
-            <Label className="text-xs uppercase tracking-wider font-medium mb-2 block">Valor (EN)</Label>
-            <Input value={newEn} onChange={(e) => setNewEn(e.target.value)} placeholder="Text in English" />
-          </div>
-        </div>
-        <Button onClick={handleAdd} disabled={!newKey || !newEs}>
-          <Plus data-icon="inline-start" className="size-4" />
-          Agregar
-        </Button>
+      {/* Right: Live preview */}
+      <div className="flex-1 overflow-y-auto overflow-x-hidden" data-scroll-container>
+        <LandingPreview onFieldClick={handleFieldClick} />
       </div>
     </div>
   )

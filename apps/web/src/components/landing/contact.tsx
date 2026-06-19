@@ -1,27 +1,27 @@
 import { Button } from "@repo/ui/components/button"
 import { Input } from "@repo/ui/components/input"
 import { Label } from "@repo/ui/components/label"
+import { useSiteContent } from "#/lib/use-site-content"
 
 export function Contact() {
+  const { t: c } = useSiteContent("contact.")
+
   return (
     <section id="contact" className="py-24 md:py-32 px-6 md:px-10">
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20">
-          {/* Left: heading */}
           <div>
             <p className="text-sm uppercase tracking-widest text-muted-foreground mb-4">
-              Contacto
+              {c("contact.label", "Contacto")}
             </p>
             <h2 className="font-display text-[clamp(2rem,5vw,3.5rem)] tracking-tight mb-4">
-              ¿Lista para comenzar?
+              {c("contact.heading", "¿Lista para comenzar?")}
             </h2>
             <p className="text-muted-foreground leading-relaxed max-w-md">
-              Escríbeme y te responderé en menos de 24 horas.
-              También puedes contactarme directamente por Instagram.
+              {c("contact.description", "Escríbeme y te responderé en menos de 24 horas. También puedes contactarme directamente por Instagram.")}
             </p>
           </div>
 
-          {/* Right: form */}
           <form className="space-y-8" onSubmit={(e) => e.preventDefault()}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div>

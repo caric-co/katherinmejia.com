@@ -23,10 +23,19 @@ export const listAll = query({
 export const listPublished = query({
   args: {},
   handler: async (ctx) => {
-    return await ctx.db
+    const courses = await ctx.db
       .query("courses")
       .withIndex("by_status", (q) => q.eq("status", "published"))
       .collect()
+    return await Promise.all(
+      courses.map(async (course) => {
+        const lessons = await ctx.db
+          .query("lessons")
+          .withIndex("by_course", (q) => q.eq("courseId", course._id))
+          .collect()
+        return { ...course, lessonCount: lessons.length }
+      })
+    )
   },
 })
 
