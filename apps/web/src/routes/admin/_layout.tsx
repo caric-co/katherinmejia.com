@@ -6,9 +6,10 @@ import {
   useNavigate,
   useRouterState,
 } from "@tanstack/react-router"
+import { useState, useEffect } from "react"
 import { useQuery } from "convex/react"
 import { api } from "@convex/_generated/api"
-import { motion } from "motion/react"
+import { Progress } from "@repo/ui/components/progress"
 import {
   LayoutDashboard,
   BookOpen,
@@ -216,17 +217,23 @@ function AdminLayout() {
 
 function RouteProgressBar() {
   const isLoading = useRouterState({ select: (s) => s.isLoading })
+  const [progress, setProgress] = useState(0)
 
-  if (!isLoading) return null
+  useEffect(() => {
+    if (!isLoading) {
+      setProgress(100)
+      const t = setTimeout(() => setProgress(0), 300)
+      return () => clearTimeout(t)
+    }
+    setProgress(20)
+    const t1 = setTimeout(() => setProgress(50), 200)
+    const t2 = setTimeout(() => setProgress(80), 600)
+    return () => { clearTimeout(t1); clearTimeout(t2) }
+  }, [isLoading])
+
+  if (!isLoading && progress === 0) return null
 
   return (
-    <div className="absolute top-0 left-0 right-0 z-50 h-0.5">
-      <motion.div
-        className="h-full bg-foreground/60"
-        initial={{ width: "0%" }}
-        animate={{ width: "90%" }}
-        transition={{ duration: 2, ease: "easeOut" }}
-      />
-    </div>
+    <Progress value={progress} className="absolute top-0 left-0 right-0 z-50 h-0.5 rounded-none bg-transparent" />
   )
 }
