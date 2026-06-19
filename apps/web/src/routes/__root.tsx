@@ -86,9 +86,9 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <body className="min-h-screen antialiased font-body">
         {children}
         <Scripts />
-        {import.meta.env.DEV && (
+        {import.meta.env.DEV && typeof window !== "undefined" && (
           <React.Suspense>
-            <UnifiedDevTools />
+            <DevTools />
           </React.Suspense>
         )}
       </body>
@@ -96,38 +96,28 @@ function RootDocument({ children }: { children: React.ReactNode }) {
   )
 }
 
-const TanStackDevtools = React.lazy(() =>
-  import("@tanstack/react-devtools").then((m) => ({
-    default: m.TanStackDevtools,
-  }))
-)
-
-const TanStackRouterDevtoolsPanel = React.lazy(() =>
-  import("@tanstack/react-router-devtools").then((m) => ({
-    default: m.TanStackRouterDevtoolsPanel,
-  }))
-)
-
-const ReactQueryDevtoolsPanel = React.lazy(() =>
-  import("@tanstack/react-query-devtools").then((m) => ({
-    default: m.ReactQueryDevtoolsPanel,
-  }))
-)
-
-function UnifiedDevTools() {
-  return (
-    <TanStackDevtools
-      config={{ position: "bottom-right" }}
-      plugins={[
-        {
-          name: "Router",
-          render: <TanStackRouterDevtoolsPanel />,
-        },
-        {
-          name: "React Query",
-          render: <ReactQueryDevtoolsPanel />,
-        },
-      ]}
-    />
-  )
+function DevTools() {
+  const [Comp, setComp] = React.useState<React.ComponentType | null>(null)
+  React.useEffect(() => {
+    Promise.all([
+      import("@tanstack/react-devtools"),
+      import("@tanstack/react-router-devtools"),
+      import("@tanstack/react-query-devtools"),
+    ]).then(([devtools, router, query]) => {
+      setComp(() =>
+        function Loaded() {
+          return (
+            <devtools.TanStackDevtools
+              config={{ position: "bottom-right" }}
+              plugins={[
+                { name: "Router", render: <router.TanStackRouterDevtoolsPanel /> },
+                { name: "React Query", render: <query.ReactQueryDevtoolsPanel /> },
+              ]}
+            />
+          )
+        }
+      )
+    })
+  }, [])
+  return Comp ? <Comp /> : null
 }
