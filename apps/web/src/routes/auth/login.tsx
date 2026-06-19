@@ -49,8 +49,7 @@ function LoginPage() {
         callbackURL: "/",
       })
       if (result.error) {
-        setServerError(result.error.message ?? "Error al iniciar sesión")
-        toast.error("Credenciales incorrectas")
+        setServerError("Correo o contraseña incorrectos")
         return
       }
       toast.success("Sesión iniciada")
@@ -131,8 +130,6 @@ function LoginPage() {
             }}
           />
 
-          {serverError && <p className="text-sm text-destructive">{serverError}</p>}
-
           <form.Subscribe
             selector={(state) => [state.isSubmitting, state.canSubmit, state.isPristine, state.values] as const}
             children={([isSubmitting, canSubmit, isPristine, values]) => {
@@ -155,6 +152,10 @@ function LoginPage() {
               )
             }}
           />
+
+          <p className={`text-sm text-center min-h-5 ${serverError ? "text-destructive" : "text-transparent"}`}>
+            {serverError || " "}
+          </p>
         </form>
 
         <div className="mt-6 text-center space-y-2">
