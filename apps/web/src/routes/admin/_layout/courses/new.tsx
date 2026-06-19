@@ -1,9 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
-import { useMutation } from "convex/react"
+import { useMutation, useAction } from "convex/react"
 import { api } from "@convex/_generated/api"
 import { Button } from "@repo/ui/components/button"
 import { Input } from "@repo/ui/components/input"
 import { Label } from "@repo/ui/components/label"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@repo/ui/components/tooltip"
+import { Languages, Loader2 } from "lucide-react"
 import { useState } from "react"
 
 export const Route = createFileRoute("/admin/_layout/courses/new")({
@@ -32,7 +34,9 @@ function parseCOP(formatted: string): number {
 function NewCoursePage() {
   const navigate = useNavigate()
   const createCourse = useMutation(api.courses.create)
+  const translateAction = useAction(api.ai.translateText)
   const [loading, setLoading] = useState(false)
+  const [translating, setTranslating] = useState(false)
   const [titleEs, setTitleEs] = useState("")
   const [titleEn, setTitleEn] = useState("")
   const [descEs, setDescEs] = useState("")
@@ -50,6 +54,22 @@ function NewCoursePage() {
   const handleTitleEnChange = (val: string) => {
     setTitleEn(val)
     setSlugEn(slugify(val))
+  }
+
+  const handleTranslate = async () => {
+    setTranslating(true)
+    try {
+      if (titleEs && !titleEn) {
+        const result = await translateAction({ text: titleEs })
+        setTitleEn(result.translated)
+        setSlugEn(slugify(result.translated))
+      }
+      if (descEs && !descEn) {
+        const result = await translateAction({ text: descEs })
+        setDescEn(result.translated)
+      }
+    } catch {}
+    setTranslating(false)
   }
 
   const handlePriceChange = (val: string) => {
@@ -76,7 +96,30 @@ function NewCoursePage() {
 
   return (
     <div className="max-w-2xl">
-      <h1 className="font-display text-h2 mb-6">Nuevo Curso</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="font-display text-h2">Nuevo Curso</h1>
+        <TooltipProvider delayDuration={300}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={handleTranslate}
+                disabled={translating || (!titleEs && !descEs)}
+              >
+                {translating ? (
+                  <Loader2 data-icon="inline-start" className="size-3.5 animate-spin" />
+                ) : (
+                  <Languages data-icon="inline-start" className="size-3.5" />
+                )}
+                {translating ? "Traduciendo..." : "Auto-traducir EN"}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Traduce los campos vacíos EN desde ES con IA</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
 
       <form onSubmit={handleSubmit} className="space-y-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

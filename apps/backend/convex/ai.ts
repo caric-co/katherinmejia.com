@@ -46,8 +46,8 @@ export const translateToEnglish = action({
   },
   handler: async (_ctx, args) => {
     const { text, tokensUsed } = await callMistral(
-      "You are a professional translator specializing in beauty and makeup content. Translate from Spanish to English. Return only valid JSON.",
-      `Translate the following Spanish content to English. Return ONLY valid JSON with exactly these keys: title, excerpt, content. No markdown, no explanation.\n\nTitle: ${args.title}\n\nExcerpt: ${args.excerpt}\n\nContent: ${args.content}`,
+      "You are a professional translator specializing in beauty and makeup content. Translate from Spanish to English. Preserve all HTML tags exactly as-is, only translate the text content within them. Return only valid JSON.",
+      `Translate the following Spanish content to English. Return ONLY valid JSON with exactly these keys: title, excerpt, content. Preserve all HTML markup in the content field. No markdown, no explanation.\n\nTitle: ${args.title}\n\nExcerpt: ${args.excerpt}\n\nContent: ${args.content}`,
       4000
     )
 
@@ -106,6 +106,19 @@ export const reviewText = action({
     }
 
     return { suggestions: JSON.parse(jsonMatch[0]), tokensUsed }
+  },
+})
+
+export const translateText = action({
+  args: { text: v.string() },
+  handler: async (_ctx, args) => {
+    if (!args.text.trim()) return { translated: "", tokensUsed: 0 }
+    const { text, tokensUsed } = await callMistral(
+      "You are a professional translator specializing in beauty and makeup content. Translate from Spanish to English. Return ONLY the translated text, no quotes, no explanation.",
+      `Translate the following Spanish text to English:\n\n${args.text}`,
+      1000
+    )
+    return { translated: text.trim().replace(/^["']|["']$/g, ""), tokensUsed }
   },
 })
 

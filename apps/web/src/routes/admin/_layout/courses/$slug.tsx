@@ -1,16 +1,26 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router"
-import { useQuery, useMutation } from "convex/react"
+import { useQuery, useMutation, useAction } from "convex/react"
 import { api } from "@convex/_generated/api"
 import { Button } from "@repo/ui/components/button"
 import { Input } from "@repo/ui/components/input"
 import { Label } from "@repo/ui/components/label"
 import { Badge } from "@repo/ui/components/badge"
-import { BookOpen } from "lucide-react"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@repo/ui/components/tooltip"
+import { BookOpen, Languages, Loader2 } from "lucide-react"
 import { useState, useEffect } from "react"
 
 export const Route = createFileRoute("/admin/_layout/courses/$slug")({
   component: EditCoursePage,
 })
+
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+}
 
 function formatCOP(value: string): string {
   const num = value.replace(/\D/g, "")
@@ -28,7 +38,9 @@ function EditCoursePage() {
   const course = useQuery(api.courses.getBySlug, { slug: routeSlug })
   const updateCourse = useMutation(api.courses.update)
   const updateStatus = useMutation(api.courses.updateStatus)
+  const translateAction = useAction(api.ai.translateText)
   const [loading, setLoading] = useState(false)
+  const [translating, setTranslating] = useState(false)
   const [error, setError] = useState("")
 
   const [titleEs, setTitleEs] = useState("")
@@ -50,6 +62,22 @@ function EditCoursePage() {
       setSlugEn(course.slug.en)
     }
   }, [course])
+
+  const handleTranslate = async () => {
+    setTranslating(true)
+    try {
+      if (titleEs && !titleEn) {
+        const result = await translateAction({ text: titleEs })
+        setTitleEn(result.translated)
+        setSlugEn(slugify(result.translated))
+      }
+      if (descEs && !descEn) {
+        const result = await translateAction({ text: descEs })
+        setDescEn(result.translated)
+      }
+    } catch {}
+    setTranslating(false)
+  }
 
   if (course === undefined) return <p className="text-muted-foreground">Cargando...</p>
   if (course === null) return <p className="text-destructive">Curso no encontrado</p>
@@ -84,12 +112,34 @@ function EditCoursePage() {
             {statusLabel[course.status]}
           </Badge>
         </div>
-        <Link to={`/admin/courses/${routeSlug}/lessons`}>
-          <Button variant="outline" size="sm">
-            <BookOpen data-icon="inline-start" className="size-3.5" />
-            Lecciones
-          </Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          <TooltipProvider delayDuration={300}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleTranslate}
+                  disabled={translating || (!titleEs && !descEs)}
+                >
+                  {translating ? (
+                    <Loader2 data-icon="inline-start" className="size-3.5 animate-spin" />
+                  ) : (
+                    <Languages data-icon="inline-start" className="size-3.5" />
+                  )}
+                  {translating ? "Traduciendo..." : "Auto-traducir EN"}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Traduce los campos vacíos EN desde ES con IA</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <Link to={`/admin/courses/${routeSlug}/lessons`}>
+            <Button variant="outline" size="sm">
+              <BookOpen data-icon="inline-start" className="size-3.5" />
+              Lecciones
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-8">

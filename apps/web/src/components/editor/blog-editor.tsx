@@ -202,12 +202,13 @@ export interface BlogEditorRef {
 
 interface BlogEditorProps {
   initialContent?: JSONContent
+  initialHtml?: string
   onChange?: (json: JSONContent, text: string, html: string) => void
   className?: string
 }
 
 export const BlogEditor = forwardRef<BlogEditorRef, BlogEditorProps>(
-  function BlogEditor({ initialContent, onChange, className }, ref) {
+  function BlogEditor({ initialContent, initialHtml, onChange, className }, ref) {
     const editorInstanceRef = useRef<any>(null)
 
     useImperativeHandle(ref, () => ({
@@ -240,6 +241,9 @@ export const BlogEditor = forwardRef<BlogEditorRef, BlogEditorProps>(
           }}
           onCreate={({ editor }) => {
             editorInstanceRef.current = editor
+            if (initialHtml) {
+              editor.commands.setContent(initialHtml)
+            }
           }}
           onUpdate={({ editor }) => {
             editorInstanceRef.current = editor
