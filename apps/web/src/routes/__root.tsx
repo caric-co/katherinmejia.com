@@ -12,6 +12,7 @@ import type { ConvexQueryClient } from "@convex-dev/react-query"
 import type { QueryClient } from "@tanstack/react-query"
 import { authClient } from "#/lib/auth-client"
 import { getToken } from "#/lib/auth-server"
+import { Toaster } from "sonner"
 import "#/lib/i18n"
 import appCss from "#/styles.css?url"
 
@@ -86,6 +87,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body className="min-h-screen antialiased font-body">
         {children}
+        <Toaster position="top-center" richColors />
         <Scripts />
         {import.meta.env.DEV && typeof window !== "undefined" && (
           <React.Suspense>

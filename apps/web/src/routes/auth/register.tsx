@@ -4,6 +4,7 @@ import { z } from "zod"
 import { Button } from "@repo/ui/components/button"
 import { Separator } from "@repo/ui/components/separator"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@repo/ui/components/tooltip"
+import { toast } from "sonner"
 import { authClient } from "#/lib/auth-client"
 import { useState, useEffect } from "react"
 import { FormField, fieldAnimations } from "#/components/form-field"
@@ -57,8 +58,10 @@ function RegisterPage() {
       })
       if (result.error) {
         setServerError(result.error.message ?? "Error al crear cuenta")
+        toast.error("No se pudo crear la cuenta")
         return
       }
+      toast.success(`Bienvenida, ${value.firstName}`)
       navigate({ to: "/" })
     },
   })
