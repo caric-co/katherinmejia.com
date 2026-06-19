@@ -10,6 +10,8 @@ import {
   DropdownMenuTrigger,
 } from "@repo/ui/components/dropdown-menu"
 import { Menu, X, Settings, LogOut, User } from "lucide-react"
+import { useQuery } from "convex/react"
+import { api } from "@convex/_generated/api"
 import { authClient } from "#/lib/auth-client"
 import { usePreviewMode } from "#/lib/use-site-content"
 
@@ -25,6 +27,11 @@ export function Navigation() {
   const { data: realSession } = authClient.useSession()
   const isPreview = usePreviewMode()
   const session = isPreview ? null : realSession
+  const userProfile = useQuery(
+    api.users.getByEmail,
+    session?.user?.email ? { email: session.user.email } : "skip"
+  )
+  const isAdmin = userProfile?.role === "admin"
   const navRef = useRef<HTMLElement>(null)
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -101,10 +108,12 @@ export function Navigation() {
                   <p className="text-sm font-medium truncate">{session.user.name}</p>
                   <p className="text-xs text-muted-foreground truncate">{session.user.email}</p>
                 </div>
-                <DropdownMenuItem render={<Link to="/admin" />}>
-                  <Settings className="size-4" />
-                  Admin
-                </DropdownMenuItem>
+                {isAdmin && (
+                  <DropdownMenuItem render={<Link to="/admin" />}>
+                    <Settings className="size-4" />
+                    Admin
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem render={<Link to="/courses" />}>
                   <User className="size-4" />
                   Mis cursos
@@ -165,9 +174,11 @@ export function Navigation() {
               {session?.user ? (
                 <div className="space-y-3">
                   <p className="text-sm font-medium">{session.user.name}</p>
-                  <Link to="/admin" onClick={() => setMenuOpen(false)} className="text-sm text-muted-foreground hover:text-foreground block">
-                    Admin
-                  </Link>
+                  {isAdmin && (
+                    <Link to="/admin" onClick={() => setMenuOpen(false)} className="text-sm text-muted-foreground hover:text-foreground block">
+                      Admin
+                    </Link>
+                  )}
                   <button
                     onClick={() => authClient.signOut({ fetchOptions: { onSuccess: () => location.reload() } })}
                     className="text-sm text-muted-foreground hover:text-foreground cursor-pointer"
