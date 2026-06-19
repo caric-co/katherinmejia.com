@@ -1,9 +1,9 @@
 # Handoff — KMakeup Platform MVP
 
-## Project State (as of commit 37922a3)
+## Project State (as of commit 762b73e)
 
 **Repo:** https://github.com/caric-co/katherinmejia.com (private, org: caric-co)
-**Stack:** TanStack Start + Convex + Better Auth + shadcn/ui (base-lyra) + Tailwind v4 + Novel + Mistral AI
+**Stack:** TanStack Start + Convex + Better Auth + shadcn/ui (base-lyra) + Tailwind v4 + Novel + Mistral AI + Framer Motion
 **Monorepo:** Turborepo + pnpm (`pnpm dev` with TUI)
 
 ### Running the project
@@ -14,14 +14,20 @@ pnpm dev          # starts all apps with turbo TUI
 # Convex: watching in background
 ```
 
-### Test users
-- Admin: `admin@kmakeup.com` / `test1234` (role: admin)
-- Student: `student@test.com` / `test1234` (role: student)
+### Credentials
+- **Admin (real login):** `demar_admin@kmakeup.com` / `KMakeup2024!` (role: admin)
+- Seed users (`admin@kmakeup.com`, `student@test.com`) exist in Convex `users` table but have no Better Auth credentials
 
-### Convex deployment
-- Dev: `steady-albatross-389` (caric-co org)
-- `.env.local` in apps/web and apps/backend
-- Env vars set: `BETTER_AUTH_SECRET`, `SITE_URL=http://localhost:3000`, `MISTRAL_API_KEY`
+### Convex deployments
+- **Dev:** `steady-albatross-389` (caric-co org)
+- **Prod:** `coordinated-caribou-61` (caric-co org)
+- Env vars (both): `BETTER_AUTH_SECRET`, `SITE_URL`, `MISTRAL_API_KEY`
+
+### Vercel deployments
+- **Web:** `katherinmejia.vercel.app` (root dir: `apps/web`, framework: TanStack Start)
+- **Quote:** `quote-kmakeup.vercel.app` (root dir: `apps/initial-quote`, framework: TanStack Start)
+- Web env vars: `VITE_CONVEX_URL`, `VITE_CONVEX_SITE_URL`, `VITE_SITE_URL`
+- Auto-deploy on push to `main`
 
 ---
 
@@ -32,63 +38,118 @@ katherinmejia.com/
 ├── apps/
 │   ├── web/                 TanStack Start (port 3000)
 │   │   ├── src/routes/
-│   │   │   ├── index.tsx              Landing page (7 sections)
-│   │   │   ├── auth/login.tsx         Email/Google/Apple login
-│   │   │   ├── auth/register.tsx      Signup
+│   │   │   ├── index.tsx              Landing page (preloader + 7 sections)
+│   │   │   ├── auth/login.tsx         Email/Google/Apple login (TanStack Form + Zod)
+│   │   │   ├── auth/register.tsx      Signup (TanStack Form + Zod + auto-advance)
 │   │   │   ├── auth/forgot-password.tsx
-│   │   │   ├── courses/index.tsx      Public catalog
-│   │   │   ├── courses/$slug.tsx      Course detail + syllabus
-│   │   │   ├── blog/index.tsx         Public blog listing
-│   │   │   ├── blog/$slug.tsx         Blog post detail
-│   │   │   └── admin/_layout.tsx      Admin sidebar (auth guarded)
+│   │   │   ├── courses/index.tsx      Public catalog (SEO meta tags)
+│   │   │   ├── courses/$slug.tsx      Course detail + syllabus (SEO meta tags)
+│   │   │   ├── blog/index.tsx         Public blog listing (SEO meta tags)
+│   │   │   ├── blog/$slug.tsx         Blog post detail (SSR SEO, HTML rendering)
+│   │   │   └── admin/_layout.tsx      Admin sidebar (role-guarded, collapsible, progress bar)
 │   │   │       ├── index.tsx          Dashboard
 │   │   │       ├── courses/index.tsx  Course list
-│   │   │       ├── courses/new.tsx    Create course (bilingual slugs, COP input)
-│   │   │       ├── courses/$slug.tsx  Edit course
-│   │   │       ├── courses/$slug/lessons.tsx  Lesson management
+│   │   │       ├── courses/new.tsx    Create course (bilingual slugs, COP input, AI translate)
+│   │   │       ├── courses/$slug.tsx  Edit course (AI translate)
+│   │   │       ├── courses/$slug/lessons.tsx  Lesson management (inline edit, reorder, AI translate)
 │   │   │       ├── users/index.tsx    User list + block
 │   │   │       ├── users/$id.tsx      User detail + grant/revoke access
 │   │   │       ├── blog/index.tsx     Blog list + publish/unpublish
-│   │   │       ├── blog/new.tsx       Notion-style editor with Novel + AI
-│   │   │       ├── content.tsx        Site content editor
+│   │   │       ├── blog/new.tsx       Notion-style editor (Novel + AI, draft/publish flow)
+│   │   │       ├── blog/$slug.tsx     Blog edit page (Novel + AI)
+│   │   │       ├── content.tsx        Split-view site content editor + live preview
+│   │   │       ├── content-preview.tsx Standalone landing preview
 │   │   │       └── invitations.tsx    Invitation links
 │   │   ├── src/components/
-│   │   │   ├── landing/              7 sections (nav, hero, services, about, courses, testimonials, contact, footer)
-│   │   │   └── editor/blog-editor.tsx Novel rich text editor
-│   │   └── src/lib/
-│   │       ├── auth-client.ts         Better Auth client
-│   │       ├── auth-server.ts         Better Auth server handler
-│   │       ├── env.ts                 Env validation
-│   │       └── i18n.ts               i18next ES/EN
+│   │   │   ├── landing/              8 components (nav, hero, services, about, courses, testimonials, contact, footer)
+│   │   │   │   ├── preloader.tsx     Animated preloader (curtain split reveal)
+│   │   │   │   └── landing-preview.tsx Live preview with skeleton loading
+│   │   │   ├── editor/blog-editor.tsx Novel rich text editor (initialHtml support)
+│   │   │   ├── form-field.tsx        TanStack Form + shadcn field (auto-advance, pulse animation)
+│   │   │   └── smart-submit.tsx      Submit button (tooltip, hint, pulse animation)
+│   │   ├── src/lib/
+│   │   │   ├── auth-client.ts        Better Auth client
+│   │   │   ├── auth-server.ts        Better Auth server handler
+│   │   │   ├── env.ts                Env validation
+│   │   │   ├── i18n.ts              i18next ES/EN
+│   │   │   ├── use-site-content.ts   SiteContentProvider + draft/preview mode
+│   │   │   └── form-primitives.tsx   useAutoAdvance, usePulse, useSubmitPulse, triggerPulse
+│   │   ├── src/locales/
+│   │   │   ├── es.json              Spanish translations (nav, hero, auth, common)
+│   │   │   └── en.json              English translations
+│   │   └── public/
+│   │       ├── favicon.svg           K serif favicon
+│   │       ├── robots.txt            Allow all + sitemap
+│   │       └── sitemap.xml           Static sitemap (/, /courses, /blog)
 │   │
 │   ├── backend/              Convex (apps/backend/convex/)
 │   │   └── convex/
-│   │       ├── schema.ts     9 tables with bilingual slugs
-│   │       ├── auth.ts       Better Auth + email/password
+│   │       ├── schema.ts     9 tables (users has lastName, siteContent has draftValue)
+│   │       ├── auth.ts       Better Auth + email/password + databaseHooks (user sync)
 │   │       ├── http.ts       HTTP routes for auth
-│   │       ├── ai.ts         Mistral AI (translate, excerpt, improve, review, capitalize)
-│   │       ├── courses.ts    CRUD + bilingual slug lookup
+│   │       ├── ai.ts         Mistral AI (translate, translateText, excerpt, improve, review, capitalize)
+│   │       ├── courses.ts    CRUD + bilingual slug lookup + lessonCount
 │   │       ├── lessons.ts    CRUD + reorder
-│   │       ├── users.ts      CRUD + block + role
+│   │       ├── users.ts      CRUD + block + role + upsertFromAuth
 │   │       ├── purchases.ts  Grant/revoke access
 │   │       ├── invitations.ts Code gen + redeem
-│   │       ├── blogPosts.ts  CRUD + bilingual slugs
-│   │       ├── siteContent.ts Upsert by key
+│   │       ├── blogPosts.ts  CRUD + bilingual slugs + publish/unpublish
+│   │       ├── siteContent.ts listAll, listByPrefix, saveDraft, publishAll, discardDrafts
 │   │       ├── access.ts     hasAccess (admin→sub→purchase→free)
-│   │       └── seed.ts       Test data (3 courses, 4 lessons, 2 users)
+│   │       └── seed.ts       Test data (3 courses, 4 lessons, 2 users, 31 siteContent entries)
 │   │
 │   └── initial-quote/        Quote app (port 5173, TanStack Start)
 │       └── 5 routes: /, /quote, /plan, /pricing, /video-costs
 │
 ├── packages/
-│   ├── ui/                   24 shadcn components (base-lyra, evamuah.com theme)
+│   ├── ui/                   25 shadcn components (base-lyra, evamuah.com theme, + Progress)
 │   ├── config/               Shared TypeScript configs
 │   └── utils/                cn(), formatCOP/USD, formatDate
 │
-├── docs/                     PRD, TECH_STACK, ARCHITECTURE, research
-├── DESIGN.md                 Full design system (evamuah.com reference)
-└── PRODUCT.md                Project overview
+└── docs/                     PRD, TECH_STACK, ARCHITECTURE, DESIGN, PRODUCT, research
 ```
+
+---
+
+## Key Features Built This Session
+
+### Form Primitives (reusable across all forms)
+- **FormField** — TanStack Form + shadcn Input with validation, error display, auto-advance
+- **SmartSubmit** — disabled tooltip (lists empty fields), animated hint on ready, pulse animation
+- **useAutoAdvance** — 700ms debounce auto-focus to next field or submit, Enter/arrow key handling
+- **usePulse / useSubmitPulse** — Framer Motion scale animation registry for fields and buttons
+- **Form pattern:** Zod schema → onChange validation → auto-advance → SmartSubmit → toast feedback
+
+### Site Content Editor
+- **Split-view:** editor panel (left) + live landing preview (right)
+- **Draft/publish system:** saveDraft → preview changes → publishAll or discardDrafts
+- **Clickable preview:** click any text/image in preview → editor scrolls to and focuses that field
+- **AI auto-translate:** write in Spanish, auto-translates to English on save
+- **Server-side data:** landing page fetches siteContent via ConvexHttpClient in loader (no flash)
+
+### Preloader
+- **3-phase animation:** wordmark fade (1s) → line + subtitle (0.8s) → curtain split reveal (0.8s)
+- **sessionStorage:** only shows once per browser session
+- **Masks Convex latency:** content loads behind the preloader
+
+### Auth Improvements
+- **Better Auth → Convex sync:** databaseHooks.user.create.after creates record in users table
+- **Name/lastName split:** register form asks separately, hook splits for Convex table
+- **Role guard:** admin panel checks users.role, nav hides Admin link for non-admins
+- **i18n errors:** auth error messages follow locale (es/en)
+- **Session skeleton:** nav shows pulse skeleton while session resolves (no flash)
+
+### SEO
+- **Server-side meta tags:** blog posts, courses, landing page via ConvexHttpClient in loaders
+- **Open Graph + Twitter cards:** title, description, image for all public pages
+- **JSON-LD:** Person schema on landing page
+- **robots.txt + sitemap.xml**
+
+### Deploy
+- **Nitro plugin** for Vercel TanStack Start preset
+- **ssr.noExternal: true** (production only) to bundle all deps in server output
+- **Devtools client-only:** useEffect lazy load to prevent SSR crashes
+- **Progress bar:** route transition indicator in admin panel (shadcn Progress)
 
 ---
 
@@ -96,14 +157,14 @@ katherinmejia.com/
 
 | Table | Key Fields | Slugs |
 |-------|-----------|-------|
-| users | email, name, role, isBlocked, authProvider, locale | — |
+| users | email, name, lastName, role, isBlocked, authProvider, locale | — |
 | courses | title {es,en}, description, slug {es,en}, price, status, thumbnailUrl | bilingual indexed |
 | lessons | courseId, title {es,en}, videoId, duration, order, isFree | — |
 | progress | userId, lessonId, watchedSeconds, completed | — |
 | purchases | userId, courseId, provider, grantedBy, status | — |
 | subscriptions | userId, plan, status, provider, periods | — |
 | invitationLinks | courseId, code, maxUses, usedCount, expiresAt | — |
-| siteContent | key, value {es,en}, type | — |
+| siteContent | key, value {es,en}, draftValue {es,en}, type | — |
 | blogPosts | title {es,en}, slug {es,en}, content, excerpt, status | bilingual indexed |
 
 ---
@@ -113,50 +174,29 @@ katherinmejia.com/
 | Phase | Status | Notes |
 |-------|--------|-------|
 | 1. Scaffolding | ✅ | Monorepo, packages, configs |
-| 2. Auth | ✅ | Better Auth email/password, login/register/forgot, auth guard |
-| 3. Landing | ✅ | 7 sections, hero full-bleed, nav session-aware, i18n ES/EN |
-| 4. Schema + Admin | ✅ | 9 tables, sidebar layout, all pages |
-| 5. Course CRUD | ✅ | List, create, edit (slug-based), lessons, bilingual slugs, COP currency input |
-| 6. Catalog | ✅ | Public listing with images, detail with syllabus + sidebar |
+| 2. Auth | ✅ | Better Auth email/password, login/register (TanStack Form), role guard, user sync |
+| 3. Landing | ✅ | 7 sections, preloader, server-side content, SEO, i18n ES/EN |
+| 4. Schema + Admin | ✅ | 9 tables, collapsible sidebar, progress bar, role-guarded |
+| 5. Course CRUD | ✅ | List, create, edit, lessons (inline edit, reorder), AI translate, COP input |
+| 6. Catalog | ✅ | Public listing with real DB data, detail with syllabus + SEO |
 | 7. Video Player | ❌ | Needs Bunny Stream or R2+FFmpeg (not started) |
 | 8. User Mgmt | ✅ | List, detail, block, role toggle, grant/revoke course access |
-| 9. Blog + Content | ✅ | Novel WYSIWYG, Mistral AI (translate, excerpt, improve, review, capitalize), site content editor |
+| 9. Blog + Content | ✅ | Novel WYSIWYG, AI features, blog edit page, split-view content editor with live preview |
 | 10. Analytics | ❌ | PostHog + Sentry (not started) |
-
----
-
-## AI Features (Mistral Small, via apps/backend/convex/ai.ts)
-
-| Action | Usage | Tokens |
-|--------|-------|--------|
-| capitalizeTitle | Auto on title blur | ~86 |
-| generateExcerpt | Sparkles button | ~170 |
-| translateToEnglish | Vista previa button (title + excerpt + content) | ~290 |
-| improveText | Wand button (rewrites content) | ~200-400 |
-| reviewText | Message button (spelling, tone, coherence, overall) | ~200-400 |
-
----
-
-## Design System (DESIGN.md)
-
-- **Reference:** evamuah.com (Awwwards Honorable Mention)
-- **Theme:** warm cream #F6F3EE, dark brown #2B2626, Playfair Display + Inter
-- **Key rules:** No-Box-Border (tonal layering), 8% border opacity, pill buttons, bottom-border inputs, flat (no shadows)
-- **Components:** 24 shadcn base-lyra with overrides (pill buttons/badges, rounded-md inputs, sharp cards)
+| 11. Deploy | ✅ | Vercel (web + quote), Convex prod, auto-deploy on push |
 
 ---
 
 ## What's Next
 
-### Immediate (remaining MVP):
-1. **Course editing improvements** — lesson management needs work, course edit form could use same Novel editor for descriptions
-2. **Video Player (Phase 7)** — decide Bunny Stream vs R2+FFmpeg, implement hls.js player with progress tracking
-3. **Analytics (Phase 10)** — PostHog + Sentry setup (~30min)
-4. **Site content editor** — connect landing page to siteContent table for live editing
+### Remaining MVP:
+1. **Video Player (Phase 7)** — decide Bunny Stream vs R2+FFmpeg, implement hls.js player with progress tracking
+2. **Analytics (Phase 10)** — PostHog + Sentry setup
+3. **Form migration** — remaining forms (course create/edit, blog, contact, forgot-password) to TanStack Form + Zod
 
 ### Post-MVP:
-5. **UploadThing integration** — file uploads for course thumbnails, blog images, portfolio
-6. **Bold.co / Wompi payments** — purchase flow for courses + subscriptions
-7. **Resend emails** — transactional (welcome, password reset, purchase confirmation)
-8. **Deploy to Vercel** — production deployment
-9. **Bot social (Phase 3 future)** — WhatsApp/Instagram/Facebook via Meta API
+4. **UploadThing integration** — file uploads for course thumbnails, blog images, portfolio
+5. **Bold.co / Wompi payments** — purchase flow for courses + subscriptions
+6. **Resend emails** — transactional (welcome, password reset, purchase confirmation)
+7. **Dynamic sitemap** — server function that generates sitemap from published courses/blog posts
+8. **Bot social (Phase 3 future)** — WhatsApp/Instagram/Facebook via Meta API
