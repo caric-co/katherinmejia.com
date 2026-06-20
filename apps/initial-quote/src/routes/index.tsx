@@ -28,6 +28,12 @@ const documents = [
           "5 fases de integración de video streaming: Bunny SDK, upload TUS, player custom con progress tracking, seguridad y subtítulos AI",
         to: "/bunny-roadmap" as const,
       },
+      {
+        title: "Media Infrastructure Platform",
+        description:
+          "Exploración de producto: kit modular de infraestructura de medios sobre R2. 8 módulos, 3 tiers, pay-what-you-use. KMakeup como primer cliente.",
+        to: "/media-platform" as const,
+      },
     ],
   },
   {

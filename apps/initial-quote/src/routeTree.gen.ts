@@ -14,6 +14,7 @@ import { Route as ScaleCostsRouteImport } from './routes/scale-costs'
 import { Route as QuoteRouteImport } from './routes/quote'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PlanRouteImport } from './routes/plan'
+import { Route as MediaPlatformRouteImport } from './routes/media-platform'
 import { Route as BunnyVsR2RouteImport } from './routes/bunny-vs-r2'
 import { Route as BunnyRoadmapRouteImport } from './routes/bunny-roadmap'
 import { Route as IndexRouteImport } from './routes/index'
@@ -43,6 +44,11 @@ const PlanRoute = PlanRouteImport.update({
   path: '/plan',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MediaPlatformRoute = MediaPlatformRouteImport.update({
+  id: '/media-platform',
+  path: '/media-platform',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BunnyVsR2Route = BunnyVsR2RouteImport.update({
   id: '/bunny-vs-r2',
   path: '/bunny-vs-r2',
@@ -63,6 +69,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/bunny-roadmap': typeof BunnyRoadmapRoute
   '/bunny-vs-r2': typeof BunnyVsR2Route
+  '/media-platform': typeof MediaPlatformRoute
   '/plan': typeof PlanRoute
   '/pricing': typeof PricingRoute
   '/quote': typeof QuoteRoute
@@ -73,6 +80,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/bunny-roadmap': typeof BunnyRoadmapRoute
   '/bunny-vs-r2': typeof BunnyVsR2Route
+  '/media-platform': typeof MediaPlatformRoute
   '/plan': typeof PlanRoute
   '/pricing': typeof PricingRoute
   '/quote': typeof QuoteRoute
@@ -84,6 +92,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/bunny-roadmap': typeof BunnyRoadmapRoute
   '/bunny-vs-r2': typeof BunnyVsR2Route
+  '/media-platform': typeof MediaPlatformRoute
   '/plan': typeof PlanRoute
   '/pricing': typeof PricingRoute
   '/quote': typeof QuoteRoute
@@ -96,6 +105,7 @@ export interface FileRouteTypes {
     | '/'
     | '/bunny-roadmap'
     | '/bunny-vs-r2'
+    | '/media-platform'
     | '/plan'
     | '/pricing'
     | '/quote'
@@ -106,6 +116,7 @@ export interface FileRouteTypes {
     | '/'
     | '/bunny-roadmap'
     | '/bunny-vs-r2'
+    | '/media-platform'
     | '/plan'
     | '/pricing'
     | '/quote'
@@ -116,6 +127,7 @@ export interface FileRouteTypes {
     | '/'
     | '/bunny-roadmap'
     | '/bunny-vs-r2'
+    | '/media-platform'
     | '/plan'
     | '/pricing'
     | '/quote'
@@ -127,6 +139,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BunnyRoadmapRoute: typeof BunnyRoadmapRoute
   BunnyVsR2Route: typeof BunnyVsR2Route
+  MediaPlatformRoute: typeof MediaPlatformRoute
   PlanRoute: typeof PlanRoute
   PricingRoute: typeof PricingRoute
   QuoteRoute: typeof QuoteRoute
@@ -171,6 +184,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PlanRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/media-platform': {
+      id: '/media-platform'
+      path: '/media-platform'
+      fullPath: '/media-platform'
+      preLoaderRoute: typeof MediaPlatformRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/bunny-vs-r2': {
       id: '/bunny-vs-r2'
       path: '/bunny-vs-r2'
@@ -199,6 +219,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BunnyRoadmapRoute: BunnyRoadmapRoute,
   BunnyVsR2Route: BunnyVsR2Route,
+  MediaPlatformRoute: MediaPlatformRoute,
   PlanRoute: PlanRoute,
   PricingRoute: PricingRoute,
   QuoteRoute: QuoteRoute,
