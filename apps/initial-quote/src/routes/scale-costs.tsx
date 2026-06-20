@@ -374,6 +374,103 @@ const crossoverAnalysis: [string, string, string, string][] = [
   ["Massive (1.000.000)", "$21.250", "$5.637", "$187.356/año — obligatorio"],
 ];
 
+const fileHostingEstimates = [
+  {
+    tier: "Lab (100)",
+    thumbs: "2 GB",
+    attachments: "5 GB",
+    images: "3 GB",
+    totalFiles: "10 GB",
+    fileCost: "$0,15",
+    videoCost: "$8",
+    totalWithFiles: "$8,15",
+    bunnyStorage: "$0,60",
+  },
+  {
+    tier: "Small (1.000)",
+    thumbs: "5 GB",
+    attachments: "20 GB",
+    images: "10 GB",
+    totalFiles: "35 GB",
+    fileCost: "$0,53",
+    videoCost: "$34",
+    totalWithFiles: "$34,53",
+    bunnyStorage: "$1,35",
+  },
+  {
+    tier: "Medium (10.000)",
+    thumbs: "10 GB",
+    attachments: "50 GB",
+    images: "30 GB",
+    totalFiles: "90 GB",
+    fileCost: "$1,35",
+    videoCost: "$121",
+    totalWithFiles: "$122,35",
+    bunnyStorage: "$2,40",
+  },
+  {
+    tier: "Large (100.000)",
+    thumbs: "25 GB",
+    attachments: "200 GB",
+    images: "100 GB",
+    totalFiles: "325 GB",
+    fileCost: "$4,88",
+    videoCost: "$1.172",
+    totalWithFiles: "$1.177",
+    bunnyStorage: "$6,25",
+  },
+  {
+    tier: "Massive (1.000.000)",
+    thumbs: "50 GB",
+    attachments: "500 GB",
+    images: "250 GB",
+    totalFiles: "800 GB",
+    fileCost: "$12",
+    videoCost: "$5.637",
+    totalWithFiles: "$5.649",
+    bunnyStorage: "$13",
+  },
+];
+
+const fileHostingAlternatives: { provider: string; storage: string; egress: string; freeTier: string; note: string }[] =
+  [
+    {
+      provider: "Cloudflare R2 (mismo bucket)",
+      storage: "$0,015/GB",
+      egress: "$0",
+      freeTier: "10 GB",
+      note: "Zero infra extra, ya lo tienes",
+    },
+    {
+      provider: "UploadThing",
+      storage: "Incluido",
+      egress: "Incluido",
+      freeTier: "2 GB",
+      note: "API simple, $10/mes para 100 GB",
+    },
+    {
+      provider: "Bunny Storage",
+      storage: "$0,01/GB",
+      egress: "$0,01/GB",
+      freeTier: "No",
+      note: "Más barato storage, cobra egress",
+    },
+    {
+      provider: "Cloudflare Images",
+      storage: "$5/100K imgs",
+      egress: "$0",
+      freeTier: "No",
+      note: "Resize/optimize on-the-fly, solo imágenes",
+    },
+    {
+      provider: "AWS S3",
+      storage: "$0,023/GB",
+      egress: "$0,09/GB",
+      freeTier: "5 GB (12 meses)",
+      note: "Caro en egress",
+    },
+  ];
+
 function ScaleCostsPage() {
   return (
     <div className="min-h-screen bg-background">
@@ -1482,6 +1579,177 @@ flowchart LR
             </TableBody>
           </Table>
         </div>
+
+        {/* ========== PART 5: FILE HOSTING ========== */}
+        <h2 className="font-display text-h2 mb-4">Parte 5: Hosting de Archivos (Thumbnails, Adjuntos, Imágenes)</h2>
+        <Separator className="mb-4" />
+
+        <div className="border border-accent bg-accent/20 p-5 mb-8">
+          <p className="font-semibold mb-1">Complejidad adicional: cero</p>
+          <p className="text-muted-foreground">
+            R2 ya es object storage. Servir un thumbnail es idéntico a servir un segmento HLS: mismo bucket, mismo CDN,
+            mismas presigned URLs para upload. No necesitas otro servicio, otro bucket, ni otra configuración.{" "}
+            <strong className="text-foreground">
+              Los archivos estáticos son un subproducto gratuito de la infraestructura de video.
+            </strong>
+          </p>
+        </div>
+
+        <Mermaid
+          chart={`
+flowchart LR
+    subgraph R2["Cloudflare R2 (un solo bucket)"]
+        V["/videos/{id}/playlist.m3u8\n/videos/{id}/seg-001.ts"]
+        T["/thumbs/{id}/cover.webp"]
+        A["/attachments/{id}/guia.pdf"]
+        I["/images/{id}/paso-3.webp"]
+    end
+
+    subgraph CDN["Cloudflare CDN (gratis)"]
+        CACHE["Cache edge\n300+ PoPs"]
+    end
+
+    subgraph AUTH["Auth"]
+        PUBLIC["Público: thumbs, imágenes catálogo"]
+        PRIVATE["Protegido: videos, adjuntos de pago"]
+    end
+
+    R2 --> CACHE
+    CACHE --> PUBLIC
+    CACHE -->|"Worker JWT\n(solo contenido de pago)"| PRIVATE
+          `}
+          caption="Un bucket, un CDN, una API. Los archivos estáticos públicos no necesitan auth — van directo del CDN."
+        />
+
+        <h3 className="font-semibold mb-3">¿Qué es público y qué es protegido?</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+          <div className="bg-muted p-4">
+            <p className="font-semibold text-sm mb-2">Público (sin auth, CDN directo)</p>
+            <ul className="text-muted-foreground text-sm space-y-1">
+              <li>— Thumbnails de cursos (catálogo, cards, SEO)</li>
+              <li>— Imágenes de lecciones (preview en syllabus)</li>
+              <li>— Avatars de instructores</li>
+              <li>— Imágenes de blog posts</li>
+              <li>— Assets del landing page</li>
+            </ul>
+            <p className="text-xs text-muted-foreground mt-2">
+              URL directa al CDN, sin presigned URL ni Worker. Cache indefinido con hash en filename.
+            </p>
+          </div>
+          <div className="bg-muted p-4">
+            <p className="font-semibold text-sm mb-2">Protegido (Worker JWT o presigned URL)</p>
+            <ul className="text-muted-foreground text-sm space-y-1">
+              <li>— Videos HLS (segmentos + playlists)</li>
+              <li>— PDFs/guías exclusivas de lecciones de pago</li>
+              <li>— Archivos descargables del curso</li>
+              <li>— Material complementario premium</li>
+            </ul>
+            <p className="text-xs text-muted-foreground mt-2">
+              Misma auth que los videos. En Tier 1: presigned URL. En Tier 2+: Worker JWT.
+            </p>
+          </div>
+        </div>
+
+        <h3 className="font-semibold mb-3">Impacto en costos: marginal</h3>
+        <p className="text-muted-foreground mb-4">
+          Los archivos estáticos pesan poco comparado con video. 100 cursos con thumbnails, imágenes de lecciones y PDFs
+          adjuntos suman ~10 GB. A $0,015/GB = $0,15/mes. El video del mismo catálogo pesa ~500 GB.
+        </p>
+        <div className="mb-8 overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted hover:bg-muted">
+                <TableHead>Escala</TableHead>
+                <TableHead>Thumbnails</TableHead>
+                <TableHead>Adjuntos</TableHead>
+                <TableHead>Imágenes</TableHead>
+                <TableHead>Total archivos</TableHead>
+                <TableHead>Costo archivos</TableHead>
+                <TableHead>Costo video</TableHead>
+                <TableHead>Total combinado</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {fileHostingEstimates.map((row) => (
+                <TableRow key={row.tier}>
+                  <TableCell className="font-medium">{row.tier}</TableCell>
+                  <TableCell className="text-muted-foreground">{row.thumbs}</TableCell>
+                  <TableCell className="text-muted-foreground">{row.attachments}</TableCell>
+                  <TableCell className="text-muted-foreground">{row.images}</TableCell>
+                  <TableCell>{row.totalFiles}</TableCell>
+                  <TableCell className="text-green-700">{row.fileCost}</TableCell>
+                  <TableCell className="text-muted-foreground">{row.videoCost}</TableCell>
+                  <TableCell className="font-semibold">{row.totalWithFiles}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+          <p className="text-xs text-muted-foreground mt-2">
+            Los archivos representan menos del 2% del costo total en todos los tiers. El video domina.
+          </p>
+        </div>
+
+        <h3 className="font-semibold mb-3">Alternativas a R2 para archivos (¿vale la pena?)</h3>
+        <div className="mb-4 overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted hover:bg-muted">
+                <TableHead>Proveedor</TableHead>
+                <TableHead>Storage</TableHead>
+                <TableHead>Egress</TableHead>
+                <TableHead>Free tier</TableHead>
+                <TableHead>Nota</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {fileHostingAlternatives.map((row) => (
+                <TableRow key={row.provider} className={row.provider.includes("R2") ? "bg-green-50" : ""}>
+                  <TableCell className="font-medium">{row.provider}</TableCell>
+                  <TableCell>{row.storage}</TableCell>
+                  <TableCell className={row.egress === "$0" ? "text-green-700 font-semibold" : ""}>
+                    {row.egress}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">{row.freeTier}</TableCell>
+                  <TableCell className="text-muted-foreground">{row.note}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+
+        <div className="bg-muted/50 border border-green-200 p-5 mb-8">
+          <p className="font-semibold mb-2">Veredicto: usar el mismo R2</p>
+          <p className="text-muted-foreground">
+            Agregar otro servicio (UploadThing, S3, Bunny Storage) para archivos cuando ya tienes R2 es complejidad
+            innecesaria. R2 ya maneja upload (presigned URLs), delivery (CDN gratis), y auth (Worker/presigned). Los
+            archivos son solo otra carpeta en el mismo bucket. El costo adicional es{" "}
+            <strong className="text-foreground">$0,15 a $12/mes</strong> según escala — irrelevante frente al video.
+          </p>
+        </div>
+
+        <h3 className="font-semibold mb-3">Upload de archivos desde el admin</h3>
+        <p className="text-muted-foreground mb-4">El mismo flujo que el video, pero más simple (sin transcoding):</p>
+        <Mermaid
+          chart={`
+sequenceDiagram
+    participant A as Admin (Browser)
+    participant API as Tu API (Convex)
+    participant R2 as Cloudflare R2
+
+    A->>API: Quiero subir thumbnail para curso X
+    API->>R2: Generar presigned upload URL (/thumbs/curso-x/cover.webp)
+    R2-->>API: URL firmada (1h expiración)
+    API-->>A: Presigned URL
+
+    A->>R2: PUT cover.webp (upload directo, ~200 KB)
+    R2-->>A: 200 OK
+
+    API->>API: Guardar path en curso: thumbnailUrl = /thumbs/curso-x/cover.webp
+
+    Note over A,R2: No hay transcoding, no hay cola, no hay webhook.<br/>Upload → guardar path → listo.
+          `}
+          caption="Mismo mecanismo de presigned URL que para video, pero sin paso de transcoding. Tarda segundos."
+        />
 
         {/* Updated Recommendation */}
         <div className="bg-muted ring-1 ring-green-200 p-5 mb-12">
