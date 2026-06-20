@@ -204,9 +204,9 @@ const kickoffScope = [
   },
   {
     module: "Images",
-    kickoff: "Client-side resize (Canvas API) antes de upload",
-    futureWork: "Server-side processing, variantes, AVIF/WebP",
-    priority: "P2",
+    kickoff: "Client-side resize + WebP conversion (Canvas API) antes de upload a R2",
+    futureWork: "Server-side processing, variantes automáticas, AVIF",
+    priority: "P0",
   },
   {
     module: "Progress",
