@@ -203,23 +203,25 @@ function UsersListPage() {
             >
               {user.status === "blocked" ? "Desbloquear" : "Bloquear"}
             </Button>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger
-                  render={
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-destructive hover:text-destructive"
-                      onClick={() => handleDelete(user._id, user.name)}
-                    />
-                  }
-                >
-                  <Trash2 className="size-4" />
-                </TooltipTrigger>
-                <TooltipContent>Eliminar usuario</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            {user.role !== "admin" && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger
+                    render={
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-destructive hover:text-destructive"
+                        onClick={() => handleDelete(user._id, user.name)}
+                      />
+                    }
+                  >
+                    <Trash2 className="size-4" />
+                  </TooltipTrigger>
+                  <TooltipContent>Eliminar usuario</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
           </div>
         );
       },

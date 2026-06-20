@@ -66,6 +66,12 @@ export const setStatus = mutation({
     status: v.union(v.literal("active"), v.literal("blocked"), v.literal("deleted")),
   },
   handler: async (ctx, args) => {
+    if (args.status === "deleted") {
+      const target = await ctx.db.get(args.userId);
+      if (target?.role === "admin") {
+        throw new Error("No se puede eliminar a un usuario administrador");
+      }
+    }
     await ctx.db.patch(args.userId, { status: args.status });
   },
 });
