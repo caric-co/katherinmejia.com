@@ -22,6 +22,12 @@ const documents = [
           "10 fases de desarrollo, arquitectura del monorrepo, modelo de datos, mapa de rutas, referencia de diseño y decisiones técnicas",
         to: "/plan" as const,
       },
+      {
+        title: "Roadmap: Bunny Stream + hls.js",
+        description:
+          "5 fases de integración de video streaming: Bunny SDK, upload TUS, player custom con progress tracking, seguridad y subtítulos AI",
+        to: "/bunny-roadmap" as const,
+      },
     ],
   },
   {
@@ -38,6 +44,12 @@ const documents = [
         description:
           "Comparativa de Bunny Stream, Mux, Cloudflare Stream, R2 autoalojado y S3+CloudFront con costos por escala y estrategias de optimización",
         to: "/video-costs" as const,
+      },
+      {
+        title: "Bunny Stream vs R2: Estudio de Features",
+        description:
+          "Matriz de paridad de 20 features, esfuerzo de desarrollo para R2, costos mensuales comparados, y recomendación de ruta híbrida",
+        to: "/bunny-vs-r2" as const,
       },
     ],
   },
