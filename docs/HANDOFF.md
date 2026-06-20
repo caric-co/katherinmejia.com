@@ -218,7 +218,7 @@ katherinmejia.com/
 | 4. Schema + Admin | ✅ | 9 tables, collapsible sidebar, progress bar, role-guarded |
 | 5. Course CRUD | ✅ | List, create, edit, lessons (inline edit, reorder), AI translate, COP input |
 | 6. Catalog | ✅ | Public listing with real DB data, detail with syllabus + SEO |
-| 7. Video Player | ❌ | Needs Bunny Stream or R2+FFmpeg (not started) |
+| 7. Video Player | 🔜 | Bunny Stream + hls.js decided, roadmap planned (5 phases, ~35h) |
 | 8. User Mgmt | ✅ | DataTable, detail, status (active/blocked/deleted), role toggle, grant/revoke access |
 | 9. Blog + Content | ✅ | Novel WYSIWYG, AI features, blog edit page, split-view content editor with live preview |
 | 10. Analytics | ❌ | PostHog + Sentry (not started) |
@@ -227,10 +227,58 @@ katherinmejia.com/
 
 ---
 
+## Video Player Roadmap (Bunny Stream + hls.js)
+
+**Decision:** Bunny Stream for backend (upload, transcoding, CDN, DRM), hls.js custom player for UX control.
+**Cost:** ~$4.50/month at 500 students. Zero development for transcoding pipeline.
+**Research:** [Bunny vs R2 Features](/bunny-vs-r2) · [Bunny Roadmap](/bunny-roadmap) · [Video Streaming Costs](/video-costs) (quote app routes)
+
+### Phase 1: Bunny SDK + Convex Backend (~6h)
+- Env vars: `BUNNY_API_KEY`, `BUNNY_LIBRARY_ID`, `BUNNY_CDN_HOSTNAME`, `BUNNY_WEBHOOK_SECRET`
+- `convex/bunny.ts` — server actions: createVideo, getSignedUrl (HMAC 4h expiry), deleteVideo, getThumbnailUrl
+- `convex/videoWebhooks.ts` — HTTP action for `VideoLibraryEncodingComplete` webhook (HMAC-SHA256 validation)
+- `convex/http.ts` — register `POST /webhooks/bunny`
+- `convex/schema.ts` — add to lessons: `bunnyVideoGuid`, `thumbnailUrl`, `videoStatus` (pending/encoding/ready/failed), `hlsUrl`
+- `apps/web/src/lib/bunny.ts` — client helper to build CDN URLs
+
+### Phase 2: Admin Upload (~8h)
+- `components/video-upload.tsx` — TUS resumable upload via `tus-js-client` (~8 KB), drag-drop, progress bar, cancel, format validation
+- Upload flow: admin click → createVideo() → TUS direct to Bunny CDN → Bunny transcodes → webhook updates lesson → UI shows thumbnail
+- Badge per lesson: "Sin video" / "Subiendo" / "Procesando" / "Listo"
+- Preview video upload for course (`previewVideoId` field)
+
+### Phase 3: hls.js Player + Progress Tracking (~10h)
+- `components/video-player.tsx` — hls.js (~60 KB gzip), Safari native HLS fallback, custom controls (play/pause, progress, volume, quality, fullscreen, PiP, speed 0.5x-2x), keyboard shortcuts, auto-hide 3s
+- `lib/use-progress-tracker.ts` — timeupdate listener, 10s debounce to Convex `progress.upsert`, completed at 90% duration, resume from `watchedSeconds`, persist on beforeunload/visibilitychange
+- `routes/courses/$slug/$lessonId.tsx` — public lesson page: video + sidebar, auto-advance 3s countdown, completed checkmarks, access gating (isFree vs purchase)
+- `convex/lessons.ts` — add `getByIdWithAccess(lessonId, userId)` returning lesson + signed URL
+
+### Phase 4: Security (~5h)
+- Token Authentication: HMAC-SHA256 signed URLs with 4h expiration (free in Bunny)
+- MediaCage Basic: AES-128 encryption (free), automatic on HLS segments, transparent to hls.js
+- Domain restrictions: whitelist katherinmejia.com, katherinmejia.vercel.app, localhost:3000
+- Access control: verify purchases/subscriptions before generating signed URL
+
+### Phase 5: Subtitles + AI Transcription (~6h)
+- Bunny Transcribe AI: auto speech-to-text in Spanish, auto-translate to English, smart chapters included
+- Cost: $0.10/min/language (100h content × 2 languages = $1,200 one-time)
+- Player: subtitle selector (ES/EN/Off), WebVTT overlay, chapter markers on progress bar
+- Admin: "Generar subtítulos" button per lesson, transcription status badge
+
+### Schema Changes
+- **lessons** (modify): `videoId` → optional, add `bunnyVideoGuid`, `thumbnailUrl`, `videoStatus`, `hlsUrl`
+- **progress** (modify): add `completedAt` timestamp
+
+### New Dependencies
+- `hls.js` ^1.5 (~60 KB gzip) — HLS adaptive bitrate player
+- `tus-js-client` ^4.1 (~8 KB gzip) — TUS resumable uploads
+
+---
+
 ## What's Next
 
 ### Remaining MVP:
-1. **Video Player (Phase 7)** — decide Bunny Stream vs R2+FFmpeg, implement hls.js player with progress tracking
+1. **Video Player (Phase 7)** — Bunny Stream + hls.js, 5 phases planned (~35h), see roadmap above
 2. **Analytics (Phase 10)** — PostHog + Sentry setup
 3. **Form migration** — remaining forms (course create/edit, blog, contact, forgot-password) to TanStack Form + Zod
 
