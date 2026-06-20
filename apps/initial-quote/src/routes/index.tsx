@@ -51,6 +51,12 @@ const documents = [
           "Matriz de paridad de 20 features, esfuerzo de desarrollo para R2, costos mensuales comparados, y recomendación de ruta híbrida",
         to: "/bunny-vs-r2" as const,
       },
+      {
+        title: "Costos Reales a Escala: Video + Transcripción",
+        description:
+          "R2 DIY vs Bunny de 100 a 1M usuarios, APIs de transcripción (AssemblyAI, Whisper, Deepgram), self-hosted GPU, y traducción bilingüe",
+        to: "/scale-costs" as const,
+      },
     ],
   },
 ];

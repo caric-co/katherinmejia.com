@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VideoCostsRouteImport } from './routes/video-costs'
+import { Route as ScaleCostsRouteImport } from './routes/scale-costs'
 import { Route as QuoteRouteImport } from './routes/quote'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PlanRouteImport } from './routes/plan'
@@ -20,6 +21,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const VideoCostsRoute = VideoCostsRouteImport.update({
   id: '/video-costs',
   path: '/video-costs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ScaleCostsRoute = ScaleCostsRouteImport.update({
+  id: '/scale-costs',
+  path: '/scale-costs',
   getParentRoute: () => rootRouteImport,
 } as any)
 const QuoteRoute = QuoteRouteImport.update({
@@ -60,6 +66,7 @@ export interface FileRoutesByFullPath {
   '/plan': typeof PlanRoute
   '/pricing': typeof PricingRoute
   '/quote': typeof QuoteRoute
+  '/scale-costs': typeof ScaleCostsRoute
   '/video-costs': typeof VideoCostsRoute
 }
 export interface FileRoutesByTo {
@@ -69,6 +76,7 @@ export interface FileRoutesByTo {
   '/plan': typeof PlanRoute
   '/pricing': typeof PricingRoute
   '/quote': typeof QuoteRoute
+  '/scale-costs': typeof ScaleCostsRoute
   '/video-costs': typeof VideoCostsRoute
 }
 export interface FileRoutesById {
@@ -79,6 +87,7 @@ export interface FileRoutesById {
   '/plan': typeof PlanRoute
   '/pricing': typeof PricingRoute
   '/quote': typeof QuoteRoute
+  '/scale-costs': typeof ScaleCostsRoute
   '/video-costs': typeof VideoCostsRoute
 }
 export interface FileRouteTypes {
@@ -90,6 +99,7 @@ export interface FileRouteTypes {
     | '/plan'
     | '/pricing'
     | '/quote'
+    | '/scale-costs'
     | '/video-costs'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -99,6 +109,7 @@ export interface FileRouteTypes {
     | '/plan'
     | '/pricing'
     | '/quote'
+    | '/scale-costs'
     | '/video-costs'
   id:
     | '__root__'
@@ -108,6 +119,7 @@ export interface FileRouteTypes {
     | '/plan'
     | '/pricing'
     | '/quote'
+    | '/scale-costs'
     | '/video-costs'
   fileRoutesById: FileRoutesById
 }
@@ -118,6 +130,7 @@ export interface RootRouteChildren {
   PlanRoute: typeof PlanRoute
   PricingRoute: typeof PricingRoute
   QuoteRoute: typeof QuoteRoute
+  ScaleCostsRoute: typeof ScaleCostsRoute
   VideoCostsRoute: typeof VideoCostsRoute
 }
 
@@ -128,6 +141,13 @@ declare module '@tanstack/react-router' {
       path: '/video-costs'
       fullPath: '/video-costs'
       preLoaderRoute: typeof VideoCostsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/scale-costs': {
+      id: '/scale-costs'
+      path: '/scale-costs'
+      fullPath: '/scale-costs'
+      preLoaderRoute: typeof ScaleCostsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/quote': {
@@ -182,6 +202,7 @@ const rootRouteChildren: RootRouteChildren = {
   PlanRoute: PlanRoute,
   PricingRoute: PricingRoute,
   QuoteRoute: QuoteRoute,
+  ScaleCostsRoute: ScaleCostsRoute,
   VideoCostsRoute: VideoCostsRoute,
 }
 export const routeTree = rootRouteImport
