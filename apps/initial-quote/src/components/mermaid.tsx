@@ -18,6 +18,7 @@ mermaid.initialize({
     noteTextColor: "rgba(43,38,38,0.6)",
     noteBkgColor: "#F3ECE6",
     noteBorderColor: "rgba(43,38,38,0.15)",
+    mainBkg: "#ECDFD4",
     actorBkg: "#ECDFD4",
     actorBorder: "rgba(43,38,38,0.25)",
     actorTextColor: "#2B2626",
@@ -54,7 +55,7 @@ export function Mermaid({ chart, caption }: { chart: string; caption?: string })
     <div className="my-6">
       <div
         ref={containerRef}
-        className="bg-white border border-border rounded-sm p-6 overflow-x-auto [&_svg]:mx-auto [&_svg]:max-w-full"
+        className="bg-muted border border-border rounded-sm p-6 overflow-x-auto [&_svg]:mx-auto [&_svg]:max-w-full"
         // biome-ignore lint/security/noDangerouslySetInnerHtml: mermaid SVG output
         dangerouslySetInnerHTML={{ __html: svg }}
       />
