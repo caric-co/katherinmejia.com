@@ -88,14 +88,15 @@ const modules = [
   {
     id: "images",
     name: "Image Processing",
-    description: "Resize, crop, format conversion (WebP/AVIF) on-the-fly o en upload. Thumbnails automáticos de video.",
+    description:
+      "Thumbnails auto-generados del video (FFmpeg frame extract en el mismo job de transcode). Resize y WebP conversion client-side para uploads manuales.",
     tiers: {
-      lab: "Client-side resize antes de upload (browser Canvas API)",
-      small: "Cloudflare Images ($5/100K) o sharp en Cloud Run",
-      medium: "Pipeline de procesamiento con variantes pre-generadas",
+      lab: "Auto-thumbnail en transcode + client-side resize (Canvas API)",
+      small: "Thumbnail selector (admin elige timestamp) + Cloudflare Images ($5/100K)",
+      medium: "Variantes pre-generadas (card, hero, og:image) + AVIF",
     },
     cost: "$0-5/mes",
-    dependencies: ["storage"],
+    dependencies: ["storage", "transcode"],
     required: false,
   },
   {
@@ -204,8 +205,9 @@ const kickoffScope = [
   },
   {
     module: "Images",
-    kickoff: "Client-side resize + WebP conversion (Canvas API) antes de upload a R2",
-    futureWork: "Server-side processing, variantes automáticas, AVIF",
+    kickoff:
+      "Auto-thumbnail del video (FFmpeg frame extract en el mismo transcode job) + client-side resize para uploads manuales",
+    futureWork: "Timestamp selector en admin UI, variantes (card/hero/og:image), AVIF",
     priority: "P0",
   },
   {
