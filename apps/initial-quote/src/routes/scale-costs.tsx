@@ -210,6 +210,170 @@ const bilingualTotal = [
   },
 ];
 
+const r2Optimized = [
+  {
+    tier: "Lab (100)",
+    storage: "$7,50",
+    ops: "$0,36",
+    compute: "$0",
+    auth: "$0",
+    total: "$8",
+    bunnyVol: "$10",
+    winner: "r2",
+  },
+  {
+    tier: "Small (1.000)",
+    storage: "$30",
+    ops: "$3,60",
+    compute: "$0,50",
+    auth: "$0",
+    total: "$34",
+    bunnyVol: "$70",
+    winner: "r2",
+  },
+  {
+    tier: "Medium (10.000)",
+    storage: "$75",
+    ops: "$36",
+    compute: "$5",
+    auth: "$5",
+    total: "$121",
+    bunnyVol: "$550",
+    winner: "r2",
+  },
+  {
+    tier: "Large (100.000)",
+    storage: "$750",
+    ops: "$360",
+    compute: "$57",
+    auth: "$5",
+    total: "$1.172",
+    bunnyVol: "$5.000",
+    winner: "r2",
+  },
+  {
+    tier: "Massive (1.000.000)",
+    storage: "$1.875",
+    ops: "$3.600",
+    compute: "$157",
+    auth: "$5",
+    total: "$5.637",
+    bunnyVol: "$21.250",
+    winner: "r2",
+  },
+];
+
+const spotBurstOptions: {
+  provider: string;
+  cost: string;
+  timeout: string;
+  scaleToZero: boolean;
+  note: string;
+  best?: boolean;
+}[] = [
+  {
+    provider: "Google Cloud Run Jobs",
+    cost: "$0,000024/vCPU-seg",
+    timeout: "24h",
+    scaleToZero: true,
+    note: "Ideal para transcoding pesado, se activa por HTTP",
+    best: true,
+  },
+  {
+    provider: "Fly.io Machines",
+    cost: "$0,0000035/seg",
+    timeout: "Sin límite",
+    scaleToZero: true,
+    note: "Scale-to-zero nativo, deploy simple",
+  },
+  {
+    provider: "Modal",
+    cost: "$0,0000064/seg (CPU)",
+    timeout: "24h",
+    scaleToZero: true,
+    note: "Serverless compute, pago por segundo",
+  },
+  {
+    provider: "Railway",
+    cost: "$0,000463/min vCPU",
+    timeout: "Sin límite",
+    scaleToZero: true,
+    note: "Deploy con nixpacks, simple",
+  },
+  {
+    provider: "AWS Lambda + FFmpeg",
+    cost: "$0,0001/seg CPU",
+    timeout: "15 min max",
+    scaleToZero: true,
+    note: "Solo para segmentar (single-bitrate). No multi-bitrate.",
+  },
+  {
+    provider: "AWS EC2 Spot",
+    cost: "~$0,10-0,15/hr",
+    timeout: "Sin límite",
+    scaleToZero: false,
+    note: "Requiere orquestar start/stop via API",
+  },
+  {
+    provider: "Hetzner Cloud (CPX11)",
+    cost: "~$0,007/hr",
+    timeout: "Sin límite",
+    scaleToZero: false,
+    note: "Hourly billing, API para create/destroy",
+  },
+];
+
+const transcodeCostPerVideo: [string, string, string][] = [
+  ["Segmentar only (single-bitrate)", "~10 seg CPU", "~$0,001 (Lambda)"],
+  ["Multi-bitrate (720p + 480p)", "~30 min CPU", "~$0,05 (Cloud Run)"],
+  ["Multi-bitrate (1080p + 720p + 480p)", "~45 min CPU", "~$0,10 (Cloud Run)"],
+  ["Full (1080p + 720p + 480p + 360p)", "~60 min CPU", "~$0,15 (Cloud Run)"],
+];
+
+const tierConfig = [
+  {
+    tier: "Tier 1: Lab",
+    range: "0 - 1.000 usuarios",
+    cost: "~$8-34/mes",
+    videoMode: "Single-bitrate HLS",
+    auth: "Presigned URLs (R2 nativo)",
+    transcode: "Segmentar only (Lambda, $0,001/video)",
+    worker: "No",
+    ffmpegServer: "No",
+    storage: "~1,05x source",
+  },
+  {
+    tier: "Tier 2: Small",
+    range: "1.000 - 10.000 usuarios",
+    cost: "~$34-121/mes",
+    videoMode: "Multi-bitrate HLS (cursos populares)",
+    auth: "Worker JWT ($5/mes)",
+    transcode: "Cloud Run burst ($0,10/video)",
+    worker: "Sí",
+    ffmpegServer: "No (burst)",
+    storage: "~1,5-2x source (gradual)",
+  },
+  {
+    tier: "Tier 3: Medium+",
+    range: "10.000+ usuarios",
+    cost: "~$121-1.172/mes",
+    videoMode: "Full multi-bitrate HLS (todo el catálogo)",
+    auth: "Worker JWT + KV cache ($5/mes)",
+    transcode: "Hetzner dedicado ($57/mes)",
+    worker: "Sí",
+    ffmpegServer: "Sí (always-on)",
+    storage: "~2,5-3x source",
+  },
+];
+
+const crossoverAnalysis: [string, string, string, string][] = [
+  ["Lab (100)", "$10", "$8", "$24/año — no justifica dev"],
+  ["Small (1.000)", "$70", "$34", "$432/año — no justifica dev"],
+  ["Medium (10.000)", "$550", "$121", "$5.148/año — empieza a justificar"],
+  ["Large (100.000)", "$5.000", "$1.172", "$45.936/año — justifica claramente"],
+  ["Massive (1.000.000)", "$21.250", "$5.637", "$187.356/año — obligatorio"],
+];
+
 function ScaleCostsPage() {
   return (
     <div className="min-h-screen bg-background">
@@ -1001,23 +1165,356 @@ flowchart TB
           </Table>
         </div>
 
-        {/* Recommendation */}
+        {/* ========== PART 4: PROGRESSIVE ARCHITECTURE ========== */}
+        <h2 className="font-display text-h2 mb-4">Parte 4: Arquitectura Progresiva (R2 DIY Optimizado)</h2>
+        <Separator className="mb-4" />
+
+        <div className="border border-accent bg-accent/20 p-5 mb-8">
+          <p className="font-semibold mb-1">Construir un media streaming service es un proyecto en sí mismo</p>
+          <p className="text-muted-foreground">
+            Pipeline de ingesta, transcoding, CDN auth, delivery, telemetría: eso es un producto de infraestructura, no
+            un feature de la plataforma de cursos. La estrategia es{" "}
+            <strong className="text-foreground">construir todo el código desde el día 1</strong>, pero{" "}
+            <strong className="text-foreground">
+              activar la infraestructura solo cuando el user base lo justifique
+            </strong>
+            . El costo de código dormido es $0.
+          </p>
+        </div>
+
+        {/* R2 Optimized comparison */}
+        <h3 className="font-semibold mb-3">R2 DIY optimizado vs Bunny Volume (revisado)</h3>
+        <p className="text-muted-foreground mb-4">
+          Optimizaciones: single-bitrate HLS en tiers bajos (storage 1,05x vs 2,75x), presigned URLs en vez de Worker,
+          spot burst en vez de servidor dedicado.
+        </p>
+        <div className="mb-8 overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted hover:bg-muted">
+                <TableHead>Escala</TableHead>
+                <TableHead>R2 Storage</TableHead>
+                <TableHead>R2 Ops</TableHead>
+                <TableHead>Compute</TableHead>
+                <TableHead>Auth</TableHead>
+                <TableHead>R2 Total</TableHead>
+                <TableHead>Bunny Vol.</TableHead>
+                <TableHead>Ganador</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {r2Optimized.map((row) => (
+                <TableRow key={row.tier}>
+                  <TableCell className="font-medium">{row.tier}</TableCell>
+                  <TableCell>{row.storage}</TableCell>
+                  <TableCell>{row.ops}</TableCell>
+                  <TableCell>{row.compute}</TableCell>
+                  <TableCell>{row.auth}</TableCell>
+                  <TableCell className="text-green-700 font-semibold">{row.total}</TableCell>
+                  <TableCell>{row.bunnyVol}</TableCell>
+                  <TableCell>
+                    <Badge>R2 DIY</Badge>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+
+        {/* Spot Burst */}
+        <h3 className="font-semibold mb-3">Spot burst: opciones de compute on-demand</h3>
+        <p className="text-muted-foreground mb-4">
+          En vez de un servidor FFmpeg always-on ($57-157/mes), usar compute que escala a cero y solo cobra cuando
+          transcodes un video.
+        </p>
+        <div className="mb-4 overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted hover:bg-muted">
+                <TableHead>Proveedor</TableHead>
+                <TableHead>Costo</TableHead>
+                <TableHead>Timeout</TableHead>
+                <TableHead>Scale-to-zero</TableHead>
+                <TableHead>Notas</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {spotBurstOptions.map((row) => (
+                <TableRow key={row.provider} className={row.best ? "bg-green-50" : ""}>
+                  <TableCell className="font-medium">{row.provider}</TableCell>
+                  <TableCell>{row.cost}</TableCell>
+                  <TableCell>{row.timeout}</TableCell>
+                  <TableCell className={row.scaleToZero ? "text-green-700 font-semibold" : "text-muted-foreground"}>
+                    {row.scaleToZero ? "Sí" : "No"}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">{row.note}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+
+        <h3 className="font-semibold mb-3">Costo por transcode (1 hora de video)</h3>
+        <div className="mb-8 overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted hover:bg-muted">
+                <TableHead>Tipo</TableHead>
+                <TableHead>Tiempo CPU</TableHead>
+                <TableHead>Costo estimado</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {transcodeCostPerVideo.map(([type, time, cost]) => (
+                <TableRow key={type}>
+                  <TableCell className="font-medium">{type}</TableCell>
+                  <TableCell className="text-muted-foreground">{time}</TableCell>
+                  <TableCell>{cost}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+
+        {/* Single-bitrate HLS explanation */}
+        <h3 className="font-semibold mb-3">¿Por qué single-bitrate HLS?</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <div className="bg-muted p-4">
+            <p className="font-semibold text-sm mb-1">MP4 directo</p>
+            <p className="text-muted-foreground text-sm mb-2">Storage: 1x</p>
+            <ul className="text-muted-foreground text-sm space-y-1">
+              <li>— Seek lento (sin keyframe index)</li>
+              <li>— CDN cache ineficiente (archivo completo)</li>
+              <li>— Si moov atom al final: delay inicial</li>
+              <li>— Sin adaptive bitrate</li>
+            </ul>
+          </div>
+          <div className="bg-muted p-4 ring-1 ring-green-200">
+            <p className="font-semibold text-sm mb-1 text-green-700">Single-bitrate HLS</p>
+            <p className="text-muted-foreground text-sm mb-2">Storage: 1,05x (casi igual)</p>
+            <ul className="text-muted-foreground text-sm space-y-1">
+              <li>— Seek instantáneo (por segmento)</li>
+              <li>— CDN cache por segmento (eficiente)</li>
+              <li>— Start inmediato (primer segmento = 4s)</li>
+              <li>— Upgrade trivial a multi-bitrate</li>
+              <li className="text-green-700">
+                — <code>ffmpeg -c copy</code> (segundos, no transcodifica)
+              </li>
+            </ul>
+          </div>
+          <div className="bg-muted p-4">
+            <p className="font-semibold text-sm mb-1">Multi-bitrate HLS</p>
+            <p className="text-muted-foreground text-sm mb-2">Storage: 2,5-3x</p>
+            <ul className="text-muted-foreground text-sm space-y-1">
+              <li>— Adaptive bitrate automático</li>
+              <li>— Óptimo para toda conexión</li>
+              <li>— Requiere transcoding real (20-60 min)</li>
+              <li>— Necesario a partir de ~5K usuarios</li>
+            </ul>
+          </div>
+        </div>
+
+        {/* Progressive tiers */}
+        <h3 className="font-semibold mb-3">Configuración por tier</h3>
+        <p className="text-muted-foreground mb-4">
+          Todo el código existe desde el día 1. Lo que cambia es una variable de entorno. El costo de código dormido es
+          $0.
+        </p>
+        <Mermaid
+          chart={`
+flowchart LR
+    subgraph T1["Tier 1: Lab (0-1K)"]
+        T1A["Single-bitrate HLS"]
+        T1B["Presigned URLs"]
+        T1C["Lambda segmentar"]
+    end
+
+    subgraph T2["Tier 2: Small (1K-10K)"]
+        T2A["Multi-bitrate HLS\n(cursos populares)"]
+        T2B["Worker JWT $5/mes"]
+        T2C["Cloud Run burst\n$0,10/video"]
+    end
+
+    subgraph T3["Tier 3: Medium+ (10K+)"]
+        T3A["Full multi-bitrate\n(todo el catálogo)"]
+        T3B["Worker JWT\n+ KV cache"]
+        T3C["Hetzner dedicado\n$57/mes"]
+    end
+
+    T1 -->|"flip 2 env vars"| T2
+    T2 -->|"flip 1 env var"| T3
+          `}
+          caption="Cada transición es un cambio de env vars, no un redeploy de código."
+        />
+
+        <div className="mb-8 overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted hover:bg-muted">
+                <TableHead>Aspecto</TableHead>
+                {tierConfig.map((t) => (
+                  <TableHead key={t.tier}>{t.tier}</TableHead>
+                ))}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow>
+                <TableCell className="font-medium">Rango</TableCell>
+                {tierConfig.map((t) => (
+                  <TableCell key={t.tier} className="text-muted-foreground">
+                    {t.range}
+                  </TableCell>
+                ))}
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">Costo mensual</TableCell>
+                {tierConfig.map((t) => (
+                  <TableCell key={t.tier} className="font-semibold">
+                    {t.cost}
+                  </TableCell>
+                ))}
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">Video mode</TableCell>
+                {tierConfig.map((t) => (
+                  <TableCell key={t.tier} className="text-muted-foreground">
+                    {t.videoMode}
+                  </TableCell>
+                ))}
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">Auth</TableCell>
+                {tierConfig.map((t) => (
+                  <TableCell key={t.tier} className="text-muted-foreground">
+                    {t.auth}
+                  </TableCell>
+                ))}
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">Transcoding</TableCell>
+                {tierConfig.map((t) => (
+                  <TableCell key={t.tier} className="text-muted-foreground">
+                    {t.transcode}
+                  </TableCell>
+                ))}
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">Worker</TableCell>
+                {tierConfig.map((t) => (
+                  <TableCell
+                    key={t.tier}
+                    className={t.worker === "Sí" ? "text-green-700 font-semibold" : "text-muted-foreground"}
+                  >
+                    {t.worker}
+                  </TableCell>
+                ))}
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">Storage overhead</TableCell>
+                {tierConfig.map((t) => (
+                  <TableCell key={t.tier} className="text-muted-foreground">
+                    {t.storage}
+                  </TableCell>
+                ))}
+              </TableRow>
+            </TableBody>
+          </Table>
+        </div>
+
+        {/* Env vars */}
+        <div className="bg-muted p-5 mb-8">
+          <h4 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+            Variables de entorno por tier
+          </h4>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <p className="font-semibold text-sm mb-2">Tier 1 (Lab)</p>
+              <div className="text-xs font-mono space-y-1 text-muted-foreground">
+                <p>AUTH_MODE=presigned</p>
+                <p>TRANSCODE_MODE=segment-only</p>
+                <p>HLS_MODE=single-bitrate</p>
+              </div>
+            </div>
+            <div>
+              <p className="font-semibold text-sm mb-2">Tier 2 (Small)</p>
+              <div className="text-xs font-mono space-y-1 text-muted-foreground">
+                <p className="text-green-700">AUTH_MODE=worker</p>
+                <p className="text-green-700">TRANSCODE_MODE=burst</p>
+                <p>HLS_MODE=single-bitrate</p>
+              </div>
+            </div>
+            <div>
+              <p className="font-semibold text-sm mb-2">Tier 3 (Medium+)</p>
+              <div className="text-xs font-mono space-y-1 text-muted-foreground">
+                <p>AUTH_MODE=worker</p>
+                <p className="text-green-700">TRANSCODE_MODE=dedicated</p>
+                <p className="text-green-700">HLS_MODE=multi-bitrate</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Crossover analysis */}
+        <h3 className="font-semibold mb-3">¿Cuándo justifica construir el media service?</h3>
+        <p className="text-muted-foreground mb-4">
+          El ahorro vs Bunny Volume tiene que justificar las semanas de desarrollo. Con la arquitectura progresiva, el
+          código se construye una vez y el ROI crece con cada tier.
+        </p>
+        <div className="mb-8 overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted hover:bg-muted">
+                <TableHead>Escala</TableHead>
+                <TableHead>Bunny Vol./mes</TableHead>
+                <TableHead>R2 Opt./mes</TableHead>
+                <TableHead>Ahorro anual</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {crossoverAnalysis.map(([tier, bunny, r2, analysis]) => (
+                <TableRow key={tier}>
+                  <TableCell className="font-medium">{tier}</TableCell>
+                  <TableCell>{bunny}</TableCell>
+                  <TableCell className="text-green-700 font-semibold">{r2}</TableCell>
+                  <TableCell className="text-muted-foreground">{analysis}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+
+        {/* Updated Recommendation */}
         <div className="bg-muted ring-1 ring-green-200 p-5 mb-12">
-          <h3 className="font-semibold text-green-700 mb-3">Recomendación para KMakeup</h3>
+          <h3 className="font-semibold text-green-700 mb-3">Recomendación Actualizada</h3>
           <Table>
             <TableBody>
               <TableRow>
-                <TableCell className="font-medium w-1/4">Video (MVP)</TableCell>
+                <TableCell className="font-medium w-1/4">Estrategia</TableCell>
                 <TableCell className="text-muted-foreground">
-                  <strong className="text-foreground">Bunny Stream Volume Network</strong> (~$10-70/mes). Más simple y
-                  barato que R2 DIY hasta ~10.000 usuarios.
+                  <strong className="text-foreground">Construir R2 DIY progresivo desde el día 1.</strong> El código
+                  cubre los 3 tiers. La infraestructura se activa con env vars según el user base. Costo inicial:
+                  ~$8/mes (menor que Bunny Volume).
                 </TableCell>
               </TableRow>
               <TableRow>
-                <TableCell className="font-medium">Video (escala)</TableCell>
+                <TableCell className="font-medium">MVP (Tier 1)</TableCell>
                 <TableCell className="text-muted-foreground">
-                  Migrar a <strong className="text-foreground">Cloudflare R2 DIY</strong> cuando egress supere ~50
-                  TB/mes. Ahorro: 40-90% vs Bunny.
+                  Single-bitrate HLS + presigned URLs + Lambda segmentar.{" "}
+                  <strong className="text-foreground">$8/mes</strong>. Sin Worker, sin FFmpeg server.
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">Crecimiento (Tier 2)</TableCell>
+                <TableCell className="text-muted-foreground">
+                  Activar Worker ($5/mes) + Cloud Run burst para multi-bitrate.{" "}
+                  <strong className="text-foreground">Flip 2 env vars</strong>, sin redeploy de código.
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">Escala (Tier 3)</TableCell>
+                <TableCell className="text-muted-foreground">
+                  FFmpeg dedicado ($57/mes) + full multi-bitrate.{" "}
+                  <strong className="text-foreground">Flip 1 env var</strong>. A 10K usuarios ahorras $5K+/año vs Bunny.
                 </TableCell>
               </TableRow>
               <TableRow>
