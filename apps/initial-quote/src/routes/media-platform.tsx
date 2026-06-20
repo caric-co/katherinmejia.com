@@ -198,9 +198,9 @@ const kickoffScope = [
   },
   {
     module: "Captions",
-    kickoff: "AssemblyAI integration (API call, store VTT en R2)",
+    kickoff: "AssemblyAI integration (API call, store VTT en R2), Whisper translate mode para EN",
     futureWork: "Whisper self-hosted, multi-language, smart chapters",
-    priority: "P1",
+    priority: "P0",
   },
   {
     module: "Images",
