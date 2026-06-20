@@ -49,8 +49,8 @@ katherinmejia.com/
 │   │   │   └── admin/_layout.tsx      Admin sidebar (role-guarded, collapsible, progress bar)
 │   │   │       ├── index.tsx          Dashboard
 │   │   │       ├── courses/index.tsx  Course DataTable (search, status filter, multi-sort)
-│   │   │       ├── courses/new.tsx    Create course (bilingual slugs, COP input, AI translate)
-│   │   │       ├── courses/$slug.tsx  Edit course (AI translate)
+│   │   │       ├── courses/new.tsx    Create course (ES-only form, auto-translate on save, live preview)
+│   │   │       ├── courses/$slug.tsx  Edit course (collapsible EN, live preview with lessons)
 │   │   │       ├── courses/$slug/lessons.tsx  Lesson management (inline edit, reorder, AI translate)
 │   │   │       ├── users/index.tsx    User DataTable (search, filters, soft delete, multi-sort)
 │   │   │       ├── users/$id.tsx      User detail + grant/revoke access
@@ -65,6 +65,7 @@ katherinmejia.com/
 │   │   │   │   ├── preloader.tsx     Animated preloader (curtain split reveal)
 │   │   │   │   └── landing-preview.tsx Live preview with skeleton loading
 │   │   │   ├── editor/blog-editor.tsx Novel rich text editor (initialHtml support)
+│   │   │   ├── course-preview.tsx    Live preview (catalog card + detail page, bilingual i18n)
 │   │   │   ├── form-field.tsx        TanStack Form + shadcn field (auto-advance, pulse animation)
 │   │   │   └── smart-submit.tsx      Submit button (tooltip, hint, pulse animation)
 │   │   ├── src/lib/
@@ -168,6 +169,20 @@ katherinmejia.com/
 - **0 type errors** across web + quote apps (all pre-existing errors fixed)
 - **Base UI migration:** all `asChild` props replaced with `render` prop (Base UI pattern, not Radix)
 - **SSR hydration fixes:** preloader sessionStorage check moved to useEffect, devtools use isMounted state
+
+### Course Forms (Improved)
+- **Create:** ES-only form, auto-translates title + description to EN on save (parallel Mistral calls)
+- **Edit:** collapsible EN translation section with "completa" badge, auto-translates empty EN on save
+- **Slugs:** auto-generated from title (no manual editing), preview shown inline
+- **Live preview panel:** 50/50 split layout, form scrolls independently, preview stays fixed
+- **Card preview:** replicates catalog card at real size (max-w-sm), centered
+- **Detail preview:** replicates course detail page with lessons, price sidebar, stats
+- **Bilingual preview:** ES/EN toggle at top of preview, all UI strings translated (CTA, stats, labels)
+- **Thumbnail placeholder:** dashed drop zone with "Próximamente" (upload not yet implemented)
+
+### HMR Auth Fix
+- **Admin auth guard:** `beforeLoad` redirect only runs server-side, preventing HMR logout
+- **Client guard:** `AdminLayout` component verifies session via `useSession()` + Convex user query
 
 ### Deploy
 - **Nitro plugin** for Vercel TanStack Start preset

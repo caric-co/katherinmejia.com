@@ -39,7 +39,7 @@ import { authClient } from "#/lib/auth-client";
 
 export const Route = createFileRoute("/admin/_layout")({
   beforeLoad: async ({ context }) => {
-    if (!context.isAuthenticated) {
+    if (!context.isAuthenticated && typeof window === "undefined") {
       throw redirect({ to: "/auth/login" });
     }
   },
