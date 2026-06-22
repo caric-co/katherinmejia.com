@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { createFileRoute } from "@tanstack/react-router";
 import { useAction, useMutation, useQuery } from "convex/react";
@@ -195,23 +195,17 @@ function ContentPage() {
   const [pulseCounter, setPulseCounter] = useState(0);
   const editorPanelRef = useRef<HTMLDivElement>(null);
 
-  const contentMap = new Map((allContent ?? []).map((c) => [c.key, c]));
+  const contentMap = useMemo(() => new Map((allContent ?? []).map((c) => [c.key, c])), [allContent]);
 
-  const startEdit = (key: string, currentEs: string) => {
-    setEditingKey(key);
-    setEditValue(currentEs);
-    setPulseCounter((c) => c + 1);
-  };
-
-  const handleFieldClick = useCallback(
-    (key: string) => {
+  const startEdit = useCallback(
+    (key: string, scrollIntoView = false) => {
       const content = contentMap.get(key);
-      const hasDraft = content?.draftValue !== undefined;
-      const displayValue = hasDraft ? content?.draftValue?.es : content?.value.es;
+      const displayValue = content?.draftValue?.es ?? content?.value.es ?? "";
       setEditingKey(key);
-      setEditValue(displayValue ?? "");
+      setEditValue(displayValue);
       setPulseCounter((c) => c + 1);
 
+      if (!scrollIntoView) return;
       setTimeout(() => {
         const panel = editorPanelRef.current;
         const el = panel?.querySelector(`[data-field="${key}"]`) as HTMLElement | null;
@@ -221,11 +215,15 @@ function ContentPage() {
           const targetScroll =
             panel.scrollTop + (elRect.top - panelRect.top) - panelRect.height / 2 + elRect.height / 2;
           panel.scrollTo({ top: targetScroll, behavior: "smooth" });
+          const input = el.querySelector<HTMLElement>("input, textarea");
+          input?.focus();
         }
       }, 50);
     },
     [contentMap],
   );
+
+  const handleFieldClick = useCallback((key: string) => startEdit(key, true), [startEdit]);
 
   const handleSave = async () => {
     if (!editingKey || !editValue) return;
@@ -324,7 +322,7 @@ function ContentPage() {
                       displayValue={displayValue ?? ""}
                       editValue={editValue}
                       pulseKey={isEditing ? pulseCounter : 0}
-                      onEdit={() => startEdit(key, displayValue ?? "")}
+                      onEdit={() => startEdit(key)}
                       onEditValueChange={setEditValue}
                       onSave={handleSave}
                       onCancel={() => setEditingKey(null)}

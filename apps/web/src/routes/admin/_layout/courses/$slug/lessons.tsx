@@ -1,17 +1,21 @@
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
+import { UploadZone } from "@devultur/react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useAction, useMutation, useQuery } from "convex/react";
 import {
   ArrowLeft,
+  CheckCircle2,
   ChevronDown,
   ChevronUp,
+  Film,
   Languages,
   Loader2,
   MoreHorizontal,
   Pencil,
   Plus,
   Trash2,
+  Upload,
   X,
 } from "lucide-react";
 
@@ -29,6 +33,8 @@ import { Input } from "@repo/ui/components/input";
 import { Label } from "@repo/ui/components/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@repo/ui/components/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@repo/ui/components/tooltip";
+
+import { media } from "#/lib/media";
 
 export const Route = createFileRoute("/admin/_layout/courses/$slug/lessons")({
   component: LessonsPage,
@@ -128,7 +134,10 @@ function LessonsPage() {
                 <TableRow key={lesson._id}>
                   <TableCell className="text-muted-foreground font-mono">{lesson.order}</TableCell>
                   <TableCell>
-                    <div className="font-medium">{lesson.title.es}</div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">{lesson.title.es}</span>
+                      <MediaStatusBadge status={lesson.mediaStatus} videoId={lesson.videoId} />
+                    </div>
                     <div className="text-sm text-muted-foreground">{lesson.title.en}</div>
                     {lesson.description?.es && (
                       <div className="text-sm text-muted-foreground/70 mt-1 line-clamp-1">{lesson.description.es}</div>
@@ -206,6 +215,44 @@ function LessonsPage() {
   );
 }
 
+function MediaStatusBadge({ status, videoId }: { status?: string; videoId: string }) {
+  if (videoId === "pending-upload") {
+    return (
+      <Badge variant="outline" className="text-xs">
+        Sin video
+      </Badge>
+    );
+  }
+  if (status === "processing") {
+    return (
+      <Badge variant="outline" className="text-xs text-amber-600 border-amber-300">
+        <Loader2 className="size-3 animate-spin mr-1" />
+        Procesando
+      </Badge>
+    );
+  }
+  if (status === "error") {
+    return (
+      <Badge variant="outline" className="text-xs text-red-600 border-red-300">
+        Error
+      </Badge>
+    );
+  }
+  if (status === "ready") {
+    return (
+      <Badge variant="outline" className="text-xs text-green-600 border-green-300">
+        <CheckCircle2 className="size-3 mr-1" />
+        Listo
+      </Badge>
+    );
+  }
+  return (
+    <Badge variant="outline" className="text-xs">
+      Video subido
+    </Badge>
+  );
+}
+
 function LessonForm({
   courseId,
   lesson,
@@ -218,6 +265,7 @@ function LessonForm({
     description: { es: string; en: string };
     duration: number;
     isFree: boolean;
+    videoId?: string;
   };
   onDone: () => void;
 }) {
@@ -226,6 +274,7 @@ function LessonForm({
   const translateAction = useAction(api.ai.translateText);
 
   const isEditing = !!lesson;
+  const hasExistingVideo = isEditing && lesson.videoId && lesson.videoId !== "pending-upload";
 
   const [titleEs, setTitleEs] = useState(lesson?.title.es ?? "");
   const [titleEn, setTitleEn] = useState(lesson?.title.en ?? "");
@@ -235,6 +284,16 @@ function LessonForm({
   const [isFree, setIsFree] = useState(lesson?.isFree ?? false);
   const [loading, setLoading] = useState(false);
   const [translating, setTranslating] = useState(false);
+  const [videoKey, setVideoKey] = useState<string | null>(lesson?.videoId ?? null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [processingStep, setProcessingStep] = useState<string | null>(null);
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (pollingRef.current) clearInterval(pollingRef.current);
+    };
+  }, []);
 
   const handleTranslate = async () => {
     setTranslating(true);
@@ -251,26 +310,90 @@ function LessonForm({
     setTranslating(false);
   };
 
+  const handleUploadUrl = async (file: File) => {
+    const result = await media.createUploadUrl({
+      filename: file.name,
+      contentType: file.type,
+    });
+    return result;
+  };
+
+  const startProcessing = useCallback(async (key: string) => {
+    setProcessingStep("Iniciando transcode...");
+    try {
+      const transcodeJob = await media.transcode(key);
+      const captionsJob = await media.requestCaptions(key, ["es-CO", "en"]);
+
+      setProcessingStep("Transcoding video...");
+      pollingRef.current = setInterval(async () => {
+        try {
+          const [tStatus, cStatus] = await Promise.all([
+            media.getTranscodeStatus(transcodeJob.jobId),
+            media.getCaptionsStatus(captionsJob.transcriptId),
+          ]);
+
+          if (tStatus.status === "completed" && cStatus.status === "completed") {
+            if (pollingRef.current) clearInterval(pollingRef.current);
+            pollingRef.current = null;
+            setProcessingStep(null);
+          } else if (tStatus.status === "completed") {
+            setProcessingStep("Generando subtítulos...");
+          } else {
+            setProcessingStep("Transcoding video...");
+          }
+
+          if (cStatus.status === "failed") {
+            if (pollingRef.current) clearInterval(pollingRef.current);
+            pollingRef.current = null;
+            setProcessingStep(null);
+            setUploadError(`Subtítulos fallaron: ${cStatus.error ?? "error desconocido"}`);
+          }
+        } catch {
+          // keep polling on transient errors
+        }
+      }, 5000);
+    } catch (err) {
+      setProcessingStep(null);
+      setUploadError(err instanceof Error ? err.message : "Error al iniciar procesamiento");
+    }
+  }, []);
+
+  const handleUploadComplete = (result: { key: string; file: File }) => {
+    setVideoKey(result.key);
+    setUploadError(null);
+    startProcessing(result.key);
+  };
+
+  const handleUploadError = (error: Error) => {
+    setUploadError(error.message);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
+      const isNewVideo = videoKey && videoKey !== "pending-upload";
       if (isEditing) {
+        const videoChanged = videoKey && videoKey !== lesson.videoId;
         await updateLesson({
           lessonId: lesson._id,
           title: { es: titleEs, en: titleEn || titleEs },
           description: { es: descEs, en: descEn || descEs },
           duration: parseInt(duration, 10) || 0,
           isFree,
+          ...(videoChanged
+            ? { videoId: videoKey, mediaStatus: (processingStep ? "processing" : "ready") as "processing" | "ready" }
+            : {}),
         });
       } else {
         await createLesson({
           courseId,
           title: { es: titleEs, en: titleEn || titleEs },
           description: { es: descEs, en: descEn || descEs },
-          videoId: "pending-upload",
+          videoId: videoKey || "pending-upload",
           duration: parseInt(duration, 10) || 0,
           isFree,
+          ...(isNewVideo ? { mediaStatus: (processingStep ? "processing" : "ready") as "processing" | "ready" } : {}),
         });
       }
       onDone();
@@ -334,6 +457,76 @@ function LessonForm({
             />
           </div>
         </div>
+        <div>
+          <Label className="text-xs uppercase tracking-wider font-medium mb-2 block">Video</Label>
+          {hasExistingVideo ? (
+            <div className="flex items-center gap-3 p-3 border border-dashed rounded-md bg-background">
+              <Film className="size-5 text-muted-foreground shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{lesson.videoId}</p>
+                <p className="text-xs text-muted-foreground">Video subido — sube otro para reemplazarlo</p>
+              </div>
+            </div>
+          ) : null}
+          <div className={hasExistingVideo ? "mt-2" : ""}>
+            <UploadZone
+              onUploadUrl={handleUploadUrl}
+              onComplete={handleUploadComplete}
+              onError={handleUploadError}
+              accept={["video/mp4", "video/quicktime", "video/webm"]}
+            >
+              {({ getRootProps, getInputProps, isDragging, isUploading, progress, file: uploadFile }) => (
+                <div
+                  {...getRootProps()}
+                  className={`relative flex flex-col items-center justify-center gap-2 p-6 border border-dashed rounded-md cursor-pointer transition-colors ${
+                    isDragging
+                      ? "border-foreground/50 bg-foreground/5"
+                      : videoKey && videoKey !== "pending-upload" && !hasExistingVideo
+                        ? "border-green-500/50 bg-green-500/5"
+                        : "border-muted-foreground/30 hover:border-muted-foreground/50 bg-background"
+                  }`}
+                >
+                  <input {...getInputProps()} />
+                  {isUploading ? (
+                    <>
+                      <Loader2 className="size-6 animate-spin text-muted-foreground" />
+                      <p className="text-sm text-muted-foreground">
+                        Subiendo {uploadFile?.name}... {Math.round(progress)}%
+                      </p>
+                      <div className="w-full max-w-xs h-1.5 bg-muted rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-foreground rounded-full transition-all duration-300"
+                          style={{ width: `${progress}%` }}
+                        />
+                      </div>
+                    </>
+                  ) : processingStep ? (
+                    <>
+                      <Loader2 className="size-6 animate-spin text-amber-500" />
+                      <p className="text-sm text-amber-600">{processingStep}</p>
+                      <p className="text-xs text-muted-foreground">Puedes guardar la lección mientras se procesa</p>
+                    </>
+                  ) : videoKey && videoKey !== "pending-upload" && !hasExistingVideo ? (
+                    <>
+                      <CheckCircle2 className="size-6 text-green-500" />
+                      <p className="text-sm text-green-600">Video listo</p>
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="size-6 text-muted-foreground" />
+                      <p className="text-sm text-muted-foreground">
+                        {isDragging ? "Suelta el video aquí" : "Arrastra un video o haz clic para seleccionar"}
+                      </p>
+                      <p className="text-xs text-muted-foreground/60">MP4, MOV o WebM · Máximo 2GB</p>
+                    </>
+                  )}
+                </div>
+              )}
+            </UploadZone>
+          </div>
+          {uploadError && <p className="text-sm text-red-500 mt-1">{uploadError}</p>}
+        </div>
+
         <div className="flex gap-4 items-end">
           <div className="max-w-32">
             <Label className="text-xs uppercase tracking-wider font-medium mb-2 block">Duración (seg)</Label>

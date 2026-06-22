@@ -43,9 +43,15 @@ export default defineSchema({
     duration: v.number(),
     order: v.number(),
     isFree: v.boolean(),
+    mediaStatus: v.optional(v.union(v.literal("processing"), v.literal("ready"), v.literal("error"))),
+    hlsPlaylistUrl: v.optional(v.string()),
+    thumbnailUrl: v.optional(v.string()),
+    captionLocales: v.optional(v.array(v.string())),
+    mediaError: v.optional(v.string()),
   })
     .index("by_course", ["courseId"])
-    .index("by_course_order", ["courseId", "order"]),
+    .index("by_course_order", ["courseId", "order"])
+    .index("by_videoId", ["videoId"]),
 
   progress: defineTable({
     userId: v.string(),

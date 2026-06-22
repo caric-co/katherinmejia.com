@@ -155,7 +155,7 @@ function CoursesListPage() {
                   <Pencil className="size-4" />
                   Editar
                 </DropdownMenuItem>
-                <DropdownMenuItem render={<Link to={`/admin/courses/${course._id}/lessons` as string} />}>
+                <DropdownMenuItem render={<Link to={`/admin/courses/${course.slug.es}/lessons` as string} />}>
                   <BookOpen className="size-4" />
                   Lecciones
                 </DropdownMenuItem>

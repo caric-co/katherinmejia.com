@@ -23,6 +23,7 @@ interface FormFieldProps {
   nextFieldId?: string;
   submitId?: string;
   isFormValid?: boolean;
+  hint?: string;
 }
 
 export function FormField({
@@ -35,6 +36,7 @@ export function FormField({
   nextFieldId,
   submitId,
   isFormValid,
+  hint,
 }: FormFieldProps) {
   const hasError = field.state.meta.isTouched && field.state.meta.errors.length > 0;
   const errorMessage = hasError ? getErrorMessage(field.state.meta.errors[0]) : null;
@@ -58,6 +60,9 @@ export function FormField({
     field.handleBlur();
   };
 
+  const bottomText = errorMessage ?? hint ?? " ";
+  const bottomClass = errorMessage ? "text-destructive" : hint ? "text-muted-foreground" : "text-transparent";
+
   return (
     <motion.div className={className} animate={controls}>
       <Label
@@ -78,9 +83,7 @@ export function FormField({
         aria-invalid={hasError}
         autoFocus={autoFocus}
       />
-      <p className={`text-sm mt-1 min-h-5 ${errorMessage ? "text-destructive" : "text-transparent"}`}>
-        {errorMessage ?? " "}
-      </p>
+      <p className={`text-sm mt-1 min-h-5 ${bottomClass}`}>{bottomText}</p>
     </motion.div>
   );
 }
