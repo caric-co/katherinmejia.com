@@ -48,6 +48,17 @@ import {
   Youtube,
 } from "novel";
 
+let _uploadHandler: ((file: File) => Promise<{ url: string; key: string }>) | null = null;
+let _viewerToken: string | null = null;
+
+export function setBlogEditorUploadConfig(
+  handler: (file: File) => Promise<{ url: string; key: string }>,
+  token: string,
+) {
+  _uploadHandler = handler;
+  _viewerToken = token;
+}
+
 const slashItems = createSuggestionItems([
   {
     title: "Texto",
@@ -123,13 +134,30 @@ const slashItems = createSuggestionItems([
   },
   {
     title: "Imagen",
-    description: "Insertar imagen por URL",
-    searchTerms: ["image", "photo"],
+    description: "Subir imagen desde tu dispositivo",
+    searchTerms: ["image", "photo", "imagen", "upload"],
     icon: <Image className="size-4" />,
     command: ({ editor, range }) => {
       editor.chain().focus().deleteRange(range).run();
-      const url = window.prompt("URL de la imagen:");
-      if (url) editor.chain().focus().setImage({ src: url }).run();
+      if (!_uploadHandler) return;
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = "image/jpeg,image/png,image/webp";
+      input.onchange = async () => {
+        const file = input.files?.[0];
+        if (!file || !_uploadHandler) return;
+        try {
+          const { url, key } = await _uploadHandler(file);
+          await fetch(url, { method: "PUT", body: file, headers: { "Content-Type": file.type } });
+          const { media } = await import("#/lib/media");
+          const imageUrl = media.getMediaUrl(key);
+          const authedUrl = _viewerToken
+            ? `${imageUrl}${imageUrl.includes("?") ? "&" : "?"}token=${_viewerToken}`
+            : imageUrl;
+          editor.chain().focus().setImage({ src: authedUrl }).run();
+        } catch {}
+      };
+      input.click();
     },
   },
   {

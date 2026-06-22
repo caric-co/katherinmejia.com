@@ -8,7 +8,8 @@ import { Button } from "@repo/ui/components/button";
 import { Separator } from "@repo/ui/components/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@repo/ui/components/tooltip";
 
-import { BlogEditor, type BlogEditorRef } from "#/components/editor/blog-editor";
+import { BlogEditor, type BlogEditorRef, setBlogEditorUploadConfig } from "#/components/editor/blog-editor";
+import { ImageUpload } from "#/components/image-upload";
 import { useBlogEditorStore } from "#/stores/blog-editor-store";
 
 function slugify(text: string): string {
@@ -20,6 +21,14 @@ function slugify(text: string): string {
     .replace(/^-|-$/g, "");
 }
 
+interface BlogPayload {
+  title: { es: string; en: string };
+  slug: { es: string; en: string };
+  excerpt: { es: string; en: string };
+  content: { es: string; en: string };
+  coverImageUrl?: string;
+}
+
 interface BlogPostEditorProps {
   initialData?: {
     titleEs: string;
@@ -28,22 +37,15 @@ interface BlogPostEditorProps {
     excerptEn: string;
     contentHtml: string;
     contentEn: string;
+    coverImageUrl?: string | null;
   };
-  onSave: (data: {
-    title: { es: string; en: string };
-    slug: { es: string; en: string };
-    excerpt: { es: string; en: string };
-    content: { es: string; en: string };
-  }) => Promise<void>;
-  onPublish?: (data: {
-    title: { es: string; en: string };
-    slug: { es: string; en: string };
-    excerpt: { es: string; en: string };
-    content: { es: string; en: string };
-  }) => Promise<void>;
+  onSave: (data: BlogPayload) => Promise<void>;
+  onPublish?: (data: BlogPayload) => Promise<void>;
   onCancel: () => void;
   onUnpublish?: () => void;
   isPublished?: boolean;
+  createUploadUrl: (args: { filename: string; contentType: string }) => Promise<{ url: string; key: string }>;
+  viewerToken: string | null;
 }
 
 export function BlogPostEditor({
@@ -53,11 +55,22 @@ export function BlogPostEditor({
   onCancel,
   onUnpublish,
   isPublished,
+  createUploadUrl,
+  viewerToken,
 }: BlogPostEditorProps) {
   const store = useBlogEditorStore();
   const translateAction = useAction(api.ai.translateToEnglish);
   const generateExcerptAction = useAction(api.ai.generateExcerpt);
   const capitalizeTitleAction = useAction(api.ai.capitalizeTitle);
+
+  useEffect(() => {
+    if (viewerToken) {
+      setBlogEditorUploadConfig(
+        async (file) => createUploadUrl({ filename: file.name, contentType: file.type }),
+        viewerToken,
+      );
+    }
+  }, [createUploadUrl, viewerToken]);
   const editorRef = useRef<BlogEditorRef>(null);
   const initializedRef = useRef(false);
 
@@ -83,6 +96,7 @@ export function BlogPostEditor({
       es: store.contentHtml || store.contentEs,
       en: store.contentEn || store.contentHtml || store.contentEs,
     },
+    ...(store.coverImageUrl ? { coverImageUrl: store.coverImageUrl } : {}),
   });
 
   const handleTitleBlur = async () => {
@@ -280,6 +294,16 @@ export function BlogPostEditor({
       </div>
 
       {store.error && <p className="text-destructive mb-4">{store.error}</p>}
+
+      <ImageUpload
+        value={store.coverImageUrl}
+        onChange={store.setCoverImageUrl}
+        onUploadUrl={async (file) => createUploadUrl({ filename: file.name, contentType: file.type })}
+        token={viewerToken}
+        label="Imagen de portada"
+        aspectRatio="21/9"
+        className="mb-6"
+      />
 
       <div className="relative">
         <input

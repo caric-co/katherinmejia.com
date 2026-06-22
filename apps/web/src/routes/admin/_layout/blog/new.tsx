@@ -1,5 +1,7 @@
+import { useEffect, useState } from "react";
+
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMutation } from "convex/react";
+import { useAction, useMutation } from "convex/react";
 
 import { api } from "@convex/_generated/api";
 
@@ -13,6 +15,13 @@ function NewBlogPostPage() {
   const navigate = useNavigate();
   const createPost = useMutation(api.blogPosts.create);
   const publishPost = useMutation(api.blogPosts.publish);
+  const issueViewerToken = useAction(api.devultur.issueViewerToken);
+  const createUploadUrl = useAction(api.devultur.createUploadUrl);
+  const [viewerToken, setViewerToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    issueViewerToken().then(setViewerToken);
+  }, [issueViewerToken]);
 
   return (
     <BlogPostEditor
@@ -26,6 +35,11 @@ function NewBlogPostPage() {
         navigate({ to: "/admin/blog" });
       }}
       onCancel={() => navigate({ to: "/admin/blog" })}
+      createUploadUrl={async (args) => {
+        const r = await createUploadUrl(args);
+        return { url: r.url, key: r.key };
+      }}
+      viewerToken={viewerToken}
     />
   );
 }

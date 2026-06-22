@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useAction, useMutation } from "convex/react";
-import { ImagePlus } from "lucide-react";
+import {} from "lucide-react";
 import { motion } from "motion/react";
 import { z } from "zod";
 
@@ -15,6 +15,7 @@ import { Separator } from "@repo/ui/components/separator";
 
 import { CourseCardPreview, CourseDetailPreview } from "#/components/course-preview";
 import { FormField } from "#/components/form-field";
+import { ImageUpload } from "#/components/image-upload";
 import { SmartSubmit } from "#/components/smart-submit";
 import { triggerPulse, useAutoAdvance, usePulse, useSubmitPulse } from "#/lib/form-primitives";
 
@@ -59,10 +60,18 @@ function NewCoursePage() {
   const navigate = useNavigate();
   const createCourse = useMutation(api.courses.create);
   const translateAction = useAction(api.ai.translateText);
+  const issueViewerToken = useAction(api.devultur.issueViewerToken);
+  const createUploadUrlAction = useAction(api.devultur.createUploadUrl);
   const [serverError, setServerError] = useState("");
   const [previewLang, setPreviewLang] = useState<"es" | "en">("es");
   const [titleEn, setTitleEn] = useState("");
   const [descEn, setDescEn] = useState("");
+  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
+  const [viewerToken, setViewerToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    issueViewerToken().then(setViewerToken);
+  }, [issueViewerToken]);
   const submitControls = useSubmitPulse(SUBMIT_ID);
 
   const form = useForm({
@@ -87,6 +96,7 @@ function NewCoursePage() {
           description: { es: value.description, en: finalDescEn },
           slug: { es: slug, en: slugify(finalTitleEn) },
           price: parseCOP(value.price),
+          ...(thumbnailUrl ? { thumbnailUrl } : {}),
         });
         navigate({ to: "/admin/courses" });
       } catch (err: any) {
@@ -142,12 +152,16 @@ function NewCoursePage() {
 
           <div>
             <Label className="text-xs uppercase tracking-wider font-medium mb-2 block">Thumbnail</Label>
-            <div className="flex items-center justify-center w-full h-40 border border-dashed border-input/60 rounded-sm bg-muted/30 text-muted-foreground cursor-not-allowed">
-              <div className="flex flex-col items-center gap-2">
-                <ImagePlus className="size-6" />
-                <span className="text-xs">Próximamente</span>
-              </div>
-            </div>
+            <ImageUpload
+              value={thumbnailUrl}
+              onChange={setThumbnailUrl}
+              onUploadUrl={async (file) => {
+                const r = await createUploadUrlAction({ filename: file.name, contentType: file.type });
+                return { url: r.url, key: r.key };
+              }}
+              token={viewerToken}
+              label="Thumbnail del curso"
+            />
           </div>
 
           {serverError && <p className="text-sm text-destructive">{serverError}</p>}

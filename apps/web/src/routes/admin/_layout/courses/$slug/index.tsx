@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useAction, useMutation, useQuery } from "convex/react";
-import { BookOpen, ImagePlus } from "lucide-react";
+import { BookOpen } from "lucide-react";
 import { motion } from "motion/react";
 import { z } from "zod";
 
@@ -16,6 +16,7 @@ import { Separator } from "@repo/ui/components/separator";
 
 import { CourseCardPreview, CourseDetailPreview } from "#/components/course-preview";
 import { FormField } from "#/components/form-field";
+import { ImageUpload } from "#/components/image-upload";
 import { SmartSubmit } from "#/components/smart-submit";
 import { triggerPulse, useAutoAdvance, usePulse, useSubmitPulse } from "#/lib/form-primitives";
 
@@ -64,8 +65,15 @@ function EditCoursePage() {
   const updateCourse = useMutation(api.courses.update);
   const updateStatus = useMutation(api.courses.updateStatus);
   const translateAction = useAction(api.ai.translateText);
+  const issueViewerToken = useAction(api.devultur.issueViewerToken);
+  const createUploadUrlAction = useAction(api.devultur.createUploadUrl);
 
   const [serverError, setServerError] = useState("");
+  const [viewerToken, setViewerToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    issueViewerToken().then(setViewerToken);
+  }, [issueViewerToken]);
   const [previewLang, setPreviewLang] = useState<"es" | "en">("es");
   const [titleEn, setTitleEn] = useState("");
   const [descEn, setDescEn] = useState("");
@@ -103,6 +111,8 @@ function EditCoursePage() {
       updateCourse={updateCourse}
       updateStatus={updateStatus}
       translateAction={translateAction}
+      viewerToken={viewerToken}
+      createUploadUrlAction={createUploadUrlAction}
     />
   );
 }
@@ -125,6 +135,8 @@ function EditCourseForm({
   updateCourse,
   updateStatus,
   translateAction,
+  viewerToken,
+  createUploadUrlAction,
 }: {
   course: any;
   routeSlug: string;
@@ -143,7 +155,11 @@ function EditCourseForm({
   updateCourse: any;
   updateStatus: any;
   translateAction: any;
+  viewerToken: string | null;
+  createUploadUrlAction: any;
 }) {
+  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(course.thumbnailUrl ?? null);
+
   const form = useForm({
     defaultValues: {
       title: course.title.es,
@@ -171,6 +187,7 @@ function EditCourseForm({
           description: { es: value.description, en: finalDescEn },
           slug: { es: slugEs, en: slugify(finalTitleEn) },
           price: parseCOP(value.price),
+          thumbnailUrl: thumbnailUrl ?? undefined,
         });
         navigate({ to: "/admin/courses" });
       } catch (err: any) {
@@ -236,12 +253,16 @@ function EditCourseForm({
 
           <div>
             <Label className="text-xs uppercase tracking-wider font-medium mb-2 block">Thumbnail</Label>
-            <div className="flex items-center justify-center w-full h-40 border border-dashed border-input/60 rounded-sm bg-muted/30 text-muted-foreground cursor-not-allowed">
-              <div className="flex flex-col items-center gap-2">
-                <ImagePlus className="size-6" />
-                <span className="text-xs">Próximamente</span>
-              </div>
-            </div>
+            <ImageUpload
+              value={thumbnailUrl}
+              onChange={setThumbnailUrl}
+              onUploadUrl={async (file) => {
+                const r = await createUploadUrlAction({ filename: file.name, contentType: file.type });
+                return { url: r.url, key: r.key };
+              }}
+              token={viewerToken}
+              label="Thumbnail del curso"
+            />
           </div>
 
           {serverError && <p className="text-sm text-destructive">{serverError}</p>}

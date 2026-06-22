@@ -8,6 +8,7 @@ interface BlogEditorState {
   titleEn: string;
   excerptEn: string;
   contentEn: string;
+  coverImageUrl: string | null;
 
   view: "editor" | "preview";
   previewLang: "es" | "en";
@@ -25,6 +26,7 @@ interface BlogEditorState {
   setTitleEn: (v: string) => void;
   setExcerptEn: (v: string) => void;
   setContentEn: (v: string) => void;
+  setCoverImageUrl: (v: string | null) => void;
 
   setView: (v: "editor" | "preview") => void;
   setPreviewLang: (v: "es" | "en") => void;
@@ -42,6 +44,7 @@ interface BlogEditorState {
     excerptEn: string;
     contentHtml: string;
     contentEn: string;
+    coverImageUrl?: string | null;
   }) => void;
   reset: () => void;
 }
@@ -54,6 +57,7 @@ const initialState = {
   titleEn: "",
   excerptEn: "",
   contentEn: "",
+  coverImageUrl: null as string | null,
 
   view: "editor" as const,
   previewLang: "es" as const,
@@ -75,6 +79,7 @@ export const useBlogEditorStore = create<BlogEditorState>((set) => ({
   setTitleEn: (v) => set({ titleEn: v }),
   setExcerptEn: (v) => set({ excerptEn: v }),
   setContentEn: (v) => set({ contentEn: v }),
+  setCoverImageUrl: (v) => set({ coverImageUrl: v }),
 
   setView: (v) => set({ view: v }),
   setPreviewLang: (v) => set({ previewLang: v }),

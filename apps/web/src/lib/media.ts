@@ -1,8 +1,8 @@
 import { createMediaRouter, file, image, video } from "@devultur/core";
 
 export const media = createMediaRouter({
-  apiKey: import.meta.env.VITE_DEVULTUR_API_KEY,
-  baseUrl: import.meta.env.VITE_DEVULTUR_API_URL,
+  apiKey: "",
+  baseUrl: "https://devultur-api.crdemar.workers.dev",
 
   video: video({
     maxSize: "2GB",

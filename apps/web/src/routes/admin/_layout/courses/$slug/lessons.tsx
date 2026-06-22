@@ -396,7 +396,13 @@ function LessonForm({
     autoStart: true,
   });
 
-  const authToken = import.meta.env.VITE_DEVULTUR_API_KEY;
+  const issueViewerToken = useAction(api.devultur.issueViewerToken);
+  const createUploadUrlAction = useAction(api.devultur.createUploadUrl);
+  const [authToken, setAuthToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    issueViewerToken().then(setAuthToken);
+  }, [issueViewerToken]);
 
   const existingVideoId = hasExistingVideo ? extractId(lesson.videoId!) : null;
   const existingPlaylistUrl =
@@ -476,11 +482,11 @@ function LessonForm({
     const duration = await getVideoDuration(file);
     if (duration > 0) setVideoDuration(duration);
 
-    const result = await media.createUploadUrl({
+    const result = await createUploadUrlAction({
       filename: file.name,
       contentType: file.type,
     });
-    return result;
+    return { url: result.url, key: result.key };
   };
 
   const form = useForm({
@@ -663,7 +669,7 @@ function LessonForm({
               <VideoPlayer
                 ref={playerRef}
                 src={`${playlistUrl}${playlistUrl.includes("?") ? "&" : "?"}token=${authToken}`}
-                token={authToken}
+                token={authToken ?? undefined}
                 captions={captionTracks}
                 defaultCaption="es-CO"
                 aspectRatio="16/9"
@@ -794,7 +800,7 @@ function LessonForm({
               captions={captionTracks}
               locale={activeSubLocale}
               currentTime={currentTime}
-              token={authToken}
+              token={authToken ?? undefined}
               onSeek={(seconds) => {
                 playerRef.current?.seek(seconds);
                 playerRef.current?.play();
