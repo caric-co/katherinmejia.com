@@ -1,7 +1,6 @@
 import { createMediaRouter, file, image, video } from "@devultur/core";
 
 export const media = createMediaRouter({
-  apiKey: "",
   baseUrl: "https://devultur-api.crdemar.workers.dev",
 
   video: video({
