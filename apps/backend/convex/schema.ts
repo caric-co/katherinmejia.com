@@ -38,6 +38,7 @@ export default defineSchema({
   lessons: defineTable({
     courseId: v.id("courses"),
     title: bilingualText,
+    slug: v.optional(v.string()),
     description: bilingualText,
     videoId: v.string(),
     duration: v.number(),

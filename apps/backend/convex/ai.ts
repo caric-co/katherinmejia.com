@@ -119,6 +119,35 @@ export const translateText = action({
   },
 });
 
+export const generateLessonMetadata = action({
+  args: { transcript: v.string() },
+  handler: async (_ctx, args) => {
+    if (!args.transcript.trim()) return { title: "", description: "", tokensUsed: 0 };
+    const { text, tokensUsed } = await callMistral(
+      `You are a Spanish content editor for an online makeup and beauty course platform. Given a video lesson transcript, generate:
+
+1. A concise, descriptive title in Spanish (max 60 chars). Use proper Spanish title capitalization.
+2. A brief description in Spanish (1-2 sentences, max 200 chars) summarizing what the student will learn.
+
+Respond in JSON format only: {"title": "...", "description": "..."}`,
+      `Transcript:\n\n${args.transcript.slice(0, 4000)}`,
+      300,
+    );
+    try {
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) return { title: "", description: "", tokensUsed };
+      const parsed = JSON.parse(jsonMatch[0]);
+      return {
+        title: (parsed.title ?? "").replace(/^["']|["']$/g, ""),
+        description: (parsed.description ?? "").replace(/^["']|["']$/g, ""),
+        tokensUsed,
+      };
+    } catch {
+      return { title: "", description: "", tokensUsed };
+    }
+  },
+});
+
 export const capitalizeTitle = action({
   args: { title: v.string() },
   handler: async (_ctx, args) => {

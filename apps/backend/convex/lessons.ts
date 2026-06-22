@@ -25,6 +25,7 @@ export const create = mutation({
   args: {
     courseId: v.id("courses"),
     title: bilingualText,
+    slug: v.optional(v.string()),
     description: bilingualText,
     videoId: v.string(),
     duration: v.number(),
@@ -49,6 +50,7 @@ export const update = mutation({
   args: {
     lessonId: v.id("lessons"),
     title: v.optional(bilingualText),
+    slug: v.optional(v.string()),
     description: v.optional(bilingualText),
     videoId: v.optional(v.string()),
     duration: v.optional(v.number()),
