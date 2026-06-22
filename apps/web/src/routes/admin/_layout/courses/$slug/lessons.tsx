@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { captionPath, extractId, videoHlsPlaylistPath } from "@devultur/core";
-import { UploadZone, useVideoProcessing, VideoPlayer } from "@devultur/react";
+import { UploadZone, useVideoProcessing, VideoPlayer, type VideoPlayerRef } from "@devultur/react";
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { useAction, useMutation, useQuery } from "convex/react";
@@ -339,7 +339,7 @@ function LessonForm({
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [serverError, setServerError] = useState("");
   const [savedAsDraft, setSavedAsDraft] = useState(false);
-  const [seekTo, setSeekTo] = useState<number | undefined>(undefined);
+  const playerRef = useRef<VideoPlayerRef>(null);
   const [activeSubLocale, setActiveSubLocale] = useState<string>("es-CO");
   const draftLessonIdRef = useRef<Id<"lessons"> | null>(lesson?._id ?? null);
   const submitControls = useSubmitPulse(SUBMIT_ID);
@@ -569,15 +569,17 @@ function LessonForm({
           <Label className="text-xs uppercase tracking-wider font-medium mb-2 block">Video</Label>
 
           {playlistUrl && authToken && (
-            <div className="mb-3 rounded-md overflow-hidden border border-border bg-black max-h-72">
+            <div
+              className="mb-3 rounded-md overflow-hidden border border-border bg-black"
+              style={{ aspectRatio: "16/9", maxHeight: "18rem" }}
+            >
               <VideoPlayer
+                ref={playerRef}
                 src={`${playlistUrl}${playlistUrl.includes("?") ? "&" : "?"}token=${authToken}`}
                 token={authToken}
                 captions={captionTracks}
                 defaultCaption="es-CO"
-                startTime={seekTo}
                 aspectRatio="16/9"
-                className="w-full max-h-72"
               />
             </div>
           )}
@@ -706,7 +708,10 @@ function LessonForm({
                       type="button"
                       key={i}
                       className="flex gap-3 py-1 text-sm w-full text-left hover:bg-muted/50 rounded-sm px-1 -mx-1 transition-colors cursor-pointer"
-                      onClick={() => setSeekTo(cue.seconds)}
+                      onClick={() => {
+                        playerRef.current?.seek(cue.seconds);
+                        playerRef.current?.play();
+                      }}
                     >
                       <span className="text-muted-foreground font-mono text-xs shrink-0 pt-0.5">{cue.time}</span>
                       <span>{cue.text}</span>

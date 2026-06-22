@@ -109,14 +109,14 @@ importers:
         specifier: ^0.1.0
         version: 0.1.0(@tanstack/react-query@5.101.0(react@19.2.7))(convex@1.41.0(react@19.2.7))
       '@devultur/core':
-        specifier: ^0.2.5
-        version: 0.2.5
+        specifier: ^0.2.7
+        version: 0.2.7
       '@devultur/react':
-        specifier: ^0.2.5
-        version: 0.2.5(react@19.2.7)
+        specifier: ^0.2.7
+        version: 0.2.7(react@19.2.7)
       '@devultur/server':
-        specifier: ^0.2.5
-        version: 0.2.5
+        specifier: ^0.2.7
+        version: 0.2.7
       '@repo/backend':
         specifier: workspace:*
         version: link:../backend
@@ -738,16 +738,16 @@ packages:
   '@daybrush/utils@1.13.0':
     resolution: {integrity: sha512-ALK12C6SQNNHw1enXK+UO8bdyQ+jaWNQ1Af7Z3FNxeAwjYhQT7do+TRE4RASAJ3ObaS2+TJ7TXR3oz2Gzbw0PQ==}
 
-  '@devultur/core@0.2.5':
-    resolution: {integrity: sha512-3up38NV6pulIj3kr/hvssFQR38jlJ//3DQTUjtM3pTswg8iCCBUk+YZxHPpLwBZ8t5sJK42bN2YvIAYqi+L/3w==}
+  '@devultur/core@0.2.7':
+    resolution: {integrity: sha512-FUyvf0v+vNcTF6lY/ecJMZpggvlk3MlwzwJk6eU+Ts6ineA5Dqfyb6/6y/GY3dsrPNqgThrrdiJDY2w81yieww==}
 
-  '@devultur/react@0.2.5':
-    resolution: {integrity: sha512-r7/rHz6ssEBkzCyVe4j1dwRvbTVLZe9Eocws6a3G3pK0fqGw/1PMsxR0JKkcRBfMpnqJhWUAZUU6b6VtRjERCQ==}
+  '@devultur/react@0.2.7':
+    resolution: {integrity: sha512-TW4506Tuloo0T7xjExNaPM7ahNabZRE3AZgVbrRJpXmFIOE2wp/0ZuFcV+u1fQhcHLaONbma2LXUTmrqQ/RAcw==}
     peerDependencies:
       react: '>=19.0.0'
 
-  '@devultur/server@0.2.5':
-    resolution: {integrity: sha512-pXCFjEKIjF745adT8bzZVyla1E8Xd3W3+I4ChHZjytsq/HT0INhODkRyi3YHMDiFGTHxQIr639qFrfFdayg8rA==}
+  '@devultur/server@0.2.7':
+    resolution: {integrity: sha512-9Ce7lHnFSuQh3iayS71WhPfRU2A1UbL7GolBmnYTu6bgpFFos/wVSTEXCHkejsSsvzJjYf8/OxAijoaMFAm5QQ==}
 
   '@dotenvx/dotenvx@1.73.1':
     resolution: {integrity: sha512-AWf8edAsSpINqJbtaZsaiV3PO+vw5pS4wJFl6ahYNdnp3gfFYeMxRCdsA9042bKP4UPCs8yr5FikSFlvkmFVag==}
@@ -5790,20 +5790,20 @@ snapshots:
 
   '@daybrush/utils@1.13.0': {}
 
-  '@devultur/core@0.2.5':
+  '@devultur/core@0.2.7':
     dependencies:
       '@aws-sdk/client-s3': 3.1073.0
       '@aws-sdk/s3-request-presigner': 3.1073.0
 
-  '@devultur/react@0.2.5(react@19.2.7)':
+  '@devultur/react@0.2.7(react@19.2.7)':
     dependencies:
-      '@devultur/core': 0.2.5
+      '@devultur/core': 0.2.7
       hls.js: 1.6.16
       react: 19.2.7
 
-  '@devultur/server@0.2.5':
+  '@devultur/server@0.2.7':
     dependencies:
-      '@devultur/core': 0.2.5
+      '@devultur/core': 0.2.7
 
   '@dotenvx/dotenvx@1.73.1':
     dependencies:
