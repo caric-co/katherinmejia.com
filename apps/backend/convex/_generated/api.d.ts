@@ -13,6 +13,7 @@ import type * as ai from "../ai.js";
 import type * as auth from "../auth.js";
 import type * as blogPosts from "../blogPosts.js";
 import type * as courses from "../courses.js";
+import type * as devultur from "../devultur.js";
 import type * as http from "../http.js";
 import type * as invitations from "../invitations.js";
 import type * as lessons from "../lessons.js";
@@ -33,6 +34,7 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   blogPosts: typeof blogPosts;
   courses: typeof courses;
+  devultur: typeof devultur;
   http: typeof http;
   invitations: typeof invitations;
   lessons: typeof lessons;
