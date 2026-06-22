@@ -47,6 +47,7 @@ export default defineSchema({
     hlsPlaylistUrl: v.optional(v.string()),
     thumbnailUrl: v.optional(v.string()),
     captionLocales: v.optional(v.array(v.string())),
+    captionTranscriptId: v.optional(v.string()),
     mediaError: v.optional(v.string()),
   })
     .index("by_course", ["courseId"])

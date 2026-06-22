@@ -1,15 +1,18 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { UploadZone } from "@devultur/react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { captionPath, extractId, videoHlsPlaylistPath } from "@devultur/core";
+import { UploadZone, useVideoProcessing, VideoPlayer } from "@devultur/react";
+import { useForm } from "@tanstack/react-form";
+import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { useAction, useMutation, useQuery } from "convex/react";
 import {
   ArrowLeft,
   CheckCircle2,
   ChevronDown,
   ChevronUp,
+  Clock,
+  Download,
   Film,
-  Languages,
   Loader2,
   MoreHorizontal,
   Pencil,
@@ -18,6 +21,8 @@ import {
   Upload,
   X,
 } from "lucide-react";
+import { motion } from "motion/react";
+import { z } from "zod";
 
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
@@ -29,11 +34,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@repo/ui/components/dropdown-menu";
-import { Input } from "@repo/ui/components/input";
 import { Label } from "@repo/ui/components/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@repo/ui/components/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@repo/ui/components/tooltip";
 
+import { FormField } from "#/components/form-field";
+import { SmartSubmit } from "#/components/smart-submit";
+import { useAutoAdvance, usePulse, useSubmitPulse } from "#/lib/form-primitives";
 import { media } from "#/lib/media";
 
 export const Route = createFileRoute("/admin/_layout/courses/$slug/lessons")({
@@ -46,8 +53,26 @@ function formatDuration(seconds: number): string {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
+function getVideoDuration(file: File): Promise<number> {
+  return new Promise((resolve) => {
+    const video = document.createElement("video");
+    video.preload = "metadata";
+    video.onloadedmetadata = () => {
+      resolve(Math.round(video.duration));
+      URL.revokeObjectURL(video.src);
+    };
+    video.onerror = () => {
+      resolve(0);
+      URL.revokeObjectURL(video.src);
+    };
+    video.src = URL.createObjectURL(file);
+  });
+}
+
 function LessonsPage() {
   const { slug: routeSlug } = Route.useParams();
+  const navigate = useNavigate();
+  const router = useRouter();
   const course = useQuery(api.courses.getBySlug, { slug: routeSlug });
   const courseId = course?._id;
   const lessons = useQuery(api.lessons.listByCourse, courseId ? { courseId } : "skip");
@@ -76,12 +101,21 @@ function LessonsPage() {
 
   return (
     <div>
-      <Link to={`/admin/courses/${routeSlug}` as string}>
-        <Button variant="ghost" size="sm" className="mb-4">
-          <ArrowLeft data-icon="inline-start" className="size-3.5" />
-          Volver al curso
-        </Button>
-      </Link>
+      <Button
+        variant="ghost"
+        size="sm"
+        className="mb-4"
+        onClick={() => {
+          if (router.history.length > 1) {
+            router.history.back();
+          } else {
+            navigate({ to: "/admin/courses" });
+          }
+        }}
+      >
+        <ArrowLeft data-icon="inline-start" className="size-3.5" />
+        Volver
+      </Button>
 
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -135,6 +169,11 @@ function LessonsPage() {
                   <TableCell className="text-muted-foreground font-mono">{lesson.order}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
+                      {lesson.isFree && (
+                        <Badge variant="outline" className="text-xs">
+                          Gratis
+                        </Badge>
+                      )}
                       <span className="font-medium">{lesson.title.es}</span>
                       <MediaStatusBadge status={lesson.mediaStatus} videoId={lesson.videoId} />
                     </div>
@@ -253,6 +292,20 @@ function MediaStatusBadge({ status, videoId }: { status?: string; videoId: strin
   );
 }
 
+const lessonSchema = z.object({
+  title: z.string().min(3, "Mínimo 3 caracteres"),
+  description: z.string(),
+});
+
+const SUBMIT_ID = "lesson-submit";
+const fieldLabels: Record<string, string> = { title: "Título" };
+
+const STATUS_LABELS: Record<string, string> = {
+  starting: "Iniciando...",
+  transcoding: "Transcoding video...",
+  captioning: "Generando subtítulos...",
+};
+
 function LessonForm({
   courseId,
   lesson,
@@ -266,6 +319,8 @@ function LessonForm({
     duration: number;
     isFree: boolean;
     videoId?: string;
+    mediaStatus?: string;
+    captionLocales?: string[];
   };
   onDone: () => void;
 }) {
@@ -275,42 +330,86 @@ function LessonForm({
 
   const isEditing = !!lesson;
   const hasExistingVideo = isEditing && lesson.videoId && lesson.videoId !== "pending-upload";
+  const isAlreadyReady = hasExistingVideo && lesson.mediaStatus === "ready";
 
-  const [titleEs, setTitleEs] = useState(lesson?.title.es ?? "");
-  const [titleEn, setTitleEn] = useState(lesson?.title.en ?? "");
-  const [descEs, setDescEs] = useState(lesson?.description?.es ?? "");
-  const [descEn, setDescEn] = useState(lesson?.description?.en ?? "");
-  const [duration, setDuration] = useState(lesson ? String(lesson.duration) : "");
   const [isFree, setIsFree] = useState(lesson?.isFree ?? false);
-  const [loading, setLoading] = useState(false);
-  const [translating, setTranslating] = useState(false);
   const [videoKey, setVideoKey] = useState<string | null>(lesson?.videoId ?? null);
+  const [videoDuration, setVideoDuration] = useState(lesson?.duration ?? 0);
+  const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
-  const [processingStep, setProcessingStep] = useState<string | null>(null);
-  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [serverError, setServerError] = useState("");
+  const [savedAsDraft, setSavedAsDraft] = useState(false);
+  const [seekTo, setSeekTo] = useState<number | undefined>(undefined);
+  const [activeSubLocale, setActiveSubLocale] = useState<string>("es-CO");
+  const draftLessonIdRef = useRef<Id<"lessons"> | null>(lesson?._id ?? null);
+  const submitControls = useSubmitPulse(SUBMIT_ID);
+
+  const processing = useVideoProcessing(media, isAlreadyReady ? null : videoKey, {
+    locales: ["es-CO", "en"],
+    preset: "hls-720p",
+    autoStart: true,
+  });
+
+  const authToken = import.meta.env.VITE_DEVULTUR_API_KEY;
+
+  const existingVideoId = hasExistingVideo ? extractId(lesson.videoId!) : null;
+  const existingPlaylistUrl =
+    isAlreadyReady && existingVideoId ? media.getMediaUrl(videoHlsPlaylistPath(existingVideoId)) : null;
+  const existingVttUrls = useMemo(() => {
+    if (!isAlreadyReady || !existingVideoId || !lesson.captionLocales?.length) return {};
+    const urls: Record<string, string> = {};
+    for (const locale of lesson.captionLocales) {
+      urls[locale] = media.getMediaUrl(captionPath(existingVideoId, locale));
+    }
+    return urls;
+  }, [isAlreadyReady, existingVideoId, lesson?.captionLocales]);
+
+  const playlistUrl = existingPlaylistUrl ?? processing.playlistUrl;
+  const vttUrls = Object.keys(existingVttUrls).length > 0 ? existingVttUrls : processing.vttUrls;
+  const isProcessing =
+    !isAlreadyReady && processing.status !== "idle" && processing.status !== "ready" && processing.status !== "error";
+
+  const captionTracks = useMemo(() => {
+    return Object.entries(vttUrls).map(([locale, src]) => ({
+      locale,
+      label: locale === "es-CO" ? "Español" : "English",
+      src,
+    }));
+  }, [vttUrls]);
+
+  const [captionsVttText, setCaptionsVttText] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    return () => {
-      if (pollingRef.current) clearInterval(pollingRef.current);
-    };
-  }, []);
+    if (!authToken) return;
+    for (const [locale, url] of Object.entries(vttUrls)) {
+      if (captionsVttText[locale]) continue;
+      fetch(url, { headers: { Authorization: `Bearer ${authToken}` } })
+        .then((r) => (r.ok ? r.text() : null))
+        .then((text) => {
+          if (text) setCaptionsVttText((prev) => ({ ...prev, [locale]: text }));
+        })
+        .catch(() => {});
+    }
+  }, [vttUrls, captionsVttText]);
 
-  const handleTranslate = async () => {
-    setTranslating(true);
-    try {
-      if (titleEs && !titleEn) {
-        const result = await translateAction({ text: titleEs });
-        setTitleEn(result.translated);
-      }
-      if (descEs && !descEn) {
-        const result = await translateAction({ text: descEs });
-        setDescEn(result.translated);
-      }
-    } catch {}
-    setTranslating(false);
-  };
+  // Update Convex when processing completes (new uploads only)
+  useEffect(() => {
+    if (isAlreadyReady || processing.status !== "ready") return;
+    const lessonId = draftLessonIdRef.current;
+    if (!lessonId) return;
+
+    const locales = Object.keys(processing.vttUrls);
+    updateLesson({
+      lessonId,
+      mediaStatus: "ready",
+      ...(locales.length ? { captionLocales: locales } : {}),
+    }).catch(() => {});
+  }, [isAlreadyReady, processing.status, processing.vttUrls, updateLesson]);
 
   const handleUploadUrl = async (file: File) => {
+    const duration = await getVideoDuration(file);
+    if (duration > 0) setVideoDuration(duration);
+
     const result = await media.createUploadUrl({
       filename: file.name,
       contentType: file.type,
@@ -318,157 +417,196 @@ function LessonForm({
     return result;
   };
 
-  const startProcessing = useCallback(async (key: string) => {
-    setProcessingStep("Iniciando transcode...");
-    try {
-      const transcodeJob = await media.transcode(key);
-      const captionsJob = await media.requestCaptions(key, ["es-CO", "en"]);
+  const form = useForm({
+    defaultValues: {
+      title: lesson?.title.es ?? "",
+      description: lesson?.description?.es ?? "",
+    },
+    validators: { onChange: lessonSchema },
+    onSubmit: async ({ value }) => {
+      setServerError("");
+      try {
+        const [titleResult, descResult] = await Promise.all([
+          translateAction({ text: value.title }),
+          value.description ? translateAction({ text: value.description }) : null,
+        ]);
 
-      setProcessingStep("Transcoding video...");
-      pollingRef.current = setInterval(async () => {
-        try {
-          const [tStatus, cStatus] = await Promise.all([
-            media.getTranscodeStatus(transcodeJob.jobId),
-            media.getCaptionsStatus(captionsJob.transcriptId),
-          ]);
+        const titleEn = titleResult.translated || value.title;
+        const descEn = descResult?.translated || value.description || value.title;
 
-          if (tStatus.status === "completed" && cStatus.status === "completed") {
-            if (pollingRef.current) clearInterval(pollingRef.current);
-            pollingRef.current = null;
-            setProcessingStep(null);
-          } else if (tStatus.status === "completed") {
-            setProcessingStep("Generando subtítulos...");
-          } else {
-            setProcessingStep("Transcoding video...");
-          }
-
-          if (cStatus.status === "failed") {
-            if (pollingRef.current) clearInterval(pollingRef.current);
-            pollingRef.current = null;
-            setProcessingStep(null);
-            setUploadError(`Subtítulos fallaron: ${cStatus.error ?? "error desconocido"}`);
-          }
-        } catch {
-          // keep polling on transient errors
+        const lessonId = draftLessonIdRef.current ?? lesson?._id;
+        if (lessonId) {
+          await updateLesson({
+            lessonId,
+            title: { es: value.title, en: titleEn },
+            description: { es: value.description, en: descEn },
+            duration: videoDuration,
+            isFree,
+          });
+        } else {
+          await createLesson({
+            courseId,
+            title: { es: value.title, en: titleEn },
+            description: { es: value.description, en: descEn },
+            videoId: videoKey || "pending-upload",
+            duration: videoDuration,
+            isFree,
+          });
         }
-      }, 5000);
-    } catch (err) {
-      setProcessingStep(null);
-      setUploadError(err instanceof Error ? err.message : "Error al iniciar procesamiento");
-    }
-  }, []);
+        onDone();
+      } catch (err: any) {
+        setServerError(err.message ?? "Error al guardar");
+      }
+    },
+  });
 
-  const handleUploadComplete = (result: { key: string; file: File }) => {
+  const saveDraft = useCallback(
+    async (key: string, duration: number) => {
+      const rawTitle = form.getFieldValue("title");
+      const titleEs = rawTitle && rawTitle.length >= 3 ? rawTitle : "Lección sin nombrar";
+      if (!rawTitle || rawTitle.length < 3) {
+        form.setFieldValue("title", titleEs);
+      }
+
+      try {
+        const titleEn =
+          titleEs === "Lección sin nombrar"
+            ? "Untitled lesson"
+            : (await translateAction({ text: titleEs })).translated || titleEs;
+
+        if (isEditing) {
+          await updateLesson({
+            lessonId: lesson._id,
+            videoId: key,
+            duration,
+            mediaStatus: "processing",
+          });
+          draftLessonIdRef.current = lesson._id;
+        } else {
+          const newId = await createLesson({
+            courseId,
+            title: { es: titleEs, en: titleEn },
+            description: { es: "", en: "" },
+            videoId: key,
+            duration,
+            isFree: false,
+            mediaStatus: "processing",
+          });
+          draftLessonIdRef.current = newId as Id<"lessons">;
+        }
+        setSavedAsDraft(true);
+      } catch {}
+    },
+    [courseId, isEditing, lesson, createLesson, updateLesson, translateAction, form.getFieldValue, form.setFieldValue],
+  );
+
+  const handleUploadComplete = async (result: { key: string; file: File }) => {
     setVideoKey(result.key);
+    setUploadedFileName(result.file.name);
     setUploadError(null);
-    startProcessing(result.key);
+
+    const duration = await getVideoDuration(result.file);
+    if (duration > 0) setVideoDuration(duration);
+
+    saveDraft(result.key, duration);
   };
 
   const handleUploadError = (error: Error) => {
     setUploadError(error.message);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const isNewVideo = videoKey && videoKey !== "pending-upload";
-      if (isEditing) {
-        const videoChanged = videoKey && videoKey !== lesson.videoId;
-        await updateLesson({
-          lessonId: lesson._id,
-          title: { es: titleEs, en: titleEn || titleEs },
-          description: { es: descEs, en: descEn || descEs },
-          duration: parseInt(duration, 10) || 0,
-          isFree,
-          ...(videoChanged
-            ? { videoId: videoKey, mediaStatus: (processingStep ? "processing" : "ready") as "processing" | "ready" }
-            : {}),
-        });
-      } else {
-        await createLesson({
-          courseId,
-          title: { es: titleEs, en: titleEn || titleEs },
-          description: { es: descEs, en: descEn || descEs },
-          videoId: videoKey || "pending-upload",
-          duration: parseInt(duration, 10) || 0,
-          isFree,
-          ...(isNewVideo ? { mediaStatus: (processingStep ? "processing" : "ready") as "processing" | "ready" } : {}),
-        });
-      }
-      onDone();
-    } catch {}
-    setLoading(false);
-  };
+  const hasUploadedVideo = videoKey && videoKey !== "pending-upload";
 
   return (
     <div className="bg-muted p-6 mb-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold">{isEditing ? "Editar lección" : "Nueva lección"}</h3>
-        <div className="flex items-center gap-2">
-          {(titleEs || descEs) && (
-            <Button type="button" variant="ghost" size="sm" onClick={handleTranslate} disabled={translating}>
-              {translating ? (
-                <Loader2 data-icon="inline-start" className="size-3.5 animate-spin" />
-              ) : (
-                <Languages data-icon="inline-start" className="size-3.5" />
-              )}
-              {translating ? "Traduciendo..." : "Auto-traducir EN"}
-            </Button>
+        <div className="flex items-center gap-3">
+          <h3 className="font-semibold">{isEditing ? "Editar lección" : "Nueva lección"}</h3>
+          {savedAsDraft && (
+            <Badge variant="outline" className="text-xs text-amber-600 border-amber-300">
+              Borrador guardado
+            </Badge>
           )}
-          <Button type="button" variant="ghost" size="icon-sm" onClick={onDone}>
-            <X className="size-4" />
-          </Button>
         </div>
+        <Button type="button" variant="ghost" size="icon-sm" onClick={onDone}>
+          <X className="size-4" />
+        </Button>
       </div>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Label className="text-xs uppercase tracking-wider font-medium mb-2 block">Título (ES)</Label>
-            <Input
-              value={titleEs}
-              onChange={(e) => setTitleEs(e.target.value)}
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          form.handleSubmit();
+        }}
+        className="space-y-4"
+      >
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={isFree}
+            onChange={(e) => setIsFree(e.target.checked)}
+            className="accent-foreground"
+          />
+          <span className="text-sm font-medium">Lección gratuita</span>
+        </label>
+
+        <form.Field
+          name="title"
+          children={(field) => (
+            <FormField
+              field={field}
+              label="Título"
               placeholder="Preparación de la piel"
-              required
+              autoFocus
+              nextFieldId="description"
+              submitId={SUBMIT_ID}
             />
-          </div>
-          <div>
-            <Label className="text-xs uppercase tracking-wider font-medium mb-2 block">Título (EN)</Label>
-            <Input value={titleEn} onChange={(e) => setTitleEn(e.target.value)} placeholder="Skin preparation" />
-          </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Label className="text-xs uppercase tracking-wider font-medium mb-2 block">Descripción (ES)</Label>
-            <textarea
-              value={descEs}
-              onChange={(e) => setDescEs(e.target.value)}
-              placeholder="Descripción breve de la lección"
-              className="flex field-sizing-content min-h-16 w-full rounded-none border-0 border-b border-input bg-transparent px-0 py-2 transition-colors outline-none placeholder:text-muted-foreground/60 focus-visible:border-foreground/40"
-            />
-          </div>
-          <div>
-            <Label className="text-xs uppercase tracking-wider font-medium mb-2 block">Descripción (EN)</Label>
-            <textarea
-              value={descEn}
-              onChange={(e) => setDescEn(e.target.value)}
-              placeholder="Short description"
-              className="flex field-sizing-content min-h-16 w-full rounded-none border-0 border-b border-input bg-transparent px-0 py-2 transition-colors outline-none placeholder:text-muted-foreground/60 focus-visible:border-foreground/40"
-            />
-          </div>
-        </div>
+          )}
+        />
+
+        <form.Field name="description" children={(field) => <LessonDescriptionField field={field} />} />
+
         <div>
           <Label className="text-xs uppercase tracking-wider font-medium mb-2 block">Video</Label>
-          {hasExistingVideo ? (
-            <div className="flex items-center gap-3 p-3 border border-dashed rounded-md bg-background">
-              <Film className="size-5 text-muted-foreground shrink-0" />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{lesson.videoId}</p>
-                <p className="text-xs text-muted-foreground">Video subido — sube otro para reemplazarlo</p>
-              </div>
+
+          {playlistUrl && authToken && (
+            <div className="mb-3 rounded-md overflow-hidden border border-border bg-black max-h-72">
+              <VideoPlayer
+                src={`${playlistUrl}${playlistUrl.includes("?") ? "&" : "?"}token=${authToken}`}
+                token={authToken}
+                captions={captionTracks}
+                defaultCaption="es-CO"
+                startTime={seekTo}
+                aspectRatio="16/9"
+                className="w-full max-h-72"
+              />
             </div>
-          ) : null}
-          <div className={hasExistingVideo ? "mt-2" : ""}>
+          )}
+
+          {videoDuration > 0 && (
+            <div className="flex items-center gap-1.5 text-sm text-muted-foreground mb-2">
+              <Clock className="size-3.5" />
+              <span>Duración: {formatDuration(videoDuration)}</span>
+            </div>
+          )}
+
+          {hasUploadedVideo || hasExistingVideo ? (
+            <div className="flex items-center gap-2 p-2 border border-border rounded-md bg-background mb-2">
+              <Film className="size-4 text-muted-foreground shrink-0" />
+              <span className="text-sm truncate flex-1">{uploadedFileName ?? lesson?.videoId ?? videoKey}</span>
+              {isProcessing && (
+                <div className="flex items-center gap-1.5 text-xs text-amber-600 shrink-0">
+                  <Loader2 className="size-3 animate-spin" />
+                  {STATUS_LABELS[processing.status] ?? processing.status}
+                </div>
+              )}
+              {(isAlreadyReady || processing.status === "ready") && (
+                <CheckCircle2 className="size-4 text-green-500 shrink-0" />
+              )}
+              {processing.status === "error" && (
+                <span className="text-xs text-red-500 shrink-0">{processing.error}</span>
+              )}
+            </div>
+          ) : (
             <UploadZone
               onUploadUrl={handleUploadUrl}
               onComplete={handleUploadComplete}
@@ -481,9 +619,7 @@ function LessonForm({
                   className={`relative flex flex-col items-center justify-center gap-2 p-6 border border-dashed rounded-md cursor-pointer transition-colors ${
                     isDragging
                       ? "border-foreground/50 bg-foreground/5"
-                      : videoKey && videoKey !== "pending-upload" && !hasExistingVideo
-                        ? "border-green-500/50 bg-green-500/5"
-                        : "border-muted-foreground/30 hover:border-muted-foreground/50 bg-background"
+                      : "border-muted-foreground/30 hover:border-muted-foreground/50 bg-background"
                   }`}
                 >
                   <input {...getInputProps()} />
@@ -500,17 +636,6 @@ function LessonForm({
                         />
                       </div>
                     </>
-                  ) : processingStep ? (
-                    <>
-                      <Loader2 className="size-6 animate-spin text-amber-500" />
-                      <p className="text-sm text-amber-600">{processingStep}</p>
-                      <p className="text-xs text-muted-foreground">Puedes guardar la lección mientras se procesa</p>
-                    </>
-                  ) : videoKey && videoKey !== "pending-upload" && !hasExistingVideo ? (
-                    <>
-                      <CheckCircle2 className="size-6 text-green-500" />
-                      <p className="text-sm text-green-600">Video listo</p>
-                    </>
                   ) : (
                     <>
                       <Upload className="size-6 text-muted-foreground" />
@@ -523,40 +648,189 @@ function LessonForm({
                 </div>
               )}
             </UploadZone>
-          </div>
+          )}
           {uploadError && <p className="text-sm text-red-500 mt-1">{uploadError}</p>}
         </div>
 
-        <div className="flex gap-4 items-end">
-          <div className="max-w-32">
-            <Label className="text-xs uppercase tracking-wider font-medium mb-2 block">Duración (seg)</Label>
-            <Input
-              type="number"
-              value={duration}
-              onChange={(e) => setDuration(e.target.value)}
-              placeholder="720"
-              required
-            />
+        {Object.keys(captionsVttText).length > 0 && (
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <Label className="text-xs uppercase tracking-wider font-medium block">Subtítulos</Label>
+                <span className="text-xs text-muted-foreground">
+                  {activeSubLocale === "es-CO"
+                    ? "Español (CO)"
+                    : activeSubLocale === "en"
+                      ? "English"
+                      : activeSubLocale}
+                </span>
+              </div>
+              <div className="flex items-center gap-1">
+                {Object.keys(captionsVttText).map((locale) => (
+                  <Button
+                    key={locale}
+                    type="button"
+                    variant={activeSubLocale === locale ? "default" : "outline"}
+                    size="xs"
+                    onClick={() => setActiveSubLocale(locale)}
+                  >
+                    {locale === "es-CO" ? "ES" : locale.toUpperCase()}
+                  </Button>
+                ))}
+                {captionsVttText[activeSubLocale] && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="xs"
+                    onClick={() => {
+                      const vtt = captionsVttText[activeSubLocale];
+                      const blob = new Blob([vtt], { type: "text/vtt" });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement("a");
+                      a.href = url;
+                      a.download = `${activeSubLocale}.vtt`;
+                      a.click();
+                      URL.revokeObjectURL(url);
+                    }}
+                  >
+                    <Download className="size-3" />
+                  </Button>
+                )}
+              </div>
+            </div>
+            {captionsVttText[activeSubLocale] && (
+              <div className="border border-border rounded-md bg-background">
+                <div className="px-3 py-2 max-h-48 overflow-y-auto">
+                  {parseVttCues(captionsVttText[activeSubLocale]).map((cue, i) => (
+                    <button
+                      type="button"
+                      key={i}
+                      className="flex gap-3 py-1 text-sm w-full text-left hover:bg-muted/50 rounded-sm px-1 -mx-1 transition-colors cursor-pointer"
+                      onClick={() => setSeekTo(cue.seconds)}
+                    >
+                      <span className="text-muted-foreground font-mono text-xs shrink-0 pt-0.5">{cue.time}</span>
+                      <span>{cue.text}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
-          <label className="flex items-center gap-2 pb-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={isFree}
-              onChange={(e) => setIsFree(e.target.checked)}
-              className="accent-foreground"
-            />
-            <span className="text-sm">Lección gratuita</span>
-          </label>
-        </div>
-        <div className="flex gap-3">
-          <Button type="submit" disabled={loading}>
-            {loading ? "Guardando..." : isEditing ? "Guardar cambios" : "Agregar lección"}
-          </Button>
-          <Button type="button" variant="ghost" onClick={onDone}>
-            Cancelar
-          </Button>
-        </div>
+        )}
+
+        {serverError && <p className="text-sm text-destructive">{serverError}</p>}
+
+        <p className="text-xs text-muted-foreground">La traducción al inglés se genera automáticamente al guardar.</p>
+
+        <form.Subscribe
+          selector={(state) => [state.isSubmitting, state.canSubmit, state.isPristine, state.values] as const}
+          children={([isSubmitting, canSubmit, isPristine, values]) => {
+            const isDisabled = isSubmitting || !canSubmit || (isPristine && !videoKey && !savedAsDraft);
+            const emptyFields = Object.entries(values as Record<string, string>)
+              .filter(([k, v]) => !v && k !== "description")
+              .map(([k]) => fieldLabels[k] ?? k);
+
+            return (
+              <div className="flex gap-3 items-start">
+                <div className="flex-1">
+                  <SmartSubmit
+                    id={SUBMIT_ID}
+                    controls={submitControls}
+                    isSubmitting={isSubmitting}
+                    isDisabled={isDisabled}
+                    emptyFieldLabels={emptyFields}
+                    label={isEditing || savedAsDraft ? "Guardar cambios" : "Agregar lección"}
+                    submittingLabel="Traduciendo y guardando..."
+                  />
+                </div>
+                <Button type="button" variant="ghost" className="h-11" onClick={onDone}>
+                  Cancelar
+                </Button>
+              </div>
+            );
+          }}
+        />
       </form>
     </div>
   );
+}
+
+function LessonDescriptionField({ field }: { field: any }) {
+  const hasError = field.state.meta.isTouched && field.state.meta.errors.length > 0;
+  const errorMessage = hasError ? (field.state.meta.errors[0]?.message ?? field.state.meta.errors[0]) : null;
+  const controls = usePulse(field.name);
+
+  const { inputRef, startTimer, onBlur } = useAutoAdvance({
+    fieldId: field.name,
+    submitId: SUBMIT_ID,
+    hasErrors: field.state.meta.errors.length > 0,
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    field.handleChange(e.target.value);
+    startTimer();
+  };
+
+  const handleBlur = () => {
+    onBlur();
+    field.handleBlur();
+  };
+
+  return (
+    <motion.div animate={controls}>
+      <Label
+        htmlFor={field.name}
+        className={`text-xs uppercase tracking-wider font-medium mb-2 block ${hasError ? "text-destructive" : ""}`}
+      >
+        Descripción
+      </Label>
+      <textarea
+        ref={inputRef as unknown as React.RefObject<HTMLTextAreaElement>}
+        id={field.name}
+        value={field.state.value}
+        onChange={handleChange}
+        onBlur={handleBlur}
+        placeholder="Descripción breve de la lección"
+        className="flex field-sizing-content min-h-16 w-full rounded-none border-0 border-b border-input bg-transparent px-0 py-2 transition-colors outline-none placeholder:text-muted-foreground/60 focus-visible:border-foreground/40"
+        aria-invalid={hasError}
+      />
+      <p className={`text-sm mt-1 min-h-5 ${errorMessage ? "text-destructive" : "text-transparent"}`}>
+        {errorMessage ?? " "}
+      </p>
+    </motion.div>
+  );
+}
+
+function parseVttCues(vtt: string): { time: string; seconds: number; text: string }[] {
+  const lines = vtt.split("\n");
+  const cues: { time: string; seconds: number; text: string }[] = [];
+  let i = 0;
+
+  while (i < lines.length) {
+    const line = lines[i].trim();
+    if (line.includes("-->")) {
+      const timeStr = line.split("-->")[0].trim();
+      const time = timeStr.replace(/\.\d+$/, "");
+      const parts = timeStr.split(":");
+      let seconds = 0;
+      if (parts.length === 3) {
+        seconds = Number(parts[0]) * 3600 + Number(parts[1]) * 60 + Number.parseFloat(parts[2]);
+      } else if (parts.length === 2) {
+        seconds = Number(parts[0]) * 60 + Number.parseFloat(parts[1]);
+      }
+
+      const textLines: string[] = [];
+      i++;
+      while (i < lines.length && lines[i].trim() !== "") {
+        textLines.push(lines[i].trim());
+        i++;
+      }
+      if (textLines.length > 0) {
+        cues.push({ time, seconds: Math.floor(seconds), text: textLines.join(" ") });
+      }
+    } else {
+      i++;
+    }
+  }
+  return cues;
 }

@@ -54,6 +54,8 @@ export const update = mutation({
     duration: v.optional(v.number()),
     isFree: v.optional(v.boolean()),
     mediaStatus: v.optional(v.union(v.literal("processing"), v.literal("ready"), v.literal("error"))),
+    captionLocales: v.optional(v.array(v.string())),
+    captionTranscriptId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const { lessonId, ...updates } = args;
