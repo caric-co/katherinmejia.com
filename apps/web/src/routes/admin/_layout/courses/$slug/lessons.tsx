@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { captionPath, extractId, videoHlsPlaylistPath } from "@devultur/core";
-import { UploadZone, useVideoProcessing, VideoPlayer, type VideoPlayerRef } from "@devultur/react";
+import { TranscriptPanel, UploadZone, useVideoProcessing, VideoPlayer, type VideoPlayerRef } from "@devultur/react";
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { useAction, useMutation, useQuery } from "convex/react";
@@ -341,6 +341,7 @@ function LessonForm({
   const [savedAsDraft, setSavedAsDraft] = useState(false);
   const playerRef = useRef<VideoPlayerRef>(null);
   const [activeSubLocale, setActiveSubLocale] = useState<string>("es-CO");
+  const [currentTime, setCurrentTime] = useState(0);
   const draftLessonIdRef = useRef<Id<"lessons"> | null>(lesson?._id ?? null);
   const submitControls = useSubmitPulse(SUBMIT_ID);
 
@@ -376,21 +377,6 @@ function LessonForm({
       src,
     }));
   }, [vttUrls]);
-
-  const [captionsVttText, setCaptionsVttText] = useState<Record<string, string>>({});
-
-  useEffect(() => {
-    if (!authToken) return;
-    for (const [locale, url] of Object.entries(vttUrls)) {
-      if (captionsVttText[locale]) continue;
-      fetch(url, { headers: { Authorization: `Bearer ${authToken}` } })
-        .then((r) => (r.ok ? r.text() : null))
-        .then((text) => {
-          if (text) setCaptionsVttText((prev) => ({ ...prev, [locale]: text }));
-        })
-        .catch(() => {});
-    }
-  }, [vttUrls, captionsVttText]);
 
   // Update Convex when processing completes (new uploads only)
   useEffect(() => {
@@ -580,6 +566,7 @@ function LessonForm({
                 captions={captionTracks}
                 defaultCaption="es-CO"
                 aspectRatio="16/9"
+                onProgress={(time) => setCurrentTime(time)}
               />
             </div>
           )}
@@ -654,7 +641,7 @@ function LessonForm({
           {uploadError && <p className="text-sm text-red-500 mt-1">{uploadError}</p>}
         </div>
 
-        {Object.keys(captionsVttText).length > 0 && (
+        {Object.keys(vttUrls).length > 0 && (
           <div>
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
@@ -668,7 +655,7 @@ function LessonForm({
                 </span>
               </div>
               <div className="flex items-center gap-1">
-                {Object.keys(captionsVttText).map((locale) => (
+                {Object.keys(vttUrls).map((locale) => (
                   <Button
                     key={locale}
                     type="button"
@@ -679,20 +666,16 @@ function LessonForm({
                     {locale === "es-CO" ? "ES" : locale.toUpperCase()}
                   </Button>
                 ))}
-                {captionsVttText[activeSubLocale] && (
+                {vttUrls[activeSubLocale] && (
                   <Button
                     type="button"
                     variant="ghost"
                     size="xs"
                     onClick={() => {
-                      const vtt = captionsVttText[activeSubLocale];
-                      const blob = new Blob([vtt], { type: "text/vtt" });
-                      const url = URL.createObjectURL(blob);
                       const a = document.createElement("a");
-                      a.href = url;
+                      a.href = `${vttUrls[activeSubLocale]}${vttUrls[activeSubLocale].includes("?") ? "&" : "?"}token=${authToken}`;
                       a.download = `${activeSubLocale}.vtt`;
                       a.click();
-                      URL.revokeObjectURL(url);
                     }}
                   >
                     <Download className="size-3" />
@@ -700,26 +683,16 @@ function LessonForm({
                 )}
               </div>
             </div>
-            {captionsVttText[activeSubLocale] && (
-              <div className="border border-border rounded-md bg-background">
-                <div className="px-3 py-2 max-h-48 overflow-y-auto">
-                  {parseVttCues(captionsVttText[activeSubLocale]).map((cue, i) => (
-                    <button
-                      type="button"
-                      key={i}
-                      className="flex gap-3 py-1 text-sm w-full text-left hover:bg-muted/50 rounded-sm px-1 -mx-1 transition-colors cursor-pointer"
-                      onClick={() => {
-                        playerRef.current?.seek(cue.seconds);
-                        playerRef.current?.play();
-                      }}
-                    >
-                      <span className="text-muted-foreground font-mono text-xs shrink-0 pt-0.5">{cue.time}</span>
-                      <span>{cue.text}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
+            <TranscriptPanel
+              captions={captionTracks}
+              locale={activeSubLocale}
+              currentTime={currentTime}
+              token={authToken}
+              onSeek={(seconds) => {
+                playerRef.current?.seek(seconds);
+                playerRef.current?.play();
+              }}
+            />
           </div>
         )}
 
@@ -804,38 +777,4 @@ function LessonDescriptionField({ field }: { field: any }) {
       </p>
     </motion.div>
   );
-}
-
-function parseVttCues(vtt: string): { time: string; seconds: number; text: string }[] {
-  const lines = vtt.split("\n");
-  const cues: { time: string; seconds: number; text: string }[] = [];
-  let i = 0;
-
-  while (i < lines.length) {
-    const line = lines[i].trim();
-    if (line.includes("-->")) {
-      const timeStr = line.split("-->")[0].trim();
-      const time = timeStr.replace(/\.\d+$/, "");
-      const parts = timeStr.split(":");
-      let seconds = 0;
-      if (parts.length === 3) {
-        seconds = Number(parts[0]) * 3600 + Number(parts[1]) * 60 + Number.parseFloat(parts[2]);
-      } else if (parts.length === 2) {
-        seconds = Number(parts[0]) * 60 + Number.parseFloat(parts[1]);
-      }
-
-      const textLines: string[] = [];
-      i++;
-      while (i < lines.length && lines[i].trim() !== "") {
-        textLines.push(lines[i].trim());
-        i++;
-      }
-      if (textLines.length > 0) {
-        cues.push({ time, seconds: Math.floor(seconds), text: textLines.join(" ") });
-      }
-    } else {
-      i++;
-    }
-  }
-  return cues;
 }
