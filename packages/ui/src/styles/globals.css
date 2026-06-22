@@ -129,3 +129,12 @@
     @apply cursor-pointer;
   }
 }
+
+[data-dvltr-controls] {
+  --dvltr-accent: var(--peach);
+  --dvltr-text: #f6f3ee;
+  --dvltr-bar-bg: linear-gradient(transparent, rgba(43, 38, 38, 0.75));
+  --dvltr-menu-bg: rgba(43, 38, 38, 0.9);
+  --dvltr-track-bg: rgba(246, 243, 238, 0.25);
+  --dvltr-font-size: 13px;
+}
