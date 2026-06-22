@@ -136,5 +136,28 @@
   --dvltr-bar-bg: linear-gradient(transparent, rgba(43, 38, 38, 0.75));
   --dvltr-menu-bg: rgba(43, 38, 38, 0.9);
   --dvltr-track-bg: rgba(246, 243, 238, 0.25);
+  --dvltr-thumb: #fff;
   --dvltr-font-size: 13px;
+}
+
+[data-dvltr-seek]::-webkit-slider-thumb {
+  appearance: none;
+  width: 4px;
+  height: 12px;
+  background: #fff;
+  box-shadow: -3px 0 4px 0 rgba(0, 0, 0, 0.4);
+  position: relative;
+  z-index: 10;
+  cursor: pointer;
+}
+
+[data-dvltr-seek]::-moz-range-thumb {
+  width: 4px;
+  height: 12px;
+  background: #fff;
+  box-shadow: -3px 0 4px 0 rgba(0, 0, 0, 0.4);
+  border: none;
+  position: relative;
+  z-index: 10;
+  cursor: pointer;
 }
