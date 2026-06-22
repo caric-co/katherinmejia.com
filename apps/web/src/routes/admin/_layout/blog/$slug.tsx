@@ -1,11 +1,10 @@
-import { useEffect, useState } from "react";
-
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useAction, useMutation, useQuery } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 
 import { api } from "@convex/_generated/api";
 
 import { BlogPostEditor } from "#/components/blog-post-editor";
+import { useDevultur } from "#/hooks/use-devultur";
 
 export const Route = createFileRoute("/admin/_layout/blog/$slug")({
   component: EditBlogPostPage,
@@ -18,13 +17,7 @@ function EditBlogPostPage() {
   const updatePost = useMutation(api.blogPosts.update);
   const publishPost = useMutation(api.blogPosts.publish);
   const unpublishPost = useMutation(api.blogPosts.unpublish);
-  const issueViewerToken = useAction(api.devultur.issueViewerToken);
-  const createUploadUrl = useAction(api.devultur.createUploadUrl);
-  const [viewerToken, setViewerToken] = useState<string | null>(null);
-
-  useEffect(() => {
-    issueViewerToken().then(setViewerToken);
-  }, [issueViewerToken]);
+  const { token, uploadUrl } = useDevultur();
 
   if (post === undefined) return <p className="text-muted-foreground">Cargando...</p>;
   if (post === null) return <p className="text-destructive">Artículo no encontrado</p>;
@@ -53,11 +46,8 @@ function EditBlogPostPage() {
       }}
       onCancel={() => navigate({ to: "/admin/blog" })}
       onUnpublish={() => unpublishPost({ postId: post._id })}
-      createUploadUrl={async (args) => {
-        const r = await createUploadUrl(args);
-        return { url: r.url, key: r.key };
-      }}
-      viewerToken={viewerToken}
+      createUploadUrl={uploadUrl}
+      viewerToken={token}
     />
   );
 }

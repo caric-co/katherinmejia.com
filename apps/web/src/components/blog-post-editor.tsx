@@ -44,7 +44,7 @@ interface BlogPostEditorProps {
   onCancel: () => void;
   onUnpublish?: () => void;
   isPublished?: boolean;
-  createUploadUrl: (args: { filename: string; contentType: string }) => Promise<{ url: string; key: string }>;
+  createUploadUrl: (file: File) => Promise<{ url: string; key: string }>;
   viewerToken: string | null;
 }
 
@@ -65,10 +65,7 @@ export function BlogPostEditor({
 
   useEffect(() => {
     if (viewerToken) {
-      setBlogEditorUploadConfig(
-        async (file) => createUploadUrl({ filename: file.name, contentType: file.type }),
-        viewerToken,
-      );
+      setBlogEditorUploadConfig(async (file) => createUploadUrl(file), viewerToken);
     }
   }, [createUploadUrl, viewerToken]);
   const editorRef = useRef<BlogEditorRef>(null);
@@ -298,7 +295,7 @@ export function BlogPostEditor({
       <ImageUpload
         value={store.coverImageUrl}
         onChange={store.setCoverImageUrl}
-        onUploadUrl={async (file) => createUploadUrl({ filename: file.name, contentType: file.type })}
+        onUploadUrl={createUploadUrl}
         token={viewerToken}
         label="Imagen de portada"
         aspectRatio="21/9"

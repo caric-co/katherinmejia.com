@@ -1,11 +1,10 @@
-import { useEffect, useState } from "react";
-
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useAction, useMutation } from "convex/react";
+import { useMutation } from "convex/react";
 
 import { api } from "@convex/_generated/api";
 
 import { BlogPostEditor } from "#/components/blog-post-editor";
+import { useDevultur } from "#/hooks/use-devultur";
 
 export const Route = createFileRoute("/admin/_layout/blog/new")({
   component: NewBlogPostPage,
@@ -15,13 +14,7 @@ function NewBlogPostPage() {
   const navigate = useNavigate();
   const createPost = useMutation(api.blogPosts.create);
   const publishPost = useMutation(api.blogPosts.publish);
-  const issueViewerToken = useAction(api.devultur.issueViewerToken);
-  const createUploadUrl = useAction(api.devultur.createUploadUrl);
-  const [viewerToken, setViewerToken] = useState<string | null>(null);
-
-  useEffect(() => {
-    issueViewerToken().then(setViewerToken);
-  }, [issueViewerToken]);
+  const { token, uploadUrl } = useDevultur();
 
   return (
     <BlogPostEditor
@@ -35,11 +28,8 @@ function NewBlogPostPage() {
         navigate({ to: "/admin/blog" });
       }}
       onCancel={() => navigate({ to: "/admin/blog" })}
-      createUploadUrl={async (args) => {
-        const r = await createUploadUrl(args);
-        return { url: r.url, key: r.key };
-      }}
-      viewerToken={viewerToken}
+      createUploadUrl={uploadUrl}
+      viewerToken={token}
     />
   );
 }

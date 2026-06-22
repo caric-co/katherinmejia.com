@@ -41,6 +41,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@repo/
 
 import { FormField } from "#/components/form-field";
 import { SmartSubmit } from "#/components/smart-submit";
+import { useDevultur } from "#/hooks/use-devultur";
 import { useAutoAdvance, usePulse, useSubmitPulse } from "#/lib/form-primitives";
 import { media } from "#/lib/media";
 
@@ -396,13 +397,7 @@ function LessonForm({
     autoStart: true,
   });
 
-  const issueViewerToken = useAction(api.devultur.issueViewerToken);
-  const createUploadUrlAction = useAction(api.devultur.createUploadUrl);
-  const [authToken, setAuthToken] = useState<string | null>(null);
-
-  useEffect(() => {
-    issueViewerToken().then(setAuthToken);
-  }, [issueViewerToken]);
+  const { token: authToken, uploadUrl: devulturUploadUrl } = useDevultur();
 
   const existingVideoId = hasExistingVideo ? extractId(lesson.videoId!) : null;
   const existingPlaylistUrl =
@@ -482,11 +477,7 @@ function LessonForm({
     const duration = await getVideoDuration(file);
     if (duration > 0) setVideoDuration(duration);
 
-    const result = await createUploadUrlAction({
-      filename: file.name,
-      contentType: file.type,
-    });
-    return { url: result.url, key: result.key };
+    return devulturUploadUrl(file);
   };
 
   const form = useForm({

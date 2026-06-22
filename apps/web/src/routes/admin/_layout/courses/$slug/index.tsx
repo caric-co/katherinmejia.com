@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
@@ -18,6 +18,7 @@ import { CourseCardPreview, CourseDetailPreview } from "#/components/course-prev
 import { FormField } from "#/components/form-field";
 import { ImageUpload } from "#/components/image-upload";
 import { SmartSubmit } from "#/components/smart-submit";
+import { useDevultur } from "#/hooks/use-devultur";
 import { triggerPulse, useAutoAdvance, usePulse, useSubmitPulse } from "#/lib/form-primitives";
 
 export const Route = createFileRoute("/admin/_layout/courses/$slug/")({
@@ -65,15 +66,9 @@ function EditCoursePage() {
   const updateCourse = useMutation(api.courses.update);
   const updateStatus = useMutation(api.courses.updateStatus);
   const translateAction = useAction(api.ai.translateText);
-  const issueViewerToken = useAction(api.devultur.issueViewerToken);
-  const createUploadUrlAction = useAction(api.devultur.createUploadUrl);
+  const { token: viewerToken, uploadUrl } = useDevultur();
 
   const [serverError, setServerError] = useState("");
-  const [viewerToken, setViewerToken] = useState<string | null>(null);
-
-  useEffect(() => {
-    issueViewerToken().then(setViewerToken);
-  }, [issueViewerToken]);
   const [previewLang, setPreviewLang] = useState<"es" | "en">("es");
   const [titleEn, setTitleEn] = useState("");
   const [descEn, setDescEn] = useState("");
@@ -112,7 +107,7 @@ function EditCoursePage() {
       updateStatus={updateStatus}
       translateAction={translateAction}
       viewerToken={viewerToken}
-      createUploadUrlAction={createUploadUrlAction}
+      uploadUrl={uploadUrl}
     />
   );
 }
@@ -136,7 +131,7 @@ function EditCourseForm({
   updateStatus,
   translateAction,
   viewerToken,
-  createUploadUrlAction,
+  uploadUrl,
 }: {
   course: any;
   routeSlug: string;
@@ -156,7 +151,7 @@ function EditCourseForm({
   updateStatus: any;
   translateAction: any;
   viewerToken: string | null;
-  createUploadUrlAction: any;
+  uploadUrl: (file: File) => Promise<{ url: string; key: string }>;
 }) {
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(course.thumbnailUrl ?? null);
 
@@ -256,10 +251,7 @@ function EditCourseForm({
             <ImageUpload
               value={thumbnailUrl}
               onChange={setThumbnailUrl}
-              onUploadUrl={async (file) => {
-                const r = await createUploadUrlAction({ filename: file.name, contentType: file.type });
-                return { url: r.url, key: r.key };
-              }}
+              onUploadUrl={uploadUrl}
               token={viewerToken}
               label="Thumbnail del curso"
             />

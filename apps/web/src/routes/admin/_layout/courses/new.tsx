@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
@@ -17,6 +17,7 @@ import { CourseCardPreview, CourseDetailPreview } from "#/components/course-prev
 import { FormField } from "#/components/form-field";
 import { ImageUpload } from "#/components/image-upload";
 import { SmartSubmit } from "#/components/smart-submit";
+import { useDevultur } from "#/hooks/use-devultur";
 import { triggerPulse, useAutoAdvance, usePulse, useSubmitPulse } from "#/lib/form-primitives";
 
 export const Route = createFileRoute("/admin/_layout/courses/new")({
@@ -60,18 +61,12 @@ function NewCoursePage() {
   const navigate = useNavigate();
   const createCourse = useMutation(api.courses.create);
   const translateAction = useAction(api.ai.translateText);
-  const issueViewerToken = useAction(api.devultur.issueViewerToken);
-  const createUploadUrlAction = useAction(api.devultur.createUploadUrl);
+  const { token: viewerToken, uploadUrl } = useDevultur();
   const [serverError, setServerError] = useState("");
   const [previewLang, setPreviewLang] = useState<"es" | "en">("es");
   const [titleEn, setTitleEn] = useState("");
   const [descEn, setDescEn] = useState("");
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
-  const [viewerToken, setViewerToken] = useState<string | null>(null);
-
-  useEffect(() => {
-    issueViewerToken().then(setViewerToken);
-  }, [issueViewerToken]);
   const submitControls = useSubmitPulse(SUBMIT_ID);
 
   const form = useForm({
@@ -155,10 +150,7 @@ function NewCoursePage() {
             <ImageUpload
               value={thumbnailUrl}
               onChange={setThumbnailUrl}
-              onUploadUrl={async (file) => {
-                const r = await createUploadUrlAction({ filename: file.name, contentType: file.type });
-                return { url: r.url, key: r.key };
-              }}
+              onUploadUrl={uploadUrl}
               token={viewerToken}
               label="Thumbnail del curso"
             />
