@@ -1,99 +1,74 @@
 # Devultur Integration
 
-Packages: `@devultur/core`, `@devultur/react`, `@devultur/server` (v0.2.12)
-Config: `src/lib/media.ts` — `createMediaRouter({ apiKey, baseUrl })`
+Packages: `@devultur/core`, `@devultur/react`, `@devultur/server` (v0.2.20)
+Config: `src/lib/media.ts` — `createMediaRouter({ baseUrl })` (no API key client-side)
 
 ## Environment
 
 ```
 # apps/web/.env.local
-VITE_DEVULTUR_API_KEY=<prod key>
 VITE_DEVULTUR_API_URL=https://devultur-api.crdemar.workers.dev
+
+# Convex (server-side only)
+DEVULTUR_API_KEY=<prod key> (set via npx convex env set)
 ```
+
+## Architecture
+
+### Security: Convex bridge (no API key in browser)
+
+All authenticated Devultur operations go through Convex actions. The API key lives server-side only.
+
+**Bridge file:** `apps/backend/convex/devultur.ts`
+- `issueViewerToken` — short-lived JWT for video/media access
+- `createUploadUrl` — presigned URL for file uploads
+- `deleteVideo` — cascade delete (raw + HLS + thumbnails + VTTs)
+- `deleteMedia` — single file delete
+- `requestCaptions` — trigger transcription + translation
+
+**Client hook:** `apps/web/src/hooks/use-devultur.ts`
+- `useDevultur()` returns `{ token, uploadUrl, deleteMedia, deleteVideo }`
+- Token shared via Zustand store (`stores/devultur-store.ts`) — issued once, not per-component
+- `media.extractKey(url)` for extracting R2 keys from media URLs
+
+**Client media config:** `apps/web/src/lib/media.ts`
+- Only `baseUrl` — used for `getMediaUrl()` URL construction
+- No API key, no auth methods
 
 ## Status
 
 ### Done
 
-#### 1. LessonForm with full video pipeline (admin)
+#### Video pipeline (admin lesson editor)
 
-File: `src/routes/admin/_layout/courses/$slug/lessons.tsx`
+File: `components/lesson-form.tsx` (extracted from lessons route)
 
-**Upload flow:**
-- `UploadZone` from `@devultur/react` with render props UI
-- `media.createUploadUrl()` → presigned URL + key → direct upload to R2
-- Collapses to chip after upload (single video per lesson)
-- Accept: mp4, quicktime, webm (max 2GB)
+- `UploadZone` → `useVideoProcessing` hook → `VideoPlayer` with `ref`
+- Auto-save as draft on upload with fallback title
+- AI metadata generation from transcript (title + description via Mistral)
+- `TranscriptPanel` (SDK) with locale toggle, active cue highlighting, seek-on-click
+- Sentence-based captions with two-line stacking (v0.2.19+)
+- Video duration extracted client-side
+- R2 cleanup on lesson delete and video replace
 
-**Processing:**
-- `useVideoProcessing` hook handles transcode + captions lifecycle
-- Polling every 5s until both transcode and captions complete
-- For existing lessons with `mediaStatus === "ready"`, URLs built directly via `videoHlsPlaylistPath` + `captionPath`
+#### Image uploads
 
-**Video playback:**
-- `VideoPlayer` from `@devultur/react` with built-in DefaultControls (v0.2.5+)
-- Imperative ref (`VideoPlayerRef`) for seek/play from transcript cues
-- Auth via `?token=` query param on playlist URL + `token` prop for segments/captions
-- Themed with kmakeup brand colors via `--dvltr-*` CSS custom properties
+- `ImageUpload` component: `onUploadUrl` + `onDelete` + `token` props
+- Course thumbnails (create + edit)
+- Blog cover images (create + edit)
+- Blog inline images via `/image` slash command
+- R2 cleanup on image remove (confirm dialog)
 
-**Captions & transcript:**
-- `CaptionOverlay` (SDK v0.2.10+) renders subtitles as positioned div overlay
-- `TranscriptPanel` (SDK v0.2.12) with active cue highlighting, auto-scroll, click-to-seek
-- Locale toggle (ES/EN) for switching between subtitle tracks
-- VTT download per locale
+#### Form architecture
 
-**AI metadata generation:**
-- Auto-generates title + description from es-CO transcript via `api.ai.generateLessonMetadata` (Mistral)
-- Triggers automatically when captions first become available
-- Sparkles button for manual re-generation
-- Fields are editable after generation
-
-**Slug generation:**
-- Format: `{course-prefix}-{sequence}-{title-slug}-{timestamp}`
-- Course prefix: initials of course slug (e.g., `curso-de-prueba` → `cdp`)
-- Sequence: padStart 4 digits (0001, 0002, ...)
-- Generated on save
-
-**Auto-save draft:**
-- On upload complete, saves lesson as draft with fallback title "Lección sin nombrar"
-- Sets `mediaStatus: "processing"`, updates to `"ready"` when pipeline completes
-
-**Form architecture:**
-- TanStack Form + Zod validation (title min 3 chars)
-- `FormField` with auto-advance (title → description → submit)
-- `SmartSubmit` with empty field hints
-- ES-only input, auto-translate via Mistral on save
-- Duration extracted client-side from video file metadata
-
-#### 2. Schema (convex/schema.ts)
-
-Fields on `lessons` table:
-- `slug`: optional string
-- `mediaStatus`: "processing" | "ready" | "error"
-- `hlsPlaylistUrl`, `thumbnailUrl`, `captionLocales`, `captionTranscriptId`, `mediaError`
-- Index: `by_videoId` for lookup by video key
-
-#### 3. Backend (convex/lessons.ts)
-
-- `create` and `update` accept `slug`, `mediaStatus`, `captionLocales`, `captionTranscriptId`
-- `updateMediaStatus` internal mutation (for future webhook use)
-
-#### 4. AI actions (convex/ai.ts)
-
-- `generateLessonMetadata` — transcript → title + description via Mistral
-- `translateText` — ES → EN translation
-- `capitalizeTitle` — Spanish title capitalization
-
-#### 5. Form architecture migration
-
-All admin forms migrated to TanStack Form + Zod validation:
-- **Course create/edit**: `FormField` with auto-advance, `SmartSubmit`, slug hint in error slot
-- **Blog create/edit**: Unified into `BlogPostEditor` component with Zustand store
+All admin forms on TanStack Form + Zod:
+- **Course create/edit**: `FormField` + shared `DescriptionField`/`PriceField` + `SmartSubmit`
 - **Lesson create/edit**: TanStack Form + video pipeline + AI metadata
-- **Content editor**: `useMemo` for contentMap, unified `startEdit`, focus on preview click
-- **All bilingual forms**: ES-only input, auto-translate via Mistral on save
+- **Blog create/edit**: `BlogPostEditor` with Zustand store
+- **Content editor**: inline CMS with draft/publish
+- ES-only input, auto-translate via Mistral on save
 
-#### 6. VideoPlayer theming (packages/ui/src/styles/globals.css)
+#### VideoPlayer theming
 
 ```css
 [data-dvltr-controls] {
@@ -106,60 +81,39 @@ All admin forms migrated to TanStack Form + Zod validation:
   --dvltr-thumb-width: 4px;
   --dvltr-thumb-height: 12px;
   --dvltr-thumb-shadow: -3px 0 4px 0 rgba(0, 0, 0, 0.4);
+  --dvltr-buffered: rgba(246, 243, 238, 0.4);
 }
 ```
 
+#### Shared utilities (`@repo/utils`)
+
+`slugify`, `formatDuration`, `formatDurationShort`, `formatCOPInput`, `parseCOPInput`, `getVideoDuration`, `withToken`
+
 ### Pending
 
-#### VideoPlayer in course detail (student)
+#### Student video player
 
-File: `src/routes/courses/$slug.tsx` (or new lesson detail route)
-
-- `VideoPlayer` with `issueToken()` JWT for student auth (not API key)
-- Wire `onProgress` to save watch position via Convex
-- `initialTime` from saved progress for resume playback
+- `VideoPlayer` with `issueToken()` JWT for student auth
+- `onProgress` with `progressInterval` for saving watch position
+- `initialTime` from saved progress for resume
 
 #### ProgressProvider
 
-File: `src/routes/__root.tsx`
-
 - Wrap app with `ProgressProvider` from `@devultur/react`
-- Connect to kmakeup's Convex backend
-- Wire `onSave`, `onLoad`, `onMarkComplete`, `onReset` to Convex mutations/queries
-- Uses existing `progress` table in schema
+- Connect to Convex `progress` table
 
-#### Image uploads (thumbnails)
-
-File: admin course edit form
-
-- `UploadZone` for course thumbnail
-- Accept: jpeg, png, webp
-- Store resulting URL via `media.getMediaUrl(key)`
-
-## Architecture Notes
-
-- `media.createUploadUrl()` calls the Devultur API, not R2 directly
-- Transcode is async via Fly.io; `useVideoProcessing` hook polls until complete
-- Captions: Groq Whisper for transcription (v0.2.12+), Mistral Small for translation
-- Captions are synchronous in v0.2.12+ (POST does all work, returns "completed")
-- `CaptionOverlay` replaces native `<track>` elements (HLS.js compatibility)
-- **Webhooks are stubs** — polling is the supported approach
-- `VideoPlayer` accepts `ref` prop (React 19, no forwardRef) for imperative control
-- All control styles use `@layer dvltr` for Tailwind v4 cascade compatibility
-- Theming via `--dvltr-*` CSS custom properties + `[data-dvltr-*]` selectors
-- Pipeline verified end-to-end: upload mp4 → R2 → HLS 720p via Fly.io → captions es-CO/en via Groq + Mistral → VTT to R2
-
-## SDK versions changelog (kmakeup-relevant)
+## SDK versions (kmakeup-relevant)
 
 | Version | Key changes |
 |---------|-------------|
-| v0.2.1 | MediaRouter exposes transcode/captions/issueToken directly |
-| v0.2.3 | `useVideoProcessing` hook, `extractId()`, transcode returns duration |
-| v0.2.5 | VideoPlayer default controls, multi-locale caption translation |
-| v0.2.6 | Imperative ref, `startTime` → `initialTime`, SeekBar thin bar |
-| v0.2.7 | CSS custom properties for theming, `[data-dvltr-*]` selectors |
-| v0.2.8 | `@layer dvltr` for Tailwind v4 compat |
-| v0.2.9 | Fullscreen fix, caption display fix, SpeedButton, keyboard shortcuts |
-| v0.2.10 | CaptionOverlay replaces native tracks, `--dvltr-thumb` property |
-| v0.2.11 | QualityButton for HLS adaptive streaming |
-| v0.2.12 | Groq + Mistral captions, TranscriptPanel component, `progressInterval` |
+| v0.2.5 | Default controls, caption translation |
+| v0.2.7 | CSS custom properties, `[data-dvltr-*]` selectors |
+| v0.2.8 | `@layer dvltr` for Tailwind v4 |
+| v0.2.9 | Fullscreen fix, SpeedButton, keyboard shortcuts |
+| v0.2.10 | CaptionOverlay, `--dvltr-thumb` |
+| v0.2.11 | QualityButton for HLS adaptive |
+| v0.2.12 | TranscriptPanel, `progressInterval`, Groq + Mistral captions |
+| v0.2.17 | Convex bridge (`createDevulturClient`), R2 project isolation |
+| v0.2.18 | `apiKey` optional on `createMediaRouter` |
+| v0.2.19 | Sentence captions, two-line stacking, buffer indicator |
+| v0.2.20 | `extractKey()` inverse of `getMediaUrl()` |

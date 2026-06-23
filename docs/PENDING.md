@@ -1,12 +1,5 @@
 # KMakeup — Pendientes
 
-## Siguiente: Image uploads con Devultur
-
-- Blog: cover image upload en BlogPostEditor
-- Cursos: thumbnail upload en course create/edit
-- Usar `UploadZone` con `accept: ["image/jpeg", "image/png", "image/webp"]`
-- Guardar URL via `media.getMediaUrl(key)`
-
 ## Auth
 
 - [ ] Google social auth
@@ -36,7 +29,8 @@
 - [ ] Contact form — definir qué se hará con los submissions
 - [ ] Notificaciones de correo electrónico (transaccionales, marketing)
 
-## Media
+## Devultur pendientes
 
-- [ ] Image uploads para blog (cover image) y cursos (thumbnail) via Devultur
 - [ ] ProgressProvider de Devultur para resume playback
+- [ ] `@devultur/tiptap` extension para reemplazar module-level upload hack
+- [ ] Student video player con `issueToken()` JWT + `initialTime` resume
