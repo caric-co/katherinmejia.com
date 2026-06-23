@@ -47,6 +47,27 @@ export function formatDuration(seconds: number): string {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
+export function formatDurationShort(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  return `${m} min`;
+}
+
+export function getVideoDuration(file: File): Promise<number> {
+  return new Promise((resolve) => {
+    const video = document.createElement("video");
+    video.preload = "metadata";
+    video.onloadedmetadata = () => {
+      resolve(Math.round(video.duration));
+      URL.revokeObjectURL(video.src);
+    };
+    video.onerror = () => {
+      resolve(0);
+      URL.revokeObjectURL(video.src);
+    };
+    video.src = URL.createObjectURL(file);
+  });
+}
+
 export function slugify(text: string): string {
   return text
     .toLowerCase()

@@ -3,6 +3,7 @@ import { Clock, Lock, PlayCircle } from "lucide-react";
 import { Badge } from "@repo/ui/components/badge";
 import { Button } from "@repo/ui/components/button";
 import { Separator } from "@repo/ui/components/separator";
+import { formatDurationShort } from "@repo/utils";
 
 interface CoursePreviewData {
   title: string;
@@ -54,11 +55,6 @@ const i18n = {
     noImage: "No image",
   },
 };
-
-function formatDuration(seconds: number): string {
-  const m = Math.floor(seconds / 60);
-  return `${m} min`;
-}
 
 function formatPrice(price: number): string {
   if (!price) return "$0";
@@ -141,7 +137,7 @@ export function CourseDetailPreview({ title, description, price, lang = "es", le
                   </div>
                   <div className="flex items-center gap-1 text-xs text-muted-foreground shrink-0">
                     <Clock className="size-3" />
-                    {formatDuration(lesson.duration)}
+                    {formatDurationShort(lesson.duration)}
                   </div>
                   {lesson.isFree ? (
                     <PlayCircle className="size-3.5 text-foreground shrink-0" />

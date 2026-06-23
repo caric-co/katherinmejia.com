@@ -9,6 +9,7 @@ import { api } from "@convex/_generated/api";
 import { Badge } from "@repo/ui/components/badge";
 import { Button } from "@repo/ui/components/button";
 import { Separator } from "@repo/ui/components/separator";
+import { formatDurationShort } from "@repo/utils";
 
 import { Footer } from "#/components/landing/footer";
 import { Navigation } from "#/components/landing/navigation";
@@ -52,11 +53,6 @@ export const Route = createFileRoute("/courses/$slug")({
   },
   component: CourseDetailPage,
 });
-
-function formatDuration(seconds: number): string {
-  const m = Math.floor(seconds / 60);
-  return `${m} min`;
-}
 
 function CourseDetailPage() {
   const { slug } = Route.useParams();
@@ -140,7 +136,7 @@ function CourseDetailPage() {
                       </div>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground shrink-0">
                         <Clock className="size-3.5" />
-                        {formatDuration(lesson.duration)}
+                        {formatDurationShort(lesson.duration)}
                       </div>
                       {lesson.isFree ? (
                         <PlayCircle className="size-5 text-foreground shrink-0" />

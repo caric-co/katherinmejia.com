@@ -39,6 +39,12 @@ const fieldLabels: Record<string, string> = {
   price: "Precio",
 };
 
+const statusLabels: Record<string, string> = {
+  draft: "Borrador",
+  published: "Publicado",
+  archived: "Archivado",
+};
+
 function EditCoursePage() {
   const { slug: routeSlug } = Route.useParams();
   const navigate = useNavigate();
@@ -48,52 +54,62 @@ function EditCoursePage() {
   const updateStatus = useMutation(api.courses.updateStatus);
   const translateAction = useAction(api.ai.translateText);
   const { token: viewerToken, uploadUrl } = useDevultur();
+  const submitControls = useSubmitPulse(SUBMIT_ID);
 
   const [serverError, setServerError] = useState("");
   const [previewLang, setPreviewLang] = useState<"es" | "en">("es");
   const [titleEn, setTitleEn] = useState("");
   const [descEn, setDescEn] = useState("");
-  const submitControls = useSubmitPulse(SUBMIT_ID);
 
   if (course === undefined) return <p className="text-muted-foreground">Cargando...</p>;
   if (course === null) return <p className="text-destructive">Curso no encontrado</p>;
 
-  const previewLessons = (lessons ?? []).map((l) => ({
-    title: previewLang === "es" ? l.title.es : l.title.en,
-    description: previewLang === "es" ? l.description?.es : l.description?.en,
-    duration: l.duration,
-    isFree: l.isFree,
-  }));
-
-  const statusLabel = { draft: "Borrador", published: "Publicado", archived: "Archivado" };
-
   return (
-    <EditCourseForm
+    <EditCourseFormInner
       key={course._id}
       course={course}
       routeSlug={routeSlug}
-      lessons={previewLessons}
+      lessons={lessons}
       previewLang={previewLang}
       setPreviewLang={setPreviewLang}
       titleEn={titleEn || course.title.en}
       descEn={descEn || course.description.en}
-      setTitleEn={setTitleEn}
-      setDescEn={setDescEn}
       serverError={serverError}
-      setServerError={setServerError}
-      submitControls={submitControls}
-      statusLabel={statusLabel}
-      navigate={navigate}
-      updateCourse={updateCourse}
-      updateStatus={updateStatus}
-      translateAction={translateAction}
       viewerToken={viewerToken}
       uploadUrl={uploadUrl}
+      submitControls={submitControls}
+      onSubmit={async (value, thumbnailUrl) => {
+        setServerError("");
+        try {
+          const [titleResult, descResult] = await Promise.all([
+            translateAction({ text: value.title }),
+            translateAction({ text: value.description }),
+          ]);
+          const finalTitleEn = titleResult.translated || value.title;
+          const finalDescEn = descResult.translated || value.description;
+          setTitleEn(finalTitleEn);
+          setDescEn(finalDescEn);
+
+          await updateCourse({
+            courseId: course._id,
+            title: { es: value.title, en: finalTitleEn },
+            description: { es: value.description, en: finalDescEn },
+            slug: { es: slugify(value.title), en: slugify(finalTitleEn) },
+            price: parseCOPInput(value.price),
+            thumbnailUrl: thumbnailUrl ?? undefined,
+          });
+          navigate({ to: "/admin/courses" });
+        } catch (err: any) {
+          setServerError(err.message ?? "Error al actualizar");
+        }
+      }}
+      onStatusChange={(status) => updateStatus({ courseId: course._id, status })}
+      onCancel={() => navigate({ to: "/admin/courses" })}
     />
   );
 }
 
-function EditCourseForm({
+function EditCourseFormInner({
   course,
   routeSlug,
   lessons,
@@ -101,40 +117,47 @@ function EditCourseForm({
   setPreviewLang,
   titleEn,
   descEn,
-  setTitleEn,
-  setDescEn,
   serverError,
-  setServerError,
-  submitControls,
-  statusLabel,
-  navigate,
-  updateCourse,
-  updateStatus,
-  translateAction,
   viewerToken,
   uploadUrl,
+  submitControls,
+  onSubmit,
+  onStatusChange,
+  onCancel,
 }: {
-  course: any;
+  course: {
+    _id: string;
+    title: { es: string; en: string };
+    description: { es: string; en: string };
+    price: number;
+    status: string;
+    thumbnailUrl?: string;
+  };
   routeSlug: string;
-  lessons: any[];
+  lessons: any[] | undefined;
   previewLang: "es" | "en";
   setPreviewLang: (lang: "es" | "en") => void;
   titleEn: string;
   descEn: string;
-  setTitleEn: (v: string) => void;
-  setDescEn: (v: string) => void;
   serverError: string;
-  setServerError: (v: string) => void;
-  submitControls: any;
-  statusLabel: Record<string, string>;
-  navigate: any;
-  updateCourse: any;
-  updateStatus: any;
-  translateAction: any;
   viewerToken: string | null;
   uploadUrl: (file: File) => Promise<{ url: string; key: string }>;
+  submitControls: any;
+  onSubmit: (
+    value: { title: string; description: string; price: string },
+    thumbnailUrl: string | null,
+  ) => Promise<void>;
+  onStatusChange: (status: "draft" | "published") => void;
+  onCancel: () => void;
 }) {
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(course.thumbnailUrl ?? null);
+
+  const previewLessons = (lessons ?? []).map((l: any) => ({
+    title: previewLang === "es" ? l.title.es : l.title.en,
+    description: previewLang === "es" ? l.description?.es : l.description?.en,
+    duration: l.duration,
+    isFree: l.isFree,
+  }));
 
   const form = useForm({
     defaultValues: {
@@ -143,33 +166,7 @@ function EditCourseForm({
       price: formatCOPInput(course.price.toString()),
     },
     validators: { onChange: courseSchema },
-    onSubmit: async ({ value }) => {
-      setServerError("");
-      try {
-        const [titleResult, descResult] = await Promise.all([
-          translateAction({ text: value.title }),
-          translateAction({ text: value.description }),
-        ]);
-
-        const finalTitleEn = titleResult.translated || value.title;
-        const finalDescEn = descResult.translated || value.description;
-        setTitleEn(finalTitleEn);
-        setDescEn(finalDescEn);
-
-        const slugEs = slugify(value.title);
-        await updateCourse({
-          courseId: course._id,
-          title: { es: value.title, en: finalTitleEn },
-          description: { es: value.description, en: finalDescEn },
-          slug: { es: slugEs, en: slugify(finalTitleEn) },
-          price: parseCOPInput(value.price),
-          thumbnailUrl: thumbnailUrl ?? undefined,
-        });
-        navigate({ to: "/admin/courses" });
-      } catch (err: any) {
-        setServerError(err.message ?? "Error al actualizar");
-      }
-    },
+    onSubmit: async ({ value }) => onSubmit(value, thumbnailUrl),
   });
 
   return (
@@ -178,7 +175,7 @@ function EditCourseForm({
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
             <h1 className="font-display text-h2">Editar Curso</h1>
-            <Badge variant={course.status === "published" ? "default" : "outline"}>{statusLabel[course.status]}</Badge>
+            <Badge variant={course.status === "published" ? "default" : "outline"}>{statusLabels[course.status]}</Badge>
           </div>
           <Link to={`/admin/courses/${routeSlug}/lessons` as string}>
             <Button variant="outline" size="sm">
@@ -199,7 +196,6 @@ function EditCourseForm({
             selector={(state) => state.values}
             children={(values) => {
               const slug = slugify(values.title);
-
               return (
                 <>
                   <form.Field
@@ -215,12 +211,10 @@ function EditCourseForm({
                       />
                     )}
                   />
-
                   <form.Field
                     name="description"
                     children={(field) => <DescriptionField field={field} nextFieldId="price" />}
                   />
-
                   <form.Field name="price" children={(field) => <PriceField field={field} submitId={SUBMIT_ID} />} />
                 </>
               );
@@ -270,7 +264,7 @@ function EditCourseForm({
                       type="button"
                       variant="outline"
                       className="h-11 flex-1"
-                      onClick={() => updateStatus({ courseId: course._id, status: "published" })}
+                      onClick={() => onStatusChange("published")}
                     >
                       Publicar
                     </Button>
@@ -280,17 +274,12 @@ function EditCourseForm({
                       type="button"
                       variant="outline"
                       className="h-11 flex-1"
-                      onClick={() => updateStatus({ courseId: course._id, status: "draft" })}
+                      onClick={() => onStatusChange("draft")}
                     >
                       Despublicar
                     </Button>
                   )}
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="h-11"
-                    onClick={() => navigate({ to: "/admin/courses" })}
-                  >
+                  <Button type="button" variant="ghost" className="h-11" onClick={onCancel}>
                     Cancelar
                   </Button>
                 </div>
@@ -343,7 +332,7 @@ function EditCourseForm({
                   description={previewDesc}
                   price={price}
                   lang={previewLang}
-                  lessons={lessons}
+                  lessons={previewLessons}
                 />
               </div>
             );

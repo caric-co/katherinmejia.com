@@ -9,33 +9,17 @@ import { motion } from "motion/react";
 import { z } from "zod";
 
 import { api } from "@convex/_generated/api";
-import type { Id } from "@convex/_generated/dataModel";
+import type { Doc, Id } from "@convex/_generated/dataModel";
 import { Badge } from "@repo/ui/components/badge";
 import { Button } from "@repo/ui/components/button";
 import { Label } from "@repo/ui/components/label";
-import { formatDuration, slugify, withToken } from "@repo/utils";
+import { formatDuration, getVideoDuration, slugify, withToken } from "@repo/utils";
 
 import { FormField } from "#/components/form-field";
 import { SmartSubmit } from "#/components/smart-submit";
 import { useDevultur } from "#/hooks/use-devultur";
 import { useAutoAdvance, usePulse, useSubmitPulse } from "#/lib/form-primitives";
 import { media } from "#/lib/media";
-
-function getVideoDuration(file: File): Promise<number> {
-  return new Promise((resolve) => {
-    const video = document.createElement("video");
-    video.preload = "metadata";
-    video.onloadedmetadata = () => {
-      resolve(Math.round(video.duration));
-      URL.revokeObjectURL(video.src);
-    };
-    video.onerror = () => {
-      resolve(0);
-      URL.revokeObjectURL(video.src);
-    };
-    video.src = URL.createObjectURL(file);
-  });
-}
 
 const lessonSchema = z.object({
   title: z.string().min(3, "Mínimo 3 caracteres"),
@@ -70,16 +54,7 @@ export interface LessonFormProps {
   courseId: Id<"courses">;
   courseSlug: string;
   lessonCount: number;
-  lesson?: {
-    _id: Id<"lessons">;
-    title: { es: string; en: string };
-    description: { es: string; en: string };
-    duration: number;
-    isFree: boolean;
-    videoId?: string;
-    mediaStatus?: string;
-    captionLocales?: string[];
-  };
+  lesson?: Doc<"lessons">;
   onDone: () => void;
 }
 
