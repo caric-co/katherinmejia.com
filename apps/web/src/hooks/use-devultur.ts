@@ -4,10 +4,7 @@ import { useAction } from "convex/react";
 
 import { api } from "@convex/_generated/api";
 
-function extractKeyFromMediaUrl(mediaUrl: string): string | null {
-  const match = mediaUrl.match(/\/v1\/media\/(.+?)(?:\?|$)/);
-  return match?.[1] ?? null;
-}
+import { media } from "#/lib/media";
 
 export function useDevultur() {
   const issueViewerToken = useAction(api.devultur.issueViewerToken);
@@ -30,7 +27,7 @@ export function useDevultur() {
 
   const deleteMedia = useCallback(
     (mediaUrl: string) => {
-      const key = extractKeyFromMediaUrl(mediaUrl);
+      const key = media.extractKey(mediaUrl);
       if (key) deleteMediaAction({ key }).catch(() => {});
     },
     [deleteMediaAction],

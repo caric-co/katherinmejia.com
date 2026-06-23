@@ -140,5 +140,6 @@
   --dvltr-thumb-width: 4px;
   --dvltr-thumb-height: 12px;
   --dvltr-thumb-shadow: -3px 0 4px 0 rgba(0, 0, 0, 0.4);
+  --dvltr-buffered: rgba(246, 243, 238, 0.4);
   --dvltr-font-size: 13px;
 }
