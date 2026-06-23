@@ -17,7 +17,7 @@ import { formatDuration, getVideoDuration, slugify, withToken } from "@repo/util
 
 import { FormField } from "#/components/form-field";
 import { SmartSubmit } from "#/components/smart-submit";
-import { useDevultur } from "#/hooks/use-devultur";
+import { useDevultur, useDevulturMedia } from "#/hooks/use-devultur";
 import { useAutoAdvance, usePulse, useSubmitPulse } from "#/lib/form-primitives";
 import { media } from "#/lib/media";
 
@@ -83,7 +83,8 @@ export function LessonForm({ courseId, courseSlug, lessonCount, lesson, onDone }
   const draftLessonIdRef = useRef<Id<"lessons"> | null>(lesson?._id ?? null);
   const submitControls = useSubmitPulse(SUBMIT_ID);
 
-  const processing = useVideoProcessing(media, isAlreadyReady ? null : videoKey, {
+  const devulturMedia = useDevulturMedia();
+  const processing = useVideoProcessing(devulturMedia, isAlreadyReady ? null : videoKey, {
     locales: ["es-CO", "en"],
     preset: "hls-720p",
     autoStart: true,
