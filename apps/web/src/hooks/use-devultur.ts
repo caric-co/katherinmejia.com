@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect } from "react";
 
 import { useAction } from "convex/react";
 
@@ -44,28 +44,4 @@ export function useDevultur() {
   );
 
   return { token, uploadUrl, deleteMedia, deleteVideo };
-}
-
-export function useDevulturMedia() {
-  const token = useDevulturStore((s) => s.token);
-  const transcodeAction = useAction(api.devultur.transcode);
-  const getTranscodeStatusAction = useAction(api.devultur.getTranscodeStatus);
-  const requestCaptionsAction = useAction(api.devultur.requestCaptions);
-  const getCaptionsStatusAction = useAction(api.devultur.getCaptionsStatus);
-
-  return useMemo(
-    () => ({
-      transcode: (key: string, options?: { preset?: string }) => transcodeAction({ key, preset: options?.preset }),
-      getTranscodeStatus: (jobId: string) => getTranscodeStatusAction({ jobId }),
-      requestCaptions: (key: string, locales: string[]) => requestCaptionsAction({ key, locales }),
-      getCaptionsStatus: (transcriptId: string) => getCaptionsStatusAction({ transcriptId }),
-      getCaptionsVtt: async (transcriptId: string) => {
-        const url = `${media.getMediaUrl(`captions/${transcriptId}`)}.vtt`;
-        const res = await fetch(token ? `${url}?token=${token}` : url);
-        return res.ok ? res.text() : "";
-      },
-      getMediaUrl: (key: string) => media.getMediaUrl(key),
-    }),
-    [token, transcodeAction, getTranscodeStatusAction, requestCaptionsAction, getCaptionsStatusAction],
-  );
 }

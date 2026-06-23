@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { captionPath, extractId, videoHlsPlaylistPath } from "@devultur/core";
 import { TranscriptPanel, UploadZone, useVideoProcessing, VideoPlayer, type VideoPlayerRef } from "@devultur/react";
+import { useDevulturMedia } from "@devultur/react/convex";
 import { useForm } from "@tanstack/react-form";
 import { useAction, useMutation } from "convex/react";
 import { CheckCircle2, Clock, Download, Film, Loader2, Sparkles, Upload, X } from "lucide-react";
@@ -17,7 +18,7 @@ import { formatDuration, getVideoDuration, slugify, withToken } from "@repo/util
 
 import { FormField } from "#/components/form-field";
 import { SmartSubmit } from "#/components/smart-submit";
-import { useDevultur, useDevulturMedia } from "#/hooks/use-devultur";
+import { useDevultur } from "#/hooks/use-devultur";
 import { useAutoAdvance, usePulse, useSubmitPulse } from "#/lib/form-primitives";
 import { media } from "#/lib/media";
 
@@ -83,14 +84,26 @@ export function LessonForm({ courseId, courseSlug, lessonCount, lesson, onDone }
   const draftLessonIdRef = useRef<Id<"lessons"> | null>(lesson?._id ?? null);
   const submitControls = useSubmitPulse(SUBMIT_ID);
 
-  const devulturMedia = useDevulturMedia();
+  const { token: authToken, uploadUrl: devulturUploadUrl, deleteVideo } = useDevultur();
+
+  const baseMedia = useDevulturMedia(api.devultur, media.getMediaUrl);
+  const devulturMedia = useMemo(
+    () => ({
+      ...baseMedia,
+      getCaptionsVtt: async (transcriptId: string) => {
+        const url = withToken(media.getMediaUrl(`captions/${transcriptId}.vtt`), authToken);
+        const res = await fetch(url);
+        return res.ok ? res.text() : "";
+      },
+    }),
+    [baseMedia, authToken],
+  );
   const processing = useVideoProcessing(devulturMedia, isAlreadyReady ? null : videoKey, {
     locales: ["es-CO", "en"],
     preset: "hls-720p",
     autoStart: true,
   });
 
-  const { token: authToken, uploadUrl: devulturUploadUrl, deleteVideo } = useDevultur();
   const previousVideoIdRef = useRef<string | null>(hasExistingVideo ? extractId(lesson.videoId!) : null);
 
   const existingVideoId = hasExistingVideo ? extractId(lesson.videoId!) : null;
