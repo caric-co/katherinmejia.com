@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+import { useDevultur } from "@devultur/react/convex";
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { useMutation, useQuery } from "convex/react";
 import {
@@ -29,7 +30,6 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@repo/
 import { formatDuration } from "@repo/utils";
 
 import { LessonForm } from "#/components/lesson-form";
-import { useDevultur } from "#/hooks/use-devultur";
 
 export const Route = createFileRoute("/admin/_layout/courses/$slug/lessons")({
   component: LessonsPage,

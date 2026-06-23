@@ -1,8 +1,13 @@
 import { ConvexQueryClient } from "@convex-dev/react-query";
+import { DevulturProvider } from "@devultur/react/convex";
 import { QueryClient } from "@tanstack/react-query";
 import { createRouter as createTanStackRouter } from "@tanstack/react-router";
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
 import { ConvexProvider } from "convex/react";
+
+import { api } from "@convex/_generated/api";
+
+import { media } from "#/lib/media";
 
 import { routeTree } from "./routeTree.gen";
 
@@ -30,7 +35,13 @@ export function getRouter() {
     defaultPreloadStaleTime: 0,
     context: { queryClient, convexQueryClient },
     scrollRestoration: true,
-    Wrap: ({ children }) => <ConvexProvider client={convexQueryClient.convexClient}>{children}</ConvexProvider>,
+    Wrap: ({ children }) => (
+      <ConvexProvider client={convexQueryClient.convexClient}>
+        <DevulturProvider api={api.devultur} media={media}>
+          {children}
+        </DevulturProvider>
+      </ConvexProvider>
+    ),
   });
 
   setupRouterSsrQueryIntegration({ router, queryClient });

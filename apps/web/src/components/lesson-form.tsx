@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { captionPath, extractId, videoHlsPlaylistPath } from "@devultur/core";
 import { TranscriptPanel, UploadZone, useVideoProcessing, VideoPlayer, type VideoPlayerRef } from "@devultur/react";
-import { useDevulturMedia } from "@devultur/react/convex";
+import { useDevultur, useDevulturMedia } from "@devultur/react/convex";
 import { useForm } from "@tanstack/react-form";
 import { useAction, useMutation } from "convex/react";
 import { CheckCircle2, Clock, Download, Film, Loader2, Sparkles, Upload, X } from "lucide-react";
@@ -18,7 +18,6 @@ import { formatDuration, getVideoDuration, slugify, withToken } from "@repo/util
 
 import { FormField } from "#/components/form-field";
 import { SmartSubmit } from "#/components/smart-submit";
-import { useDevultur } from "#/hooks/use-devultur";
 import { useAutoAdvance, usePulse, useSubmitPulse } from "#/lib/form-primitives";
 import { media } from "#/lib/media";
 

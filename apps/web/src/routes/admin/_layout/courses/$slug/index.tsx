@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+import { useDevultur } from "@devultur/react/convex";
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useAction, useMutation, useQuery } from "convex/react";
@@ -19,7 +20,6 @@ import { CourseCardPreview, CourseDetailPreview } from "#/components/course-prev
 import { FormField } from "#/components/form-field";
 import { ImageUpload } from "#/components/image-upload";
 import { SmartSubmit } from "#/components/smart-submit";
-import { useDevultur } from "#/hooks/use-devultur";
 import { useSubmitPulse } from "#/lib/form-primitives";
 
 export const Route = createFileRoute("/admin/_layout/courses/$slug/")({

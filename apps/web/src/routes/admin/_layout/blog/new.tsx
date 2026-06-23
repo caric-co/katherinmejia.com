@@ -1,10 +1,10 @@
+import { useDevultur } from "@devultur/react/convex";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation } from "convex/react";
 
 import { api } from "@convex/_generated/api";
 
 import { BlogPostEditor } from "#/components/blog-post-editor";
-import { useDevultur } from "#/hooks/use-devultur";
 
 export const Route = createFileRoute("/admin/_layout/blog/new")({
   component: NewBlogPostPage,
