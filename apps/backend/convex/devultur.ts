@@ -4,6 +4,7 @@ import { action } from "./_generated/server";
 
 const devultur = createDevulturClient({
   apiKey: process.env.DEVULTUR_API_KEY!,
+  baseUrl: process.env.DEVULTUR_API_URL!,
 });
 
 export const issueViewerToken = action(devultur.convex.issueViewerToken);
