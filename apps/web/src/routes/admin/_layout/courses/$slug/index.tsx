@@ -7,6 +7,7 @@ import { BookOpen } from "lucide-react";
 import { z } from "zod";
 
 import { api } from "@convex/_generated/api";
+import type { Doc } from "@convex/_generated/dataModel";
 import { Badge } from "@repo/ui/components/badge";
 import { Button } from "@repo/ui/components/button";
 import { Label } from "@repo/ui/components/label";
@@ -136,14 +137,7 @@ function EditCourseFormInner({
     thumbnailUrl?: string;
   };
   routeSlug: string;
-  lessons:
-    | {
-        title: { es: string; en: string };
-        description: { es: string; en: string };
-        duration: number;
-        isFree: boolean;
-      }[]
-    | undefined;
+  lessons: Doc<"lessons">[] | undefined;
   previewLang: "es" | "en";
   setPreviewLang: (lang: "es" | "en") => void;
   titleEn: string;
