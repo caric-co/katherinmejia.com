@@ -9,7 +9,7 @@ import { Separator } from "@repo/ui/components/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@repo/ui/components/tooltip";
 import { slugify } from "@repo/utils";
 
-import { BlogEditor, type BlogEditorRef, setBlogEditorUploadConfig } from "#/components/editor/blog-editor";
+import { BlogEditor, type BlogEditorRef, setEditorUploadConfig } from "#/components/editor/blog-editor";
 import { ImageUpload } from "#/components/image-upload";
 import { useBlogEditorStore } from "#/stores/blog-editor-store";
 
@@ -57,7 +57,7 @@ export function BlogPostEditor({
 
   useEffect(() => {
     if (viewerToken) {
-      setBlogEditorUploadConfig(async (file) => createUploadUrl(file), viewerToken);
+      setEditorUploadConfig(async (file) => createUploadUrl(file), viewerToken);
     }
   }, [createUploadUrl, viewerToken]);
   const editorRef = useRef<BlogEditorRef>(null);

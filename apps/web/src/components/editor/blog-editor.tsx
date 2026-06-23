@@ -48,13 +48,13 @@ import {
   Youtube,
 } from "novel";
 
+// Module-level upload config — TipTap slash commands run outside React's tree,
+// so we can't use hooks or context. The parent component sets this before mounting.
+// TODO: Replace with @devultur/tiptap extension when available.
 let _uploadHandler: ((file: File) => Promise<{ url: string; key: string }>) | null = null;
 let _viewerToken: string | null = null;
 
-export function setBlogEditorUploadConfig(
-  handler: (file: File) => Promise<{ url: string; key: string }>,
-  token: string,
-) {
+export function setEditorUploadConfig(handler: (file: File) => Promise<{ url: string; key: string }>, token: string) {
   _uploadHandler = handler;
   _viewerToken = token;
 }

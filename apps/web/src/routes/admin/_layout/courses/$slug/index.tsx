@@ -4,23 +4,22 @@ import { useForm } from "@tanstack/react-form";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useAction, useMutation, useQuery } from "convex/react";
 import { BookOpen } from "lucide-react";
-import { motion } from "motion/react";
 import { z } from "zod";
 
 import { api } from "@convex/_generated/api";
 import { Badge } from "@repo/ui/components/badge";
 import { Button } from "@repo/ui/components/button";
-import { Input } from "@repo/ui/components/input";
 import { Label } from "@repo/ui/components/label";
 import { Separator } from "@repo/ui/components/separator";
 import { formatCOPInput, parseCOPInput, slugify } from "@repo/utils";
 
+import { DescriptionField, PriceField } from "#/components/course-form-fields";
 import { CourseCardPreview, CourseDetailPreview } from "#/components/course-preview";
 import { FormField } from "#/components/form-field";
 import { ImageUpload } from "#/components/image-upload";
 import { SmartSubmit } from "#/components/smart-submit";
 import { useDevultur } from "#/hooks/use-devultur";
-import { triggerPulse, useAutoAdvance, usePulse, useSubmitPulse } from "#/lib/form-primitives";
+import { useSubmitPulse } from "#/lib/form-primitives";
 
 export const Route = createFileRoute("/admin/_layout/courses/$slug/")({
   component: EditCoursePage,
@@ -352,93 +351,5 @@ function EditCourseForm({
         />
       </div>
     </div>
-  );
-}
-
-function DescriptionField({ field, nextFieldId, submitId }: { field: any; nextFieldId?: string; submitId?: string }) {
-  const hasError = field.state.meta.isTouched && field.state.meta.errors.length > 0;
-  const errorMessage = hasError ? (field.state.meta.errors[0]?.message ?? field.state.meta.errors[0]) : null;
-  const controls = usePulse(field.name);
-
-  const { inputRef, startTimer, onBlur } = useAutoAdvance({
-    fieldId: field.name,
-    nextFieldId,
-    submitId,
-    hasErrors: field.state.meta.errors.length > 0,
-  });
-
-  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    field.handleChange(e.target.value);
-    startTimer();
-  };
-
-  const handleBlur = () => {
-    onBlur();
-    field.handleBlur();
-  };
-
-  return (
-    <motion.div animate={controls}>
-      <Label
-        htmlFor={field.name}
-        className={`text-xs uppercase tracking-wider font-medium mb-2 block ${hasError ? "text-destructive" : ""}`}
-      >
-        Descripción
-      </Label>
-      <textarea
-        ref={inputRef as unknown as React.RefObject<HTMLTextAreaElement>}
-        id={field.name}
-        value={field.state.value}
-        onChange={handleChange}
-        onBlur={handleBlur}
-        placeholder="Aprende las técnicas fundamentales para un maquillaje natural..."
-        className="flex field-sizing-content min-h-24 w-full rounded-none border-0 border-b border-input bg-transparent px-0 py-2 transition-colors outline-none placeholder:text-muted-foreground/60 focus-visible:border-foreground/40"
-        aria-invalid={hasError}
-      />
-      <p className={`text-sm mt-1 min-h-5 ${errorMessage ? "text-destructive" : "text-transparent"}`}>
-        {errorMessage ?? " "}
-      </p>
-    </motion.div>
-  );
-}
-
-function PriceField({ field, submitId }: { field: any; submitId?: string }) {
-  const hasError = field.state.meta.isTouched && field.state.meta.errors.length > 0;
-  const errorMessage = hasError ? (field.state.meta.errors[0]?.message ?? field.state.meta.errors[0]) : null;
-  const controls = usePulse(field.name);
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && submitId) {
-      e.preventDefault();
-      triggerPulse(submitId);
-      document.getElementById(submitId)?.focus();
-    }
-  };
-
-  return (
-    <motion.div className="max-w-48" animate={controls}>
-      <Label
-        htmlFor={field.name}
-        className={`text-xs uppercase tracking-wider font-medium mb-2 block ${hasError ? "text-destructive" : ""}`}
-      >
-        Precio (COP)
-      </Label>
-      <div className="relative">
-        <span className="absolute left-0 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
-        <Input
-          id={field.name}
-          value={field.state.value}
-          onChange={(e) => field.handleChange(formatCOPInput(e.target.value))}
-          onBlur={field.handleBlur}
-          onKeyDown={handleKeyDown}
-          placeholder="149.900"
-          className="pl-4"
-          aria-invalid={hasError}
-        />
-      </div>
-      <p className={`text-sm mt-1 min-h-5 ${errorMessage ? "text-destructive" : "text-transparent"}`}>
-        {errorMessage ?? " "}
-      </p>
-    </motion.div>
   );
 }
