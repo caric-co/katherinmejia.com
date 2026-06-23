@@ -29,6 +29,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@repo/
 import { formatDuration } from "@repo/utils";
 
 import { LessonForm } from "#/components/lesson-form";
+import { useDevultur } from "#/hooks/use-devultur";
 
 export const Route = createFileRoute("/admin/_layout/courses/$slug/lessons")({
   component: LessonsPage,
@@ -43,6 +44,7 @@ function LessonsPage() {
   const lessons = useQuery(api.lessons.listByCourse, courseId ? { courseId } : "skip");
   const reorderLessons = useMutation(api.lessons.reorder);
   const removeLesson = useMutation(api.lessons.remove);
+  const { deleteVideo } = useDevultur();
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<Id<"lessons"> | null>(null);
 
@@ -215,7 +217,16 @@ function LessonsPage() {
                           <Pencil className="size-4" />
                           Editar
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => removeLesson({ lessonId: lesson._id })} variant="destructive">
+                        <DropdownMenuItem
+                          onClick={async () => {
+                            await removeLesson({ lessonId: lesson._id });
+                            if (lesson.videoId && lesson.videoId !== "pending-upload") {
+                              const id = lesson.videoId.split("/")[1];
+                              if (id) deleteVideo(id);
+                            }
+                          }}
+                          variant="destructive"
+                        >
                           <Trash2 className="size-4" />
                           Eliminar
                         </DropdownMenuItem>

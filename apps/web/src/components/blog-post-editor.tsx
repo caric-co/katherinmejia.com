@@ -37,6 +37,7 @@ interface BlogPostEditorProps {
   onUnpublish?: () => void;
   isPublished?: boolean;
   createUploadUrl: (file: File) => Promise<{ url: string; key: string }>;
+  deleteMedia: (mediaUrl: string) => void;
   viewerToken: string | null;
 }
 
@@ -48,6 +49,7 @@ export function BlogPostEditor({
   onUnpublish,
   isPublished,
   createUploadUrl,
+  deleteMedia,
   viewerToken,
 }: BlogPostEditorProps) {
   const store = useBlogEditorStore();
@@ -288,6 +290,7 @@ export function BlogPostEditor({
         value={store.coverImageUrl}
         onChange={store.setCoverImageUrl}
         onUploadUrl={createUploadUrl}
+        onDelete={deleteMedia}
         token={viewerToken}
         label="Imagen de portada"
         aspectRatio="21/9"

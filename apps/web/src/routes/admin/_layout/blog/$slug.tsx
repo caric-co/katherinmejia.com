@@ -17,7 +17,7 @@ function EditBlogPostPage() {
   const updatePost = useMutation(api.blogPosts.update);
   const publishPost = useMutation(api.blogPosts.publish);
   const unpublishPost = useMutation(api.blogPosts.unpublish);
-  const { token, uploadUrl } = useDevultur();
+  const { token, uploadUrl, deleteMedia } = useDevultur();
 
   if (post === undefined) return <p className="text-muted-foreground">Cargando...</p>;
   if (post === null) return <p className="text-destructive">Artículo no encontrado</p>;
@@ -47,6 +47,7 @@ function EditBlogPostPage() {
       onCancel={() => navigate({ to: "/admin/blog" })}
       onUnpublish={() => unpublishPost({ postId: post._id })}
       createUploadUrl={uploadUrl}
+      deleteMedia={deleteMedia}
       viewerToken={token}
     />
   );

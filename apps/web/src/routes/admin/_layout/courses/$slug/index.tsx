@@ -53,7 +53,7 @@ function EditCoursePage() {
   const updateCourse = useMutation(api.courses.update);
   const updateStatus = useMutation(api.courses.updateStatus);
   const translateAction = useAction(api.ai.translateText);
-  const { token: viewerToken, uploadUrl } = useDevultur();
+  const { token: viewerToken, uploadUrl, deleteMedia } = useDevultur();
   const submitControls = useSubmitPulse(SUBMIT_ID);
 
   const [serverError, setServerError] = useState("");
@@ -77,6 +77,7 @@ function EditCoursePage() {
       serverError={serverError}
       viewerToken={viewerToken}
       uploadUrl={uploadUrl}
+      deleteMedia={deleteMedia}
       submitControls={submitControls}
       onSubmit={async (value, thumbnailUrl) => {
         setServerError("");
@@ -120,6 +121,7 @@ function EditCourseFormInner({
   serverError,
   viewerToken,
   uploadUrl,
+  deleteMedia,
   submitControls,
   onSubmit,
   onStatusChange,
@@ -142,6 +144,7 @@ function EditCourseFormInner({
   serverError: string;
   viewerToken: string | null;
   uploadUrl: (file: File) => Promise<{ url: string; key: string }>;
+  deleteMedia: (mediaUrl: string) => void;
   submitControls: any;
   onSubmit: (
     value: { title: string; description: string; price: string },
@@ -227,6 +230,7 @@ function EditCourseFormInner({
               value={thumbnailUrl}
               onChange={setThumbnailUrl}
               onUploadUrl={uploadUrl}
+              onDelete={deleteMedia}
               token={viewerToken}
               label="Thumbnail del curso"
             />

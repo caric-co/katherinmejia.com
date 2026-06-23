@@ -12,6 +12,7 @@ interface ImageUploadProps {
   value: string | null;
   onChange: (url: string | null) => void;
   onUploadUrl: (file: File) => Promise<{ url: string; key: string }>;
+  onDelete?: (url: string) => void;
   token?: string | null;
   label?: string;
   aspectRatio?: string;
@@ -22,6 +23,7 @@ export function ImageUpload({
   value,
   onChange,
   onUploadUrl,
+  onDelete,
   token,
   label,
   aspectRatio = "16/9",
@@ -51,7 +53,10 @@ export function ImageUpload({
               variant="ghost"
               size="icon-sm"
               className="opacity-0 group-hover:opacity-100 transition-opacity text-white hover:text-white hover:bg-white/20"
-              onClick={() => onChange(null)}
+              onClick={() => {
+                if (onDelete && value) onDelete(value);
+                onChange(null);
+              }}
             >
               <Trash2 className="size-4" />
             </Button>

@@ -14,7 +14,7 @@ function NewBlogPostPage() {
   const navigate = useNavigate();
   const createPost = useMutation(api.blogPosts.create);
   const publishPost = useMutation(api.blogPosts.publish);
-  const { token, uploadUrl } = useDevultur();
+  const { token, uploadUrl, deleteMedia } = useDevultur();
 
   return (
     <BlogPostEditor
@@ -29,6 +29,7 @@ function NewBlogPostPage() {
       }}
       onCancel={() => navigate({ to: "/admin/blog" })}
       createUploadUrl={uploadUrl}
+      deleteMedia={deleteMedia}
       viewerToken={token}
     />
   );
