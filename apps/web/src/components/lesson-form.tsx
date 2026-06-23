@@ -89,7 +89,8 @@ export function LessonForm({ courseId, courseSlug, lessonCount, lesson, onDone }
     autoStart: true,
   });
 
-  const { token: authToken, uploadUrl: devulturUploadUrl } = useDevultur();
+  const { token: authToken, uploadUrl: devulturUploadUrl, deleteVideo } = useDevultur();
+  const previousVideoIdRef = useRef<string | null>(hasExistingVideo ? extractId(lesson.videoId!) : null);
 
   const existingVideoId = hasExistingVideo ? extractId(lesson.videoId!) : null;
   const existingPlaylistUrl =
@@ -247,6 +248,12 @@ export function LessonForm({ courseId, courseSlug, lessonCount, lesson, onDone }
   );
 
   const handleUploadComplete = async (result: { key: string; file: File }) => {
+    if (previousVideoIdRef.current) {
+      deleteVideo(previousVideoIdRef.current);
+    }
+    const newVideoId = extractId(result.key);
+    previousVideoIdRef.current = newVideoId;
+
     setVideoKey(result.key);
     setUploadedFileName(result.file.name);
     setUploadError(null);
