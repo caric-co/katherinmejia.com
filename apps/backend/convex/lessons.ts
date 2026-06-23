@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 
-import { internalMutation, mutation, query } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
 
 const bilingualText = v.object({ es: v.string(), en: v.string() });
 
@@ -28,9 +28,8 @@ export const create = mutation({
     slug: v.optional(v.string()),
     description: bilingualText,
     videoId: v.string(),
-    duration: v.number(),
+    duration: v.optional(v.number()),
     isFree: v.boolean(),
-    mediaStatus: v.optional(v.union(v.literal("processing"), v.literal("ready"), v.literal("error"))),
   },
   handler: async (ctx, args) => {
     const existing = await ctx.db
@@ -55,9 +54,6 @@ export const update = mutation({
     videoId: v.optional(v.string()),
     duration: v.optional(v.number()),
     isFree: v.optional(v.boolean()),
-    mediaStatus: v.optional(v.union(v.literal("processing"), v.literal("ready"), v.literal("error"))),
-    captionLocales: v.optional(v.array(v.string())),
-    captionTranscriptId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const { lessonId, ...updates } = args;
@@ -83,36 +79,5 @@ export const remove = mutation({
   args: { lessonId: v.id("lessons") },
   handler: async (ctx, args) => {
     await ctx.db.delete(args.lessonId);
-  },
-});
-
-export const updateMediaStatus = internalMutation({
-  args: {
-    videoId: v.string(),
-    mediaStatus: v.union(v.literal("processing"), v.literal("ready"), v.literal("error")),
-    hlsPlaylistUrl: v.optional(v.string()),
-    thumbnailUrl: v.optional(v.string()),
-    duration: v.optional(v.number()),
-    captionLocale: v.optional(v.string()),
-    mediaError: v.optional(v.string()),
-  },
-  handler: async (ctx, args) => {
-    const lesson = await ctx.db
-      .query("lessons")
-      .withIndex("by_videoId", (q) => q.eq("videoId", args.videoId))
-      .unique();
-    if (!lesson) return;
-
-    const { videoId: _videoId, captionLocale, ...updates } = args;
-    const patch: Record<string, unknown> = { ...updates };
-
-    if (captionLocale) {
-      const existing = lesson.captionLocales ?? [];
-      if (!existing.includes(captionLocale)) {
-        patch.captionLocales = [...existing, captionLocale];
-      }
-    }
-
-    await ctx.db.patch(lesson._id, patch);
   },
 });

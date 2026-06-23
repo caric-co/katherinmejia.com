@@ -155,14 +155,14 @@ function LessonsPage() {
                         </Badge>
                       )}
                       <span className="font-medium">{lesson.title.es}</span>
-                      <MediaStatusBadge status={lesson.mediaStatus} videoId={lesson.videoId} />
+                      <MediaStatusBadge status={lesson.transcodeStatus} videoId={lesson.videoId} />
                     </div>
                     <div className="text-sm text-muted-foreground">{lesson.title.en}</div>
                     {lesson.description?.es && (
                       <div className="text-sm text-muted-foreground/70 mt-1 line-clamp-1">{lesson.description.es}</div>
                     )}
                   </TableCell>
-                  <TableCell className="text-center font-mono">{formatDuration(lesson.duration)}</TableCell>
+                  <TableCell className="text-center font-mono">{formatDuration(lesson.duration ?? 0)}</TableCell>
                   <TableCell className="text-center">
                     {lesson.isFree && <Badge variant="outline">Gratis</Badge>}
                   </TableCell>
@@ -251,15 +251,15 @@ function MediaStatusBadge({ status, videoId }: { status?: string; videoId: strin
         Sin video
       </Badge>
     );
-  if (status === "processing") {
+  if (status === "transcoding" || status === "captioning" || status === "processing") {
     return (
       <Badge variant="outline" className="text-xs text-amber-600 border-amber-300">
         <Loader2 className="size-3 animate-spin mr-1" />
-        Procesando
+        {status === "transcoding" ? "Transcoding" : status === "captioning" ? "Subtítulos" : "Procesando"}
       </Badge>
     );
   }
-  if (status === "error")
+  if (status === "failed" || status === "error")
     return (
       <Badge variant="outline" className="text-xs text-red-600 border-red-300">
         Error

@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { captionPath, extractId, videoHlsPlaylistPath } from "@devultur/core";
-import { TranscriptPanel, UploadZone, useVideoProcessing, VideoPlayer, type VideoPlayerRef } from "@devultur/react";
-import { useDevultur, useDevulturMedia } from "@devultur/react/convex";
+import { TranscriptPanel, UploadZone, VideoPlayer, type VideoPlayerRef } from "@devultur/react";
+import { useDevultur, useMediaStatus } from "@devultur/react/convex";
 import { useForm } from "@tanstack/react-form";
-import { useAction, useMutation } from "convex/react";
+import { useAction, useMutation, useQuery } from "convex/react";
 import { CheckCircle2, Clock, Download, Film, Loader2, Sparkles, Upload, X } from "lucide-react";
 import { motion } from "motion/react";
 import { z } from "zod";
@@ -28,12 +28,6 @@ const lessonSchema = z.object({
 
 const SUBMIT_ID = "lesson-submit";
 const fieldLabels: Record<string, string> = { title: "Título" };
-
-const STATUS_LABELS: Record<string, string> = {
-  starting: "Iniciando...",
-  transcoding: "Transcoding video...",
-  captioning: "Generando subtítulos...",
-};
 
 function courseSlugPrefix(slug: string): string {
   return slug
@@ -63,10 +57,11 @@ export function LessonForm({ courseId, courseSlug, lessonCount, lesson, onDone }
   const updateLesson = useMutation(api.lessons.update);
   const translateAction = useAction(api.ai.translateText);
   const generateMetadataAction = useAction(api.ai.generateLessonMetadata);
+  const transcodeAction = useAction(api.devultur.transcode);
+  const captionsAction = useAction(api.devultur.requestCaptions);
 
   const isEditing = !!lesson;
   const hasExistingVideo = isEditing && lesson.videoId && lesson.videoId !== "pending-upload";
-  const isAlreadyReady = hasExistingVideo && lesson.mediaStatus === "ready";
 
   const [isFree, setIsFree] = useState(lesson?.isFree ?? false);
   const [videoKey, setVideoKey] = useState<string | null>(lesson?.videoId ?? null);
@@ -81,46 +76,30 @@ export function LessonForm({ courseId, courseSlug, lessonCount, lesson, onDone }
   const [activeSubLocale, setActiveSubLocale] = useState<string>("es-CO");
   const [currentTime, setCurrentTime] = useState(0);
   const draftLessonIdRef = useRef<Id<"lessons"> | null>(lesson?._id ?? null);
+  const previousVideoIdRef = useRef<string | null>(hasExistingVideo ? extractId(lesson.videoId!) : null);
   const submitControls = useSubmitPulse(SUBMIT_ID);
 
   const { token: authToken, uploadUrl: devulturUploadUrl, deleteVideo } = useDevultur();
 
-  const baseMedia = useDevulturMedia(api.devultur, media.getMediaUrl);
-  const devulturMedia = useMemo(
-    () => ({
-      ...baseMedia,
-      getCaptionsVtt: async (transcriptId: string) => {
-        const url = withToken(media.getMediaUrl(`captions/${transcriptId}.vtt`), authToken);
-        const res = await fetch(url);
-        return res.ok ? res.text() : "";
-      },
-    }),
-    [baseMedia, authToken],
+  // Reactive lesson data — updates automatically via webhook events
+  const liveLesson = useQuery(
+    api.lessons.getById,
+    draftLessonIdRef.current ? { lessonId: draftLessonIdRef.current } : "skip",
   );
-  const processing = useVideoProcessing(devulturMedia, isAlreadyReady ? null : videoKey, {
-    locales: ["es-CO", "en"],
-    preset: "hls-720p",
-    autoStart: true,
-  });
+  const activeLesson = liveLesson ?? lesson;
+  const mediaStatus = useMediaStatus(activeLesson);
 
-  const previousVideoIdRef = useRef<string | null>(hasExistingVideo ? extractId(lesson.videoId!) : null);
-
-  const existingVideoId = hasExistingVideo ? extractId(lesson.videoId!) : null;
-  const existingPlaylistUrl =
-    isAlreadyReady && existingVideoId ? media.getMediaUrl(videoHlsPlaylistPath(existingVideoId)) : null;
-  const existingVttUrls = useMemo(() => {
-    if (!isAlreadyReady || !existingVideoId || !lesson.captionLocales?.length) return {};
+  // Derive video URLs from lesson record
+  const videoId = activeLesson?.videoId ? extractId(activeLesson.videoId) : null;
+  const playlistUrl = mediaStatus.isReady && videoId ? media.getMediaUrl(videoHlsPlaylistPath(videoId)) : null;
+  const vttUrls = useMemo(() => {
+    if (!mediaStatus.isReady || !videoId || !activeLesson?.captionLocales?.length) return {};
     const urls: Record<string, string> = {};
-    for (const locale of lesson.captionLocales) {
-      urls[locale] = media.getMediaUrl(captionPath(existingVideoId, locale));
+    for (const locale of activeLesson.captionLocales) {
+      urls[locale] = media.getMediaUrl(captionPath(videoId, locale));
     }
     return urls;
-  }, [isAlreadyReady, existingVideoId, lesson?.captionLocales]);
-
-  const playlistUrl = existingPlaylistUrl ?? processing.playlistUrl;
-  const vttUrls = Object.keys(existingVttUrls).length > 0 ? existingVttUrls : processing.vttUrls;
-  const isProcessing =
-    !isAlreadyReady && processing.status !== "idle" && processing.status !== "ready" && processing.status !== "error";
+  }, [mediaStatus.isReady, videoId, activeLesson?.captionLocales]);
 
   const captionTracks = useMemo(() => {
     return Object.entries(vttUrls).map(([locale, src]) => ({
@@ -130,19 +109,7 @@ export function LessonForm({ courseId, courseSlug, lessonCount, lesson, onDone }
     }));
   }, [vttUrls]);
 
-  useEffect(() => {
-    if (isAlreadyReady || processing.status !== "ready") return;
-    const lessonId = draftLessonIdRef.current;
-    if (!lessonId) return;
-
-    const locales = Object.keys(processing.vttUrls);
-    updateLesson({
-      lessonId,
-      mediaStatus: "ready",
-      ...(locales.length ? { captionLocales: locales } : {}),
-    }).catch(() => {});
-  }, [isAlreadyReady, processing.status, processing.vttUrls, updateLesson]);
-
+  // Auto-generate metadata when captions become available
   const generateMetadata = useCallback(async () => {
     const esVttUrl = vttUrls["es-CO"];
     if (!esVttUrl || generatingMeta) return;
@@ -240,7 +207,7 @@ export function LessonForm({ courseId, courseSlug, lessonCount, lesson, onDone }
             : (await translateAction({ text: titleEs })).translated || titleEs;
 
         if (isEditing) {
-          await updateLesson({ lessonId: lesson._id, videoId: key, duration, mediaStatus: "processing" });
+          await updateLesson({ lessonId: lesson._id, videoId: key, duration });
           draftLessonIdRef.current = lesson._id;
         } else {
           const newId = await createLesson({
@@ -250,22 +217,35 @@ export function LessonForm({ courseId, courseSlug, lessonCount, lesson, onDone }
             videoId: key,
             duration,
             isFree: false,
-            mediaStatus: "processing",
           });
           draftLessonIdRef.current = newId as Id<"lessons">;
         }
         setSavedAsDraft(true);
+
+        // Fire-and-forget: transcode + captions (webhook events update lesson record)
+        transcodeAction({ key }).catch(() => {});
+        captionsAction({ key, locales: ["es-CO", "en"] }).catch(() => {});
       } catch {}
     },
-    [courseId, isEditing, lesson, createLesson, updateLesson, translateAction, form.getFieldValue, form.setFieldValue],
+    [
+      courseId,
+      isEditing,
+      lesson,
+      createLesson,
+      updateLesson,
+      translateAction,
+      transcodeAction,
+      captionsAction,
+      form.getFieldValue,
+      form.setFieldValue,
+    ],
   );
 
   const handleUploadComplete = async (result: { key: string; file: File }) => {
     if (previousVideoIdRef.current) {
       deleteVideo(previousVideoIdRef.current);
     }
-    const newVideoId = extractId(result.key);
-    previousVideoIdRef.current = newVideoId;
+    previousVideoIdRef.current = extractId(result.key);
 
     setVideoKey(result.key);
     setUploadedFileName(result.file.name);
@@ -365,10 +345,10 @@ export function LessonForm({ courseId, courseSlug, lessonCount, lesson, onDone }
             </div>
           )}
 
-          {videoDuration > 0 && (
+          {(activeLesson?.duration ?? videoDuration) > 0 && (
             <div className="flex items-center gap-1.5 text-sm text-muted-foreground mb-2">
               <Clock className="size-3.5" />
-              <span>Duración: {formatDuration(videoDuration)}</span>
+              <span>Duración: {formatDuration(activeLesson?.duration ?? videoDuration)}</span>
             </div>
           )}
 
@@ -376,18 +356,20 @@ export function LessonForm({ courseId, courseSlug, lessonCount, lesson, onDone }
             <div className="flex items-center gap-2 p-2 border border-border rounded-md bg-background mb-2">
               <Film className="size-4 text-muted-foreground shrink-0" />
               <span className="text-sm truncate flex-1">{uploadedFileName ?? lesson?.videoId ?? videoKey}</span>
-              {isProcessing && (
+              {mediaStatus.isTranscoding && (
                 <div className="flex items-center gap-1.5 text-xs text-amber-600 shrink-0">
                   <Loader2 className="size-3 animate-spin" />
-                  {STATUS_LABELS[processing.status] ?? processing.status}
+                  {mediaStatus.progress ? `Transcoding ${mediaStatus.progress.percent}%` : "Transcoding..."}
                 </div>
               )}
-              {(isAlreadyReady || processing.status === "ready") && (
-                <CheckCircle2 className="size-4 text-green-500 shrink-0" />
+              {mediaStatus.isCaptioning && (
+                <div className="flex items-center gap-1.5 text-xs text-amber-600 shrink-0">
+                  <Loader2 className="size-3 animate-spin" />
+                  Generando subtítulos...
+                </div>
               )}
-              {processing.status === "error" && (
-                <span className="text-xs text-red-500 shrink-0">{processing.error}</span>
-              )}
+              {mediaStatus.isReady && <CheckCircle2 className="size-4 text-green-500 shrink-0" />}
+              {mediaStatus.isFailed && <span className="text-xs text-red-500 shrink-0">{mediaStatus.error}</span>}
             </div>
           ) : (
             <UploadZone

@@ -86,7 +86,7 @@ function CourseDetailPage() {
     );
   }
 
-  const totalDuration = lessons?.reduce((sum, l) => sum + l.duration, 0) ?? 0;
+  const totalDuration = lessons?.reduce((sum, l) => sum + (l.duration ?? 0), 0) ?? 0;
   const totalHours = Math.round((totalDuration / 3600) * 10) / 10;
 
   return (
@@ -136,7 +136,7 @@ function CourseDetailPage() {
                       </div>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground shrink-0">
                         <Clock className="size-3.5" />
-                        {formatDurationShort(lesson.duration)}
+                        {formatDurationShort(lesson.duration ?? 0)}
                       </div>
                       {lesson.isFree ? (
                         <PlayCircle className="size-5 text-foreground shrink-0" />

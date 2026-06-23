@@ -41,15 +41,17 @@ export default defineSchema({
     slug: v.optional(v.string()),
     description: bilingualText,
     videoId: v.string(),
-    duration: v.number(),
     order: v.number(),
     isFree: v.boolean(),
-    mediaStatus: v.optional(v.union(v.literal("processing"), v.literal("ready"), v.literal("error"))),
-    hlsPlaylistUrl: v.optional(v.string()),
-    thumbnailUrl: v.optional(v.string()),
+    transcodeStatus: v.optional(
+      v.union(v.literal("transcoding"), v.literal("captioning"), v.literal("ready"), v.literal("failed")),
+    ),
+    transcodeProgress: v.optional(v.object({ current: v.number(), total: v.number() })),
+    transcodeError: v.optional(v.string()),
+    playlistUrl: v.optional(v.string()),
+    thumbnailKey: v.optional(v.string()),
     captionLocales: v.optional(v.array(v.string())),
-    captionTranscriptId: v.optional(v.string()),
-    mediaError: v.optional(v.string()),
+    duration: v.optional(v.number()),
   })
     .index("by_course", ["courseId"])
     .index("by_course_order", ["courseId", "order"])

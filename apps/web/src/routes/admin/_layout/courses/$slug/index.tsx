@@ -152,7 +152,7 @@ function EditCourseFormInner({
   const previewLessons = (lessons ?? []).map((l) => ({
     title: previewLang === "es" ? l.title.es : l.title.en,
     description: previewLang === "es" ? l.description?.es : l.description?.en,
-    duration: l.duration,
+    duration: l.duration ?? 0,
     isFree: l.isFree,
   }));
 
