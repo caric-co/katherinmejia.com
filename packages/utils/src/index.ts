@@ -1,2 +1,12 @@
 export { cn } from "./cn";
-export { formatCOP, formatDate, formatPercent, formatUSD } from "./formatters";
+export {
+  formatCOP,
+  formatCOPInput,
+  formatDate,
+  formatDuration,
+  formatPercent,
+  formatUSD,
+  parseCOPInput,
+  slugify,
+  withToken,
+} from "./formatters";

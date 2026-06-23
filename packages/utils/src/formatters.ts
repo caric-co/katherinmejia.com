@@ -30,3 +30,33 @@ export function formatPercent(value: number): string {
     maximumFractionDigits: 1,
   }).format(value);
 }
+
+export function formatCOPInput(value: string): string {
+  const num = value.replace(/\D/g, "");
+  if (!num) return "";
+  return Number(num).toLocaleString("es-CO");
+}
+
+export function parseCOPInput(formatted: string): number {
+  return parseInt(formatted.replace(/\D/g, ""), 10) || 0;
+}
+
+export function formatDuration(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
+export function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+export function withToken(url: string, token: string | null | undefined): string {
+  if (!token) return url;
+  return `${url}${url.includes("?") ? "&" : "?"}token=${token}`;
+}

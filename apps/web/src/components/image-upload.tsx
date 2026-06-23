@@ -4,6 +4,7 @@ import { UploadZone } from "@devultur/react";
 import { ImagePlus, Loader2, Trash2 } from "lucide-react";
 
 import { Button } from "@repo/ui/components/button";
+import { withToken } from "@repo/utils";
 
 import { media } from "#/lib/media";
 
@@ -39,7 +40,7 @@ export function ImageUpload({
   };
 
   if (value) {
-    const displayUrl = token ? `${value}${value.includes("?") ? "&" : "?"}token=${token}` : value;
+    const displayUrl = withToken(value, token);
     return (
       <div className={className}>
         <div className="relative group rounded-sm overflow-hidden border border-border" style={{ aspectRatio }}>

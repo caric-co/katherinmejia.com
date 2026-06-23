@@ -12,6 +12,7 @@ import { Button } from "@repo/ui/components/button";
 import { Input } from "@repo/ui/components/input";
 import { Label } from "@repo/ui/components/label";
 import { Separator } from "@repo/ui/components/separator";
+import { formatCOPInput, parseCOPInput, slugify } from "@repo/utils";
 
 import { CourseCardPreview, CourseDetailPreview } from "#/components/course-preview";
 import { FormField } from "#/components/form-field";
@@ -23,25 +24,6 @@ import { triggerPulse, useAutoAdvance, usePulse, useSubmitPulse } from "#/lib/fo
 export const Route = createFileRoute("/admin/_layout/courses/new")({
   component: NewCoursePage,
 });
-
-function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-}
-
-function formatCOP(value: string): string {
-  const num = value.replace(/\D/g, "");
-  if (!num) return "";
-  return Number(num).toLocaleString("es-CO");
-}
-
-function parseCOP(formatted: string): number {
-  return parseInt(formatted.replace(/\D/g, ""), 10) || 0;
-}
 
 const courseSchema = z.object({
   title: z.string().min(3, "Mínimo 3 caracteres"),
@@ -90,7 +72,7 @@ function NewCoursePage() {
           title: { es: value.title, en: finalTitleEn },
           description: { es: value.description, en: finalDescEn },
           slug: { es: slug, en: slugify(finalTitleEn) },
-          price: parseCOP(value.price),
+          price: parseCOPInput(value.price),
           ...(thumbnailUrl ? { thumbnailUrl } : {}),
         });
         navigate({ to: "/admin/courses" });
@@ -222,7 +204,7 @@ function NewCoursePage() {
           children={(values) => {
             const previewTitle = previewLang === "es" ? values.title : titleEn;
             const previewDesc = previewLang === "es" ? values.description : descEn;
-            const price = parseCOP(values.price);
+            const price = parseCOPInput(values.price);
 
             return (
               <div className="p-6 space-y-8">
@@ -311,7 +293,7 @@ function PriceField({ field, submitId }: { field: any; submitId?: string }) {
         <Input
           id={field.name}
           value={field.state.value}
-          onChange={(e) => field.handleChange(formatCOP(e.target.value))}
+          onChange={(e) => field.handleChange(formatCOPInput(e.target.value))}
           onBlur={field.handleBlur}
           onKeyDown={handleKeyDown}
           placeholder="149.900"

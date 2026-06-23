@@ -7,19 +7,11 @@ import { api } from "@convex/_generated/api";
 import { Button } from "@repo/ui/components/button";
 import { Separator } from "@repo/ui/components/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@repo/ui/components/tooltip";
+import { slugify } from "@repo/utils";
 
 import { BlogEditor, type BlogEditorRef, setBlogEditorUploadConfig } from "#/components/editor/blog-editor";
 import { ImageUpload } from "#/components/image-upload";
 import { useBlogEditorStore } from "#/stores/blog-editor-store";
-
-function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-}
 
 interface BlogPayload {
   title: { es: string; en: string };

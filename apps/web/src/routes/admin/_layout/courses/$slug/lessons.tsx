@@ -38,6 +38,7 @@ import {
 import { Label } from "@repo/ui/components/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@repo/ui/components/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@repo/ui/components/tooltip";
+import { formatDuration, slugify, withToken } from "@repo/utils";
 
 import { FormField } from "#/components/form-field";
 import { SmartSubmit } from "#/components/smart-submit";
@@ -48,12 +49,6 @@ import { media } from "#/lib/media";
 export const Route = createFileRoute("/admin/_layout/courses/$slug/lessons")({
   component: LessonsPage,
 });
-
-function formatDuration(seconds: number): string {
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  return `${m}:${s.toString().padStart(2, "0")}`;
-}
 
 function getVideoDuration(file: File): Promise<number> {
   return new Promise((resolve) => {
@@ -320,15 +315,6 @@ const STATUS_LABELS: Record<string, string> = {
   transcoding: "Transcoding video...",
   captioning: "Generando subtítulos...",
 };
-
-function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-}
 
 function courseSlugPrefix(slug: string): string {
   return slug
@@ -659,7 +645,7 @@ function LessonForm({
             >
               <VideoPlayer
                 ref={playerRef}
-                src={`${playlistUrl}${playlistUrl.includes("?") ? "&" : "?"}token=${authToken}`}
+                src={withToken(playlistUrl, authToken)}
                 token={authToken ?? undefined}
                 captions={captionTracks}
                 defaultCaption="es-CO"
@@ -770,7 +756,7 @@ function LessonForm({
                     variant="ghost"
                     size="xs"
                     onClick={async () => {
-                      const url = `${vttUrls[activeSubLocale]}${vttUrls[activeSubLocale].includes("?") ? "&" : "?"}token=${authToken}`;
+                      const url = withToken(vttUrls[activeSubLocale], authToken);
                       const res = await fetch(url);
                       if (!res.ok) return;
                       const blob = new Blob([await res.text()], { type: "text/vtt" });
