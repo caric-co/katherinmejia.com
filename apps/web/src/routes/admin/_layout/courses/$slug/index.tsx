@@ -128,14 +128,7 @@ function EditCourseFormInner({
   onStatusChange,
   onCancel,
 }: {
-  course: {
-    _id: string;
-    title: { es: string; en: string };
-    description: { es: string; en: string };
-    price: number;
-    status: string;
-    thumbnailUrl?: string;
-  };
+  course: Doc<"courses">;
   routeSlug: string;
   lessons: Doc<"lessons">[] | undefined;
   previewLang: "es" | "en";
