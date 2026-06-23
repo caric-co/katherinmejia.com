@@ -164,7 +164,7 @@ export function LessonForm({ courseId, courseSlug, lessonCount, lesson, onDone }
             title: { es: value.title, en: titleEn },
             slug: lessonSlug,
             description: { es: value.description, en: descEn },
-            videoId: videoKey || "pending-upload",
+            videoId: videoKey ? extractId(videoKey) : "pending-upload",
             duration: videoDuration,
             isFree,
           });
@@ -191,14 +191,14 @@ export function LessonForm({ courseId, courseSlug, lessonCount, lesson, onDone }
             : (await translateAction({ text: titleEs })).translated || titleEs;
 
         if (isEditing) {
-          await updateLesson({ lessonId: lesson._id, videoId: key, duration });
+          await updateLesson({ lessonId: lesson._id, videoId: extractId(key), duration });
           draftLessonIdRef.current = lesson._id;
         } else {
           const newId = await createLesson({
             courseId,
             title: { es: titleEs, en: titleEn },
             description: { es: "", en: "" },
-            videoId: key,
+            videoId: extractId(key),
             duration,
             isFree: false,
           });

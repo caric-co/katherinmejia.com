@@ -15,6 +15,7 @@ export const handleMediaEvent = internalMutation({
       event,
       recordId: lesson._id,
       patch: (id, fields) => ctx.db.patch(id as any, fields),
+      read: (id) => ctx.db.get(id as any),
     });
   },
 });

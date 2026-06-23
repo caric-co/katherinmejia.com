@@ -5,6 +5,7 @@ import { action } from "./_generated/server";
 const devultur = createDevulturClient({
   apiKey: process.env.DEVULTUR_API_KEY!,
   baseUrl: process.env.DEVULTUR_API_URL,
+  webhookUrl: `${process.env.CONVEX_SITE_URL}/api/devultur-webhook`,
   locales: ["es-CO", "en"],
   preset: "hls-720p",
 });
