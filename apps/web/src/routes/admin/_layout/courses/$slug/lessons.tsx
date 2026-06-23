@@ -219,6 +219,7 @@ function LessonsPage() {
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={async () => {
+                            if (!confirm("¿Eliminar esta lección? Esta acción no se puede deshacer.")) return;
                             await removeLesson({ lessonId: lesson._id });
                             if (lesson.videoId && lesson.videoId !== "pending-upload") {
                               const id = lesson.videoId.split("/")[1];

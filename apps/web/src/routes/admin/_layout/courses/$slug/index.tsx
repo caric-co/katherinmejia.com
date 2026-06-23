@@ -136,7 +136,14 @@ function EditCourseFormInner({
     thumbnailUrl?: string;
   };
   routeSlug: string;
-  lessons: any[] | undefined;
+  lessons:
+    | {
+        title: { es: string; en: string };
+        description: { es: string; en: string };
+        duration: number;
+        isFree: boolean;
+      }[]
+    | undefined;
   previewLang: "es" | "en";
   setPreviewLang: (lang: "es" | "en") => void;
   titleEn: string;
@@ -155,7 +162,7 @@ function EditCourseFormInner({
 }) {
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(course.thumbnailUrl ?? null);
 
-  const previewLessons = (lessons ?? []).map((l: any) => ({
+  const previewLessons = (lessons ?? []).map((l) => ({
     title: previewLang === "es" ? l.title.es : l.title.en,
     description: previewLang === "es" ? l.description?.es : l.description?.en,
     duration: l.duration,

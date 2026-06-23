@@ -1,21 +1,24 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect } from "react";
 
 import { useAction } from "convex/react";
 
 import { api } from "@convex/_generated/api";
 
 import { media } from "#/lib/media";
+import { useDevulturStore } from "#/stores/devultur-store";
 
 export function useDevultur() {
+  const token = useDevulturStore((s) => s.token);
+  const setToken = useDevulturStore((s) => s.setToken);
   const issueViewerToken = useAction(api.devultur.issueViewerToken);
   const createUploadUrlAction = useAction(api.devultur.createUploadUrl);
   const deleteMediaAction = useAction(api.devultur.deleteMedia);
   const deleteVideoAction = useAction(api.devultur.deleteVideo);
-  const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
+    if (token) return;
     issueViewerToken().then(setToken);
-  }, [issueViewerToken]);
+  }, [token, issueViewerToken, setToken]);
 
   const uploadUrl = useCallback(
     async (file: File) => {

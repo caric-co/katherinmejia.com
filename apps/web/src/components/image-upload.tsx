@@ -54,6 +54,7 @@ export function ImageUpload({
               size="icon-sm"
               className="opacity-0 group-hover:opacity-100 transition-opacity text-white hover:text-white hover:bg-white/20"
               onClick={() => {
+                if (!confirm("¿Eliminar esta imagen?")) return;
                 if (onDelete && value) onDelete(value);
                 onChange(null);
               }}
