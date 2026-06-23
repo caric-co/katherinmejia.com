@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+import { MediaStatus } from "@devultur/core";
 import { useDevultur } from "@devultur/react/convex";
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { useMutation, useQuery } from "convex/react";
@@ -251,21 +252,21 @@ function MediaStatusBadge({ status, videoId }: { status?: string; videoId: strin
         Sin video
       </Badge>
     );
-  if (status === "transcoding" || status === "captioning" || status === "processing") {
+  if (status === MediaStatus.TRANSCODING || status === MediaStatus.CAPTIONING) {
     return (
       <Badge variant="outline" className="text-xs text-amber-600 border-amber-300">
         <Loader2 className="size-3 animate-spin mr-1" />
-        {status === "transcoding" ? "Transcoding" : status === "captioning" ? "Subtítulos" : "Procesando"}
+        {status === MediaStatus.TRANSCODING ? "Transcoding" : "Subtítulos"}
       </Badge>
     );
   }
-  if (status === "failed" || status === "error")
+  if (status === MediaStatus.FAILED)
     return (
       <Badge variant="outline" className="text-xs text-red-600 border-red-300">
         Error
       </Badge>
     );
-  if (status === "ready") {
+  if (status === MediaStatus.READY) {
     return (
       <Badge variant="outline" className="text-xs text-green-600 border-green-300">
         <CheckCircle2 className="size-3 mr-1" />
