@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-import { captionPath, extractId, videoHlsPlaylistPath } from "@devultur/core";
+import { extractId } from "@devultur/core";
 import { TranscriptPanel, UploadZone, VideoPlayer, type VideoPlayerRef } from "@devultur/react";
 import { useDevultur, useMediaStatus } from "@devultur/react/convex";
 import { useForm } from "@tanstack/react-form";
@@ -57,8 +57,7 @@ export function LessonForm({ courseId, courseSlug, lessonCount, lesson, onDone }
   const updateLesson = useMutation(api.lessons.update);
   const translateAction = useAction(api.ai.translateText);
   const generateMetadataAction = useAction(api.ai.generateLessonMetadata);
-  const transcodeAction = useAction(api.devultur.transcode);
-  const captionsAction = useAction(api.devultur.requestCaptions);
+  const processVideoAction = useAction(api.devultur.processVideo);
 
   const isEditing = !!lesson;
   const hasExistingVideo = isEditing && lesson.videoId && lesson.videoId !== "pending-upload";
@@ -87,27 +86,12 @@ export function LessonForm({ courseId, courseSlug, lessonCount, lesson, onDone }
     draftLessonIdRef.current ? { lessonId: draftLessonIdRef.current } : "skip",
   );
   const activeLesson = liveLesson ?? lesson;
-  const mediaStatus = useMediaStatus(activeLesson);
+  const mediaStatus = useMediaStatus(activeLesson, {
+    getMediaUrl: media.getMediaUrl,
+    captionLabels: { "es-CO": "Español (CO)", en: "English" },
+  });
 
-  // Derive video URLs from lesson record
-  const videoId = activeLesson?.videoId ? extractId(activeLesson.videoId) : null;
-  const playlistUrl = mediaStatus.isReady && videoId ? media.getMediaUrl(videoHlsPlaylistPath(videoId)) : null;
-  const vttUrls = useMemo(() => {
-    if (!mediaStatus.isReady || !videoId || !activeLesson?.captionLocales?.length) return {};
-    const urls: Record<string, string> = {};
-    for (const locale of activeLesson.captionLocales) {
-      urls[locale] = media.getMediaUrl(captionPath(videoId, locale));
-    }
-    return urls;
-  }, [mediaStatus.isReady, videoId, activeLesson?.captionLocales]);
-
-  const captionTracks = useMemo(() => {
-    return Object.entries(vttUrls).map(([locale, src]) => ({
-      locale,
-      label: locale === "es-CO" ? "Español" : "English",
-      src,
-    }));
-  }, [vttUrls]);
+  const { playlistUrl, vttUrls, captionTracks } = mediaStatus;
 
   // Auto-generate metadata when captions become available
   const generateMetadata = useCallback(async () => {
@@ -223,8 +207,7 @@ export function LessonForm({ courseId, courseSlug, lessonCount, lesson, onDone }
         setSavedAsDraft(true);
 
         // Fire-and-forget: transcode + captions (webhook events update lesson record)
-        transcodeAction({ key }).catch(() => {});
-        captionsAction({ key, locales: ["es-CO", "en"] }).catch(() => {});
+        processVideoAction({ key }).catch(() => {});
       } catch {}
     },
     [
@@ -234,8 +217,7 @@ export function LessonForm({ courseId, courseSlug, lessonCount, lesson, onDone }
       createLesson,
       updateLesson,
       translateAction,
-      transcodeAction,
-      captionsAction,
+      processVideoAction,
       form.getFieldValue,
       form.setFieldValue,
     ],
