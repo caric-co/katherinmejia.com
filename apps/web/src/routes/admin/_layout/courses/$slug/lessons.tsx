@@ -1,7 +1,8 @@
 import { useState } from "react";
 
+import { useDevultur, useDevulturMedia } from "@devultur/convex/react";
 import { MediaStatus } from "@devultur/core";
-import { useDevultur } from "@devultur/react/convex";
+import { formatTime } from "@devultur/react";
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { useMutation, useQuery } from "convex/react";
 import {
@@ -28,7 +29,6 @@ import {
 } from "@repo/ui/components/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@repo/ui/components/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@repo/ui/components/tooltip";
-import { formatDuration } from "@repo/utils";
 
 import { LessonForm } from "#/components/lesson-form";
 
@@ -45,7 +45,7 @@ function LessonsPage() {
   const lessons = useQuery(api.lessons.listByCourse, courseId ? { courseId } : "skip");
   const reorderLessons = useMutation(api.lessons.reorder);
   const removeLesson = useMutation(api.lessons.remove);
-  const { deleteVideo } = useDevultur();
+  const { deleteMedia } = useDevultur();
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<Id<"lessons"> | null>(null);
 
@@ -146,95 +146,29 @@ function LessonsPage() {
                   </TableCell>
                 </TableRow>
               ) : (
-                <TableRow key={lesson._id}>
-                  <TableCell className="text-muted-foreground font-mono">{lesson.order}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      {lesson.isFree && (
-                        <Badge variant="outline" className="text-xs">
-                          Gratis
-                        </Badge>
-                      )}
-                      <span className="font-medium">{lesson.title.es}</span>
-                      <MediaStatusBadge status={lesson.transcodeStatus} videoId={lesson.videoId} />
-                    </div>
-                    <div className="text-sm text-muted-foreground">{lesson.title.en}</div>
-                    {lesson.description?.es && (
-                      <div className="text-sm text-muted-foreground/70 mt-1 line-clamp-1">{lesson.description.es}</div>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-center font-mono">{formatDuration(lesson.duration ?? 0)}</TableCell>
-                  <TableCell className="text-center">
-                    {lesson.isFree && <Badge variant="outline">Gratis</Badge>}
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <div className="flex items-center justify-center gap-1">
-                      <TooltipProvider delay={300}>
-                        <Tooltip>
-                          <TooltipTrigger
-                            render={
-                              <Button
-                                variant="ghost"
-                                size="icon-sm"
-                                disabled={index === 0}
-                                onClick={() => handleMoveUp(index)}
-                              />
-                            }
-                          >
-                            <ChevronUp className="size-4" />
-                          </TooltipTrigger>
-                          <TooltipContent>Subir</TooltipContent>
-                        </Tooltip>
-                        <Tooltip>
-                          <TooltipTrigger
-                            render={
-                              <Button
-                                variant="ghost"
-                                size="icon-sm"
-                                disabled={index === lessons.length - 1}
-                                onClick={() => handleMoveDown(index)}
-                              />
-                            }
-                          >
-                            <ChevronDown className="size-4" />
-                          </TooltipTrigger>
-                          <TooltipContent>Bajar</TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />}>
-                        <MoreHorizontal className="size-4" />
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() => {
-                            setEditingId(lesson._id);
-                            setShowForm(false);
-                          }}
-                        >
-                          <Pencil className="size-4" />
-                          Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={async () => {
-                            if (!confirm("¿Eliminar esta lección? Esta acción no se puede deshacer.")) return;
-                            await removeLesson({ lessonId: lesson._id });
-                            if (lesson.videoId && lesson.videoId !== "pending-upload") {
-                              deleteVideo(lesson.videoId);
-                            }
-                          }}
-                          variant="destructive"
-                        >
-                          <Trash2 className="size-4" />
-                          Eliminar
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
+                <LessonRow
+                  key={lesson._id}
+                  lesson={lesson}
+                  index={index}
+                  totalLessons={lessons.length}
+                  onEdit={() => {
+                    setEditingId(lesson._id);
+                    setShowForm(false);
+                  }}
+                  onDelete={async () => {
+                    if (!confirm("¿Eliminar esta lección? Esta acción no se puede deshacer.")) return;
+                    await removeLesson({ lessonId: lesson._id });
+                    if (
+                      lesson.videoId &&
+                      !lesson.videoId.startsWith("placeholder") &&
+                      lesson.videoId !== "pending-upload"
+                    ) {
+                      deleteMedia(lesson.videoId);
+                    }
+                  }}
+                  onMoveUp={() => handleMoveUp(index)}
+                  onMoveDown={() => handleMoveDown(index)}
+                />
               ),
             )}
           </TableBody>
@@ -244,7 +178,92 @@ function LessonsPage() {
   );
 }
 
-function MediaStatusBadge({ status, videoId }: { status?: string; videoId: string }) {
+interface LessonRowProps {
+  lesson: {
+    _id: Id<"lessons">;
+    title: { es: string; en: string };
+    description?: { es: string; en: string };
+    videoId: string;
+    order: number;
+    isFree: boolean;
+  };
+  index: number;
+  totalLessons: number;
+  onEdit: () => void;
+  onDelete: () => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+}
+
+function LessonRow({ lesson, index, totalLessons, onEdit, onDelete, onMoveUp, onMoveDown }: LessonRowProps) {
+  const mediaStatus = useDevulturMedia(lesson.videoId !== "pending-upload" ? lesson.videoId : null);
+
+  return (
+    <TableRow>
+      <TableCell className="text-muted-foreground font-mono">{lesson.order}</TableCell>
+      <TableCell>
+        <div className="flex items-center gap-2">
+          {lesson.isFree && (
+            <Badge variant="outline" className="text-xs">
+              Gratis
+            </Badge>
+          )}
+          <span className="font-medium">{lesson.title.es}</span>
+          <MediaStatusBadge status={mediaStatus.status} videoId={lesson.videoId} />
+        </div>
+        <div className="text-sm text-muted-foreground">{lesson.title.en}</div>
+        {lesson.description?.es && (
+          <div className="text-sm text-muted-foreground/70 mt-1 line-clamp-1">{lesson.description.es}</div>
+        )}
+      </TableCell>
+      <TableCell className="text-center font-mono">{formatTime(mediaStatus.duration ?? 0)}</TableCell>
+      <TableCell className="text-center">{lesson.isFree && <Badge variant="outline">Gratis</Badge>}</TableCell>
+      <TableCell className="text-center">
+        <div className="flex items-center justify-center gap-1">
+          <TooltipProvider delay={300}>
+            <Tooltip>
+              <TooltipTrigger
+                render={<Button variant="ghost" size="icon-sm" disabled={index === 0} onClick={onMoveUp} />}
+              >
+                <ChevronUp className="size-4" />
+              </TooltipTrigger>
+              <TooltipContent>Subir</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Button variant="ghost" size="icon-sm" disabled={index === totalLessons - 1} onClick={onMoveDown} />
+                }
+              >
+                <ChevronDown className="size-4" />
+              </TooltipTrigger>
+              <TooltipContent>Bajar</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      </TableCell>
+      <TableCell>
+        <DropdownMenu>
+          <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />}>
+            <MoreHorizontal className="size-4" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={onEdit}>
+              <Pencil className="size-4" />
+              Editar
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={onDelete} variant="destructive">
+              <Trash2 className="size-4" />
+              Eliminar
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </TableCell>
+    </TableRow>
+  );
+}
+
+function MediaStatusBadge({ status, videoId }: { status: string; videoId: string }) {
   if (videoId === "pending-upload")
     return (
       <Badge variant="outline" className="text-xs">

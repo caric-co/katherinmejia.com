@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { useDevultur, useDevulturMedia } from "@devultur/convex/react";
 import { extractId } from "@devultur/core";
-import { TranscriptPanel, UploadZone, VideoPlayer, type VideoPlayerRef } from "@devultur/react";
-import { useDevultur, useMediaStatus } from "@devultur/react/convex";
+import { formatTime, TranscriptPanel, UploadZone, VideoPlayer, type VideoPlayerRef } from "@devultur/react";
 import { useForm } from "@tanstack/react-form";
-import { useAction, useMutation, useQuery } from "convex/react";
+import { useAction, useMutation } from "convex/react";
 import { CheckCircle2, Clock, Download, Film, Loader2, Sparkles, Upload, X } from "lucide-react";
 import { motion } from "motion/react";
 import { z } from "zod";
@@ -14,11 +14,11 @@ import type { Doc, Id } from "@convex/_generated/dataModel";
 import { Badge } from "@repo/ui/components/badge";
 import { Button } from "@repo/ui/components/button";
 import { Label } from "@repo/ui/components/label";
-import { formatDuration, getVideoDuration, slugify, withToken } from "@repo/utils";
+import { slugify, withToken } from "@repo/utils";
 
 import { FormField } from "#/components/form-field";
 import { SmartSubmit } from "#/components/smart-submit";
-import { useAutoAdvance, usePulse, useSubmitPulse } from "#/lib/form-primitives";
+import { usePulse, useSubmitPulse } from "#/lib/form-primitives";
 import { media } from "#/lib/media";
 
 const lessonSchema = z.object({
@@ -29,22 +29,14 @@ const lessonSchema = z.object({
 const SUBMIT_ID = "lesson-submit";
 const fieldLabels: Record<string, string> = { title: "Título" };
 
-function courseSlugPrefix(slug: string): string {
-  return slug
-    .split("-")
-    .map((w) => w[0] ?? "")
-    .join("");
+const CAPTION_LABELS: Record<string, string> = { "es-CO": "Español (CO)", en: "English" };
+
+function generateLessonSlug(courseSlug: string, lessonNumber: number, title: string): string {
+  const num = String(lessonNumber).padStart(2, "0");
+  return `${courseSlug}-${num}-${slugify(title)}`;
 }
 
-function generateLessonSlug(courseSlug: string, sequence: number, title: string): string {
-  const prefix = courseSlugPrefix(courseSlug);
-  const seq = String(sequence).padStart(4, "0");
-  const titleSlug = slugify(title).slice(0, 40);
-  const ts = Math.floor(Date.now() / 1000);
-  return `${prefix}-${seq}-${titleSlug}-${ts}`;
-}
-
-export interface LessonFormProps {
+interface LessonFormProps {
   courseId: Id<"courses">;
   courseSlug: string;
   lessonCount: number;
@@ -64,7 +56,6 @@ export function LessonForm({ courseId, courseSlug, lessonCount, lesson, onDone }
 
   const [isFree, setIsFree] = useState(lesson?.isFree ?? false);
   const [videoKey, setVideoKey] = useState<string | null>(lesson?.videoId ?? null);
-  const [videoDuration, setVideoDuration] = useState(lesson?.duration ?? 0);
   const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [serverError, setServerError] = useState("");
@@ -75,23 +66,36 @@ export function LessonForm({ courseId, courseSlug, lessonCount, lesson, onDone }
   const [activeSubLocale, setActiveSubLocale] = useState<string>("es-CO");
   const [currentTime, setCurrentTime] = useState(0);
   const draftLessonIdRef = useRef<Id<"lessons"> | null>(lesson?._id ?? null);
-  const previousVideoIdRef = useRef<string | null>(hasExistingVideo ? extractId(lesson.videoId!) : null);
+  const previousVideoKeyRef = useRef<string | null>(hasExistingVideo ? lesson.videoId! : null);
   const submitControls = useSubmitPulse(SUBMIT_ID);
 
-  const { token: authToken, uploadUrl: devulturUploadUrl, deleteVideo } = useDevultur();
+  const { token: authToken, uploadUrl: devulturUploadUrl, deleteMedia: deleteMediaFn } = useDevultur();
 
-  // Reactive lesson data — updates automatically via webhook events
-  const liveLesson = useQuery(
-    api.lessons.getById,
-    draftLessonIdRef.current ? { lessonId: draftLessonIdRef.current } : "skip",
-  );
-  const activeLesson = liveLesson ?? lesson;
-  const mediaStatus = useMediaStatus(activeLesson, {
-    getMediaUrl: media.getMediaUrl,
-    captionLabels: { "es-CO": "Español (CO)", en: "English" },
-  });
+  // Reactive media status from component table
+  const mediaStatus = useDevulturMedia(videoKey);
 
-  const { playlistUrl, vttUrls, captionTracks } = mediaStatus;
+  // Derive VTT URLs and caption tracks from component media record
+  const vttUrls = useMemo(() => {
+    if (!mediaStatus.isReady || !videoKey || mediaStatus.captionLocales.length === 0) return {};
+    const id = extractId(videoKey);
+    const urls: Record<string, string> = {};
+    for (const locale of mediaStatus.captionLocales) {
+      urls[locale] = media.getMediaUrl(`captions/${id}/${locale}.vtt`);
+    }
+    return urls;
+  }, [mediaStatus.isReady, videoKey, mediaStatus.captionLocales]);
+
+  const captionTracks = useMemo(() => {
+    if (!mediaStatus.isReady || !videoKey || mediaStatus.captionLocales.length === 0) return [];
+    const id = extractId(videoKey);
+    return mediaStatus.captionLocales.map((locale) => ({
+      locale,
+      label: CAPTION_LABELS[locale] ?? locale,
+      src: media.getMediaUrl(`captions/${id}/${locale}.vtt`),
+    }));
+  }, [mediaStatus.isReady, videoKey, mediaStatus.captionLocales]);
+
+  const playlistUrl = mediaStatus.playlistUrl ? media.getMediaUrl(mediaStatus.playlistUrl) : null;
 
   // Auto-generate metadata when captions become available
   const generateMetadata = useCallback(async () => {
@@ -125,8 +129,6 @@ export function LessonForm({ courseId, courseSlug, lessonCount, lesson, onDone }
   }, [vttUrls, isEditing, generateMetadata]);
 
   const handleUploadUrl = async (file: File) => {
-    const duration = await getVideoDuration(file);
-    if (duration > 0) setVideoDuration(duration);
     return devulturUploadUrl(file);
   };
 
@@ -155,7 +157,6 @@ export function LessonForm({ courseId, courseSlug, lessonCount, lesson, onDone }
             title: { es: value.title, en: titleEn },
             slug: lessonSlug,
             description: { es: value.description, en: descEn },
-            duration: videoDuration,
             isFree,
           });
         } else {
@@ -165,7 +166,6 @@ export function LessonForm({ courseId, courseSlug, lessonCount, lesson, onDone }
             slug: lessonSlug,
             description: { es: value.description, en: descEn },
             videoId: videoKey ? extractId(videoKey) : "pending-upload",
-            duration: videoDuration,
             isFree,
           });
         }
@@ -177,7 +177,7 @@ export function LessonForm({ courseId, courseSlug, lessonCount, lesson, onDone }
   });
 
   const saveDraft = useCallback(
-    async (key: string, duration: number) => {
+    async (key: string) => {
       const rawTitle = form.getFieldValue("title");
       const titleEs = rawTitle && rawTitle.length >= 3 ? rawTitle : "Lección sin nombrar";
       if (!rawTitle || rawTitle.length < 3) {
@@ -191,7 +191,7 @@ export function LessonForm({ courseId, courseSlug, lessonCount, lesson, onDone }
             : (await translateAction({ text: titleEs })).translated || titleEs;
 
         if (isEditing) {
-          await updateLesson({ lessonId: lesson._id, videoId: extractId(key), duration });
+          await updateLesson({ lessonId: lesson._id, videoId: extractId(key) });
           draftLessonIdRef.current = lesson._id;
         } else {
           const newId = await createLesson({
@@ -199,14 +199,12 @@ export function LessonForm({ courseId, courseSlug, lessonCount, lesson, onDone }
             title: { es: titleEs, en: titleEn },
             description: { es: "", en: "" },
             videoId: extractId(key),
-            duration,
             isFree: false,
           });
           draftLessonIdRef.current = newId as Id<"lessons">;
         }
         setSavedAsDraft(true);
 
-        // Fire-and-forget: transcode + captions (webhook events update lesson record)
         processVideoAction({ key }).catch(() => {});
       } catch {}
     },
@@ -224,19 +222,16 @@ export function LessonForm({ courseId, courseSlug, lessonCount, lesson, onDone }
   );
 
   const handleUploadComplete = async (result: { key: string; file: File }) => {
-    if (previousVideoIdRef.current) {
-      deleteVideo(previousVideoIdRef.current);
+    if (previousVideoKeyRef.current) {
+      deleteMediaFn(previousVideoKeyRef.current);
     }
-    previousVideoIdRef.current = extractId(result.key);
+    previousVideoKeyRef.current = result.key;
 
     setVideoKey(result.key);
     setUploadedFileName(result.file.name);
     setUploadError(null);
 
-    const duration = await getVideoDuration(result.file);
-    if (duration > 0) setVideoDuration(duration);
-
-    saveDraft(result.key, duration);
+    saveDraft(result.key);
   };
 
   const hasUploadedVideo = videoKey && videoKey !== "pending-upload";
@@ -327,10 +322,10 @@ export function LessonForm({ courseId, courseSlug, lessonCount, lesson, onDone }
             </div>
           )}
 
-          {(activeLesson?.duration ?? videoDuration) > 0 && (
+          {(mediaStatus.duration ?? 0) > 0 && (
             <div className="flex items-center gap-1.5 text-sm text-muted-foreground mb-2">
               <Clock className="size-3.5" />
-              <span>Duración: {formatDuration(activeLesson?.duration ?? videoDuration)}</span>
+              <span>Duración: {formatTime(mediaStatus.duration!)}</span>
             </div>
           )}
 
@@ -405,11 +400,7 @@ export function LessonForm({ courseId, courseSlug, lessonCount, lesson, onDone }
               <div className="flex items-center gap-2">
                 <Label className="text-xs uppercase tracking-wider font-medium block">Subtítulos</Label>
                 <span className="text-xs text-muted-foreground">
-                  {activeSubLocale === "es-CO"
-                    ? "Español (CO)"
-                    : activeSubLocale === "en"
-                      ? "English"
-                      : activeSubLocale}
+                  {CAPTION_LABELS[activeSubLocale] ?? activeSubLocale}
                 </span>
               </div>
               <div className="flex items-center gap-1">
@@ -502,39 +493,20 @@ function LessonDescriptionField({ field }: { field: any }) {
   const errorMessage = hasError ? (field.state.meta.errors[0]?.message ?? field.state.meta.errors[0]) : null;
   const controls = usePulse(field.name);
 
-  const { inputRef, startTimer, onBlur } = useAutoAdvance({
-    fieldId: field.name,
-    submitId: SUBMIT_ID,
-    hasErrors: field.state.meta.errors.length > 0,
-  });
-
   return (
     <motion.div animate={controls}>
-      <Label
-        htmlFor={field.name}
-        className={`text-xs uppercase tracking-wider font-medium mb-2 block ${hasError ? "text-destructive" : ""}`}
-      >
-        Descripción
+      <Label htmlFor="description" className="text-xs uppercase tracking-wider font-medium mb-1 block">
+        Descripción <span className="text-muted-foreground font-normal normal-case tracking-normal">(opcional)</span>
       </Label>
       <textarea
-        ref={inputRef as unknown as React.RefObject<HTMLTextAreaElement>}
-        id={field.name}
+        id="description"
         value={field.state.value}
-        onChange={(e) => {
-          field.handleChange(e.target.value);
-          startTimer();
-        }}
-        onBlur={() => {
-          onBlur();
-          field.handleBlur();
-        }}
+        onChange={(e) => field.handleChange(e.target.value)}
+        onBlur={field.handleBlur}
         placeholder="Descripción breve de la lección"
         className="flex field-sizing-content min-h-16 w-full rounded-none border-0 border-b border-input bg-transparent px-0 py-2 transition-colors outline-none placeholder:text-muted-foreground/60 focus-visible:border-foreground/40"
-        aria-invalid={hasError}
       />
-      <p className={`text-sm mt-1 min-h-5 ${errorMessage ? "text-destructive" : "text-transparent"}`}>
-        {errorMessage ?? " "}
-      </p>
+      {errorMessage && <p className="text-sm text-destructive mt-1">{errorMessage}</p>}
     </motion.div>
   );
 }

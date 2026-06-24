@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { useDevultur } from "@devultur/react/convex";
+import { useDevultur } from "@devultur/convex/react";
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useAction, useMutation } from "convex/react";

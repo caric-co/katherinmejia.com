@@ -86,7 +86,6 @@ export const seedTestData = internalMutation({
         en: "Cleansing, moisturizing and primer for a perfect base.",
       },
       videoId: "placeholder-1",
-      duration: 720,
       order: 1,
       isFree: true,
     });
@@ -99,7 +98,6 @@ export const seedTestData = internalMutation({
         en: "Application techniques for a natural, flawless finish.",
       },
       videoId: "placeholder-2",
-      duration: 900,
       order: 2,
       isFree: false,
     });
@@ -112,7 +110,6 @@ export const seedTestData = internalMutation({
         en: "Soft shadows, subtle liner and nude lips.",
       },
       videoId: "placeholder-3",
-      duration: 1080,
       order: 3,
       isFree: false,
     });
@@ -125,7 +122,6 @@ export const seedTestData = internalMutation({
         en: "Understanding face shapes and how to work with them.",
       },
       videoId: "placeholder-4",
-      duration: 840,
       order: 1,
       isFree: true,
     });

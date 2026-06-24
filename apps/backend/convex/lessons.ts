@@ -28,7 +28,6 @@ export const create = mutation({
     slug: v.optional(v.string()),
     description: bilingualText,
     videoId: v.string(),
-    duration: v.optional(v.number()),
     isFree: v.boolean(),
   },
   handler: async (ctx, args) => {
@@ -52,7 +51,6 @@ export const update = mutation({
     slug: v.optional(v.string()),
     description: v.optional(bilingualText),
     videoId: v.optional(v.string()),
-    duration: v.optional(v.number()),
     isFree: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {

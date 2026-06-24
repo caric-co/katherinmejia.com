@@ -1,4 +1,4 @@
-import { useDevultur } from "@devultur/react/convex";
+import { useDevultur } from "@devultur/convex/react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation } from "convex/react";
 

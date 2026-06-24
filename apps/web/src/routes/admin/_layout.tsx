@@ -8,7 +8,7 @@ import {
   useRouterState,
 } from "@tanstack/react-router";
 import { useQuery } from "convex/react";
-import { BookOpen, FileText, LayoutDashboard, Link2, LogOut, PenLine, Settings, Users } from "lucide-react";
+import { BookOpen, CreditCard, FileText, LayoutDashboard, Link2, LogOut, PenLine, Settings, Users } from "lucide-react";
 
 import { api } from "@convex/_generated/api";
 import { Avatar, AvatarFallback } from "@repo/ui/components/avatar";
@@ -63,6 +63,7 @@ const navGroups = [
     label: "Gestión",
     items: [
       { to: "/admin/users", label: "Usuarios", icon: Users },
+      { to: "/admin/subscriptions", label: "Suscripciones", icon: CreditCard },
       { to: "/admin/invitations", label: "Invitaciones", icon: Link2 },
     ],
   },

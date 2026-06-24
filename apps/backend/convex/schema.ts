@@ -43,19 +43,9 @@ export default defineSchema({
     videoId: v.string(),
     order: v.number(),
     isFree: v.boolean(),
-    transcodeStatus: v.optional(
-      v.union(v.literal("transcoding"), v.literal("captioning"), v.literal("ready"), v.literal("failed")),
-    ),
-    transcodeProgress: v.optional(v.object({ current: v.number(), total: v.number() })),
-    transcodeError: v.optional(v.string()),
-    playlistUrl: v.optional(v.string()),
-    thumbnailKey: v.optional(v.string()),
-    captionLocales: v.optional(v.array(v.string())),
-    duration: v.optional(v.number()),
   })
     .index("by_course", ["courseId"])
-    .index("by_course_order", ["courseId", "order"])
-    .index("by_videoId", ["videoId"]),
+    .index("by_course_order", ["courseId", "order"]),
 
   progress: defineTable({
     userId: v.string(),

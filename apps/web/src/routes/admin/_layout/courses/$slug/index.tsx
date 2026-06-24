@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { useDevultur } from "@devultur/react/convex";
+import { useDevultur } from "@devultur/convex/react";
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useAction, useMutation, useQuery } from "convex/react";
@@ -152,7 +152,7 @@ function EditCourseFormInner({
   const previewLessons = (lessons ?? []).map((l) => ({
     title: previewLang === "es" ? l.title.es : l.title.en,
     description: previewLang === "es" ? l.description?.es : l.description?.en,
-    duration: l.duration ?? 0,
+    duration: 0,
     isFree: l.isFree,
   }));
 

@@ -20,6 +20,7 @@ import { Route as AuthForgotPasswordRouteImport } from './routes/auth/forgot-pas
 import { Route as AdminLayoutRouteImport } from './routes/admin/_layout'
 import { Route as AdminLayoutIndexRouteImport } from './routes/admin/_layout/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as AdminLayoutSubscriptionsRouteImport } from './routes/admin/_layout/subscriptions'
 import { Route as AdminLayoutInvitationsRouteImport } from './routes/admin/_layout/invitations'
 import { Route as AdminLayoutContentPreviewRouteImport } from './routes/admin/_layout/content-preview'
 import { Route as AdminLayoutContentRouteImport } from './routes/admin/_layout/content'
@@ -88,6 +89,12 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminLayoutSubscriptionsRoute =
+  AdminLayoutSubscriptionsRouteImport.update({
+    id: '/subscriptions',
+    path: '/subscriptions',
+    getParentRoute: () => AdminLayoutRoute,
+  } as any)
 const AdminLayoutInvitationsRoute = AdminLayoutInvitationsRouteImport.update({
   id: '/invitations',
   path: '/invitations',
@@ -165,6 +172,7 @@ export interface FileRoutesByFullPath {
   '/admin/content': typeof AdminLayoutContentRoute
   '/admin/content-preview': typeof AdminLayoutContentPreviewRoute
   '/admin/invitations': typeof AdminLayoutInvitationsRoute
+  '/admin/subscriptions': typeof AdminLayoutSubscriptionsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/admin/': typeof AdminLayoutIndexRoute
   '/admin/blog/$slug': typeof AdminLayoutBlogSlugRoute
@@ -189,6 +197,7 @@ export interface FileRoutesByTo {
   '/admin/content': typeof AdminLayoutContentRoute
   '/admin/content-preview': typeof AdminLayoutContentPreviewRoute
   '/admin/invitations': typeof AdminLayoutInvitationsRoute
+  '/admin/subscriptions': typeof AdminLayoutSubscriptionsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/admin': typeof AdminLayoutIndexRoute
   '/admin/blog/$slug': typeof AdminLayoutBlogSlugRoute
@@ -215,6 +224,7 @@ export interface FileRoutesById {
   '/admin/_layout/content': typeof AdminLayoutContentRoute
   '/admin/_layout/content-preview': typeof AdminLayoutContentPreviewRoute
   '/admin/_layout/invitations': typeof AdminLayoutInvitationsRoute
+  '/admin/_layout/subscriptions': typeof AdminLayoutSubscriptionsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/admin/_layout/': typeof AdminLayoutIndexRoute
   '/admin/_layout/blog/$slug': typeof AdminLayoutBlogSlugRoute
@@ -242,6 +252,7 @@ export interface FileRouteTypes {
     | '/admin/content'
     | '/admin/content-preview'
     | '/admin/invitations'
+    | '/admin/subscriptions'
     | '/api/auth/$'
     | '/admin/'
     | '/admin/blog/$slug'
@@ -266,6 +277,7 @@ export interface FileRouteTypes {
     | '/admin/content'
     | '/admin/content-preview'
     | '/admin/invitations'
+    | '/admin/subscriptions'
     | '/api/auth/$'
     | '/admin'
     | '/admin/blog/$slug'
@@ -291,6 +303,7 @@ export interface FileRouteTypes {
     | '/admin/_layout/content'
     | '/admin/_layout/content-preview'
     | '/admin/_layout/invitations'
+    | '/admin/_layout/subscriptions'
     | '/api/auth/$'
     | '/admin/_layout/'
     | '/admin/_layout/blog/$slug'
@@ -396,6 +409,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/_layout/subscriptions': {
+      id: '/admin/_layout/subscriptions'
+      path: '/subscriptions'
+      fullPath: '/admin/subscriptions'
+      preLoaderRoute: typeof AdminLayoutSubscriptionsRouteImport
+      parentRoute: typeof AdminLayoutRoute
+    }
     '/admin/_layout/invitations': {
       id: '/admin/_layout/invitations'
       path: '/invitations'
@@ -487,6 +507,7 @@ interface AdminLayoutRouteChildren {
   AdminLayoutContentRoute: typeof AdminLayoutContentRoute
   AdminLayoutContentPreviewRoute: typeof AdminLayoutContentPreviewRoute
   AdminLayoutInvitationsRoute: typeof AdminLayoutInvitationsRoute
+  AdminLayoutSubscriptionsRoute: typeof AdminLayoutSubscriptionsRoute
   AdminLayoutIndexRoute: typeof AdminLayoutIndexRoute
   AdminLayoutBlogSlugRoute: typeof AdminLayoutBlogSlugRoute
   AdminLayoutBlogNewRoute: typeof AdminLayoutBlogNewRoute
@@ -503,6 +524,7 @@ const AdminLayoutRouteChildren: AdminLayoutRouteChildren = {
   AdminLayoutContentRoute: AdminLayoutContentRoute,
   AdminLayoutContentPreviewRoute: AdminLayoutContentPreviewRoute,
   AdminLayoutInvitationsRoute: AdminLayoutInvitationsRoute,
+  AdminLayoutSubscriptionsRoute: AdminLayoutSubscriptionsRoute,
   AdminLayoutIndexRoute: AdminLayoutIndexRoute,
   AdminLayoutBlogSlugRoute: AdminLayoutBlogSlugRoute,
   AdminLayoutBlogNewRoute: AdminLayoutBlogNewRoute,

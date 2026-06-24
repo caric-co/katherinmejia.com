@@ -2,14 +2,13 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { ConvexHttpClient } from "convex/browser";
 import { useQuery } from "convex/react";
-import { ArrowLeft, Clock, Lock, PlayCircle } from "lucide-react";
+import { ArrowLeft, Lock, PlayCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { api } from "@convex/_generated/api";
 import { Badge } from "@repo/ui/components/badge";
 import { Button } from "@repo/ui/components/button";
 import { Separator } from "@repo/ui/components/separator";
-import { formatDurationShort } from "@repo/utils";
 
 import { Footer } from "#/components/landing/footer";
 import { Navigation } from "#/components/landing/navigation";
@@ -86,8 +85,7 @@ function CourseDetailPage() {
     );
   }
 
-  const totalDuration = lessons?.reduce((sum, l) => sum + (l.duration ?? 0), 0) ?? 0;
-  const totalHours = Math.round((totalDuration / 3600) * 10) / 10;
+  const totalHours = 0;
 
   return (
     <div className="min-h-screen bg-background">
@@ -134,10 +132,7 @@ function CourseDetailPage() {
                         </div>
                         <p className="text-sm text-muted-foreground mt-0.5">{lesson.description[locale]}</p>
                       </div>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground shrink-0">
-                        <Clock className="size-3.5" />
-                        {formatDurationShort(lesson.duration ?? 0)}
-                      </div>
+                      <div className="shrink-0" />
                       {lesson.isFree ? (
                         <PlayCircle className="size-5 text-foreground shrink-0" />
                       ) : (
