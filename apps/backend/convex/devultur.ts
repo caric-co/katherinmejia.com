@@ -14,6 +14,8 @@ export const {
   markComplete,
   resetProgress,
 } = Devultur.exposeApi(components.devultur, {
-  preset: TranscodePreset.HLS_ADAPTIVE,
-  locales: [CaptionLocale.ES_CO, CaptionLocale.EN],
+  video: {
+    transcodePreset: TranscodePreset.HLS_ADAPTIVE,
+    captionLocales: [CaptionLocale.ES_CO, CaptionLocale.EN],
+  },
 });

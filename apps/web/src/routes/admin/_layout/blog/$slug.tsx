@@ -1,6 +1,8 @@
+import { convexQuery } from "@convex-dev/react-query";
 import { useDevultur } from "@devultur/convex/react";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMutation, useQuery } from "convex/react";
+import { useMutation } from "convex/react";
 
 import { api } from "@convex/_generated/api";
 
@@ -13,7 +15,7 @@ export const Route = createFileRoute("/admin/_layout/blog/$slug")({
 function EditBlogPostPage() {
   const { slug: routeSlug } = Route.useParams();
   const navigate = useNavigate();
-  const post = useQuery(api.blogPosts.getBySlug, { slug: routeSlug });
+  const { data: post } = useQuery(convexQuery(api.blogPosts.getBySlug, { slug: routeSlug }));
   const updatePost = useMutation(api.blogPosts.update);
   const publishPost = useMutation(api.blogPosts.publish);
   const unpublishPost = useMutation(api.blogPosts.unpublish);

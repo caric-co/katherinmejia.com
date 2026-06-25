@@ -1,7 +1,8 @@
+import { convexQuery } from "@convex-dev/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { ConvexHttpClient } from "convex/browser";
-import { useQuery } from "convex/react";
 import { ArrowLeft } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -56,7 +57,7 @@ function BlogPostPage() {
   const { slug } = Route.useParams();
   const { i18n } = useTranslation();
   const locale = i18n.language as "es" | "en";
-  const post = useQuery(api.blogPosts.getBySlug, { slug });
+  const { data: post } = useQuery(convexQuery(api.blogPosts.getBySlug, { slug }));
 
   if (post === undefined) {
     return (

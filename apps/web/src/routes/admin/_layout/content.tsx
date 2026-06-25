@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { convexQuery } from "@convex-dev/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { useAction, useMutation, useQuery } from "convex/react";
+import { useAction, useMutation } from "convex/react";
 import { Loader2, Pencil, Save, Undo2, Upload, X } from "lucide-react";
 import { motion, useAnimationControls } from "motion/react";
 
@@ -181,8 +183,8 @@ function ContentField({
 }
 
 function ContentPage() {
-  const allContent = useQuery(api.siteContent.listAll);
-  const hasDrafts = useQuery(api.siteContent.hasDrafts);
+  const { data: allContent } = useQuery(convexQuery(api.siteContent.listAll, {}));
+  const { data: hasDrafts } = useQuery(convexQuery(api.siteContent.hasDrafts, {}));
   const saveDraft = useMutation(api.siteContent.saveDraft);
   const publishAll = useMutation(api.siteContent.publishAll);
   const discardDrafts = useMutation(api.siteContent.discardDrafts);

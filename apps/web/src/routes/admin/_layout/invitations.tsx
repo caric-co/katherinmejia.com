@@ -1,5 +1,6 @@
+import { convexQuery } from "@convex-dev/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "convex/react";
 import { Link2 } from "lucide-react";
 
 import { api } from "@convex/_generated/api";
@@ -10,7 +11,7 @@ export const Route = createFileRoute("/admin/_layout/invitations")({
 });
 
 function InvitationsPage() {
-  const invitations = useQuery(api.invitations.listAll);
+  const { data: invitations } = useQuery(convexQuery(api.invitations.listAll, {}));
 
   return (
     <div>

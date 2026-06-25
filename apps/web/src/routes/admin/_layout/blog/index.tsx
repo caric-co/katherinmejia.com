@@ -1,7 +1,9 @@
 import { useState } from "react";
 
+import { convexQuery } from "@convex-dev/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMutation, useQuery } from "convex/react";
+import { useMutation } from "convex/react";
 import {
   Check,
   Eye,
@@ -58,7 +60,7 @@ const columnLabels: Record<string, string> = {
 };
 
 function BlogListPage() {
-  const posts = useQuery(api.blogPosts.listAll);
+  const { data: posts } = useQuery(convexQuery(api.blogPosts.listAll, {}));
   const publishPost = useMutation(api.blogPosts.publish);
   const unpublishPost = useMutation(api.blogPosts.unpublish);
   const removePost = useMutation(api.blogPosts.remove);

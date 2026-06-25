@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useDevultur, useDevulturMedia } from "@devultur/convex/react";
-import { extractId } from "@devultur/core";
+import { captionPath, extractId } from "@devultur/core";
 import { formatTime, TranscriptPanel, UploadZone, VideoPlayer, type VideoPlayerRef } from "@devultur/react";
 import { useForm } from "@tanstack/react-form";
 import { useAction, useMutation } from "convex/react";
@@ -80,7 +80,7 @@ export function LessonForm({ courseId, courseSlug, lessonCount, lesson, onDone }
     const id = extractId(videoKey);
     const urls: Record<string, string> = {};
     for (const locale of mediaStatus.captionLocales) {
-      urls[locale] = media.getMediaUrl(`captions/${id}/${locale}.vtt`);
+      urls[locale] = media.getMediaUrl(captionPath(id, locale));
     }
     return urls;
   }, [mediaStatus.isReady, videoKey, mediaStatus.captionLocales]);
@@ -91,7 +91,7 @@ export function LessonForm({ courseId, courseSlug, lessonCount, lesson, onDone }
     return mediaStatus.captionLocales.map((locale) => ({
       locale,
       label: CAPTION_LABELS[locale] ?? locale,
-      src: media.getMediaUrl(`captions/${id}/${locale}.vtt`),
+      src: media.getMediaUrl(captionPath(id, locale)),
     }));
   }, [mediaStatus.isReady, videoKey, mediaStatus.captionLocales]);
 
@@ -336,7 +336,11 @@ export function LessonForm({ courseId, courseSlug, lessonCount, lesson, onDone }
               {mediaStatus.isTranscoding && (
                 <div className="flex items-center gap-1.5 text-xs text-amber-600 shrink-0">
                   <Loader2 className="size-3 animate-spin" />
-                  {mediaStatus.progress ? `Transcoding ${mediaStatus.progress.percent}%` : "Transcoding..."}
+                  {mediaStatus.progress
+                    ? (mediaStatus.progress as any).phase === "encoding"
+                      ? `Codificando ${mediaStatus.progress.percent}%`
+                      : `Subiendo ${mediaStatus.progress.current}/${mediaStatus.progress.total}`
+                    : "Transcoding..."}
                 </div>
               )}
               {mediaStatus.isCaptioning && (

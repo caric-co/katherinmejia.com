@@ -1,7 +1,9 @@
 import { useState } from "react";
 
+import { convexQuery } from "@convex-dev/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { useMutation, useQuery } from "convex/react";
+import { useMutation } from "convex/react";
 import { CreditCard, Search, Settings2, SlidersHorizontal, X } from "lucide-react";
 
 import { api } from "@convex/_generated/api";
@@ -114,7 +116,7 @@ function FilterSelects({ filters, onChange }: { filters: Filters; onChange: (fil
 }
 
 function SubscriptionsPage() {
-  const subscriptions = useQuery(api.subscriptions.list, {});
+  const { data: subscriptions } = useQuery(convexQuery(api.subscriptions.list, {}));
   const cancelSub = useMutation(api.subscriptions.cancel);
   const reactivateSub = useMutation(api.subscriptions.reactivate);
   const [search, setSearch] = useState("");

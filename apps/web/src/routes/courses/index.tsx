@@ -1,5 +1,6 @@
+import { convexQuery } from "@convex-dev/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "convex/react";
 import { useTranslation } from "react-i18next";
 
 import { api } from "@convex/_generated/api";
@@ -29,7 +30,7 @@ export const Route = createFileRoute("/courses/")({
 
 function CourseCatalogPage() {
   const { t, i18n } = useTranslation();
-  const courses = useQuery(api.courses.listPublished);
+  const { data: courses } = useQuery(convexQuery(api.courses.listPublished, {}));
   const locale = i18n.language as "es" | "en";
 
   return (

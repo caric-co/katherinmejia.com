@@ -1,3 +1,5 @@
+import { convexQuery } from "@convex-dev/react-query";
+import { useQuery } from "@tanstack/react-query";
 import {
   createFileRoute,
   Link,
@@ -7,7 +9,6 @@ import {
   useNavigate,
   useRouterState,
 } from "@tanstack/react-router";
-import { useQuery } from "convex/react";
 import { BookOpen, CreditCard, FileText, LayoutDashboard, Link2, LogOut, PenLine, Settings, Users } from "lucide-react";
 
 import { api } from "@convex/_generated/api";
@@ -73,7 +74,9 @@ function AdminLayout() {
   const { data: session } = authClient.useSession();
   const navigate = useNavigate();
   const currentPath = useLocation({ select: (l) => l.pathname });
-  const userProfile = useQuery(api.users.getByEmail, session?.user?.email ? { email: session.user.email } : "skip");
+  const { data: userProfile } = useQuery(
+    convexQuery(api.users.getByEmail, session?.user?.email ? { email: session.user.email } : "skip"),
+  );
 
   if (userProfile === undefined) {
     return (

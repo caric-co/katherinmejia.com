@@ -1,6 +1,7 @@
 import { createContext, createElement, useContext } from "react";
 
-import { useQuery } from "convex/react";
+import { convexQuery } from "@convex-dev/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 
 import { api } from "@convex/_generated/api";
@@ -22,7 +23,7 @@ interface SiteContentProviderProps {
 }
 
 export function SiteContentProvider({ children, serverData }: SiteContentProviderProps) {
-  const items = useQuery(api.siteContent.listAll);
+  const { data: items } = useQuery(convexQuery(api.siteContent.listAll, {}));
   const data = items ?? serverData;
   const contentMap = data ? new Map(data.map((c: any) => [c.key, c])) : null;
 

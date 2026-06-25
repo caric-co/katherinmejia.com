@@ -1,9 +1,11 @@
 import { useState } from "react";
 
+import { convexQuery } from "@convex-dev/react-query";
 import { useDevultur } from "@devultur/convex/react";
 import { useForm } from "@tanstack/react-form";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useAction, useMutation, useQuery } from "convex/react";
+import { useAction, useMutation } from "convex/react";
 import { BookOpen } from "lucide-react";
 import { z } from "zod";
 
@@ -49,8 +51,8 @@ const statusLabels: Record<string, string> = {
 function EditCoursePage() {
   const { slug: routeSlug } = Route.useParams();
   const navigate = useNavigate();
-  const course = useQuery(api.courses.getBySlug, { slug: routeSlug });
-  const lessons = useQuery(api.lessons.listByCourse, course ? { courseId: course._id } : "skip");
+  const { data: course } = useQuery(convexQuery(api.courses.getBySlug, { slug: routeSlug }));
+  const { data: lessons } = useQuery(convexQuery(api.lessons.listByCourse, course ? { courseId: course._id } : "skip"));
   const updateCourse = useMutation(api.courses.update);
   const updateStatus = useMutation(api.courses.updateStatus);
   const translateAction = useAction(api.ai.translateText);

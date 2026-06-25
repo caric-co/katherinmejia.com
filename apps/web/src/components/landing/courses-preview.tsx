@@ -1,5 +1,6 @@
+import { convexQuery } from "@convex-dev/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { useQuery } from "convex/react";
 import { useTranslation } from "react-i18next";
 
 import { api } from "@convex/_generated/api";
@@ -13,7 +14,7 @@ export function CoursesPreview() {
   const { t: c } = useSiteContent("courses.");
   const isPreview = usePreviewMode();
   const onFieldClick = useFieldClick();
-  const courses = useQuery(api.courses.listPublished);
+  const { data: courses } = useQuery(convexQuery(api.courses.listPublished, {}));
 
   const displayCourses = (courses ?? []).slice(0, 3);
 

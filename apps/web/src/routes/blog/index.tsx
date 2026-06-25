@@ -1,5 +1,6 @@
+import { convexQuery } from "@convex-dev/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "convex/react";
 import { useTranslation } from "react-i18next";
 
 import { api } from "@convex/_generated/api";
@@ -28,7 +29,7 @@ export const Route = createFileRoute("/blog/")({
 function BlogPage() {
   const { i18n } = useTranslation();
   const locale = i18n.language as "es" | "en";
-  const posts = useQuery(api.blogPosts.listPublished);
+  const { data: posts } = useQuery(convexQuery(api.blogPosts.listPublished, {}));
 
   return (
     <div className="min-h-screen bg-background">

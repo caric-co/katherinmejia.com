@@ -1,10 +1,12 @@
 import { useState } from "react";
 
+import { convexQuery } from "@convex-dev/react-query";
 import { useDevultur, useDevulturMedia } from "@devultur/convex/react";
 import { MediaStatus } from "@devultur/core";
 import { formatTime } from "@devultur/react";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
-import { useMutation, useQuery } from "convex/react";
+import { useMutation } from "convex/react";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -40,9 +42,9 @@ function LessonsPage() {
   const { slug: routeSlug } = Route.useParams();
   const navigate = useNavigate();
   const router = useRouter();
-  const course = useQuery(api.courses.getBySlug, { slug: routeSlug });
+  const { data: course } = useQuery(convexQuery(api.courses.getBySlug, { slug: routeSlug }));
   const courseId = course?._id;
-  const lessons = useQuery(api.lessons.listByCourse, courseId ? { courseId } : "skip");
+  const { data: lessons } = useQuery(convexQuery(api.lessons.listByCourse, courseId ? { courseId } : "skip"));
   const reorderLessons = useMutation(api.lessons.reorder);
   const removeLesson = useMutation(api.lessons.remove);
   const { deleteMedia } = useDevultur();

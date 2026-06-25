@@ -1,7 +1,9 @@
 import { useState } from "react";
 
+import { convexQuery } from "@convex-dev/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMutation, useQuery } from "convex/react";
+import { useMutation } from "convex/react";
 import { Check, Search, Settings2, SlidersHorizontal, Trash2, Users, X } from "lucide-react";
 
 import { api } from "@convex/_generated/api";
@@ -95,7 +97,7 @@ function FilterSelects({ filters, onChange }: { filters: Filters; onChange: (fil
 }
 
 function UsersListPage() {
-  const users = useQuery(api.users.list, {});
+  const { data: users } = useQuery(convexQuery(api.users.list, {}));
   const setStatus = useMutation(api.users.setStatus);
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState<Filters>({ role: "all", status: "all" });

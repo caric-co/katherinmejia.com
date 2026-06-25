@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 
+import { convexQuery } from "@convex-dev/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { useQuery } from "convex/react";
 import { LogOut, Menu, Settings, User, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -30,7 +31,9 @@ export function Navigation() {
   const { data: realSession, isPending: isSessionPending } = authClient.useSession();
   const isPreview = usePreviewMode();
   const session = isPreview ? null : realSession;
-  const userProfile = useQuery(api.users.getByEmail, session?.user?.email ? { email: session.user.email } : "skip");
+  const { data: userProfile } = useQuery(
+    convexQuery(api.users.getByEmail, session?.user?.email ? { email: session.user.email } : "skip"),
+  );
   const isAdmin = userProfile?.role === "admin";
   const navRef = useRef<HTMLElement>(null);
   const [scrolled, setScrolled] = useState(false);

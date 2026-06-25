@@ -1,7 +1,9 @@
 import { useState } from "react";
 
+import { convexQuery } from "@convex-dev/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMutation, useQuery } from "convex/react";
+import { useMutation } from "convex/react";
 import { ArrowLeft, Plus, Shield, ShieldOff, Trash2 } from "lucide-react";
 
 import { api } from "@convex/_generated/api";
@@ -18,12 +20,12 @@ export const Route = createFileRoute("/admin/_layout/users/$id")({
 function UserDetailPage() {
   const { id } = Route.useParams();
   const userId = id as Id<"users">;
-  const user = useQuery(api.users.getById, { userId });
+  const { data: user } = useQuery(convexQuery(api.users.getById, { userId }));
   const setStatus = useMutation(api.users.setStatus);
   const setRole = useMutation(api.users.setRole);
 
-  const courses = useQuery(api.courses.listAll);
-  const purchases = useQuery(api.purchases.listByUser, { userId: user?.email ?? "" });
+  const { data: courses } = useQuery(convexQuery(api.courses.listAll, {}));
+  const { data: purchases } = useQuery(convexQuery(api.purchases.listByUser, { userId: user?.email ?? "" }));
 
   const grantAccess = useMutation(api.purchases.grantAccess);
   const revokeAccess = useMutation(api.purchases.revokeAccess);

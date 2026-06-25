@@ -1,7 +1,9 @@
 import { useState } from "react";
 
+import { convexQuery } from "@convex-dev/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMutation, useQuery } from "convex/react";
+import { useMutation } from "convex/react";
 import {
   Archive,
   BookOpen,
@@ -67,7 +69,7 @@ const columnLabels: Record<string, string> = {
 };
 
 function CoursesListPage() {
-  const courses = useQuery(api.courses.listAll);
+  const { data: courses } = useQuery(convexQuery(api.courses.listAll, {}));
   const updateStatus = useMutation(api.courses.updateStatus);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
