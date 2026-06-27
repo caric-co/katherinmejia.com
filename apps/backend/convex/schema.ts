@@ -45,7 +45,8 @@ export default defineSchema({
     isFree: v.boolean(),
   })
     .index("by_course", ["courseId"])
-    .index("by_course_order", ["courseId", "order"]),
+    .index("by_course_order", ["courseId", "order"])
+    .index("by_slug", ["slug"]),
 
   progress: defineTable({
     userId: v.string(),

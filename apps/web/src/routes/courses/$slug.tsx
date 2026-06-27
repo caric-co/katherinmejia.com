@@ -117,30 +117,49 @@ function CourseDetailPage() {
                 <p className="text-muted-foreground">Contenido próximamente</p>
               ) : (
                 <div className="space-y-1">
-                  {lessons.map((lesson, i) => (
-                    <div key={lesson._id} className="flex items-center gap-4 py-4 border-b border-border last:border-0">
-                      <span className="text-sm text-muted-foreground font-mono w-8">
-                        {(i + 1).toString().padStart(2, "0")}
-                      </span>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">{lesson.title[locale]}</span>
-                          {lesson.isFree && (
-                            <Badge variant="outline" className="text-xs">
-                              Gratis
-                            </Badge>
+                  {lessons.map((lesson, i) => {
+                    const isClickable = lesson.isFree || false;
+                    const Wrapper =
+                      isClickable && lesson.slug
+                        ? ({ children }: { children: React.ReactNode }) => (
+                            <Link
+                              to="/courses/$slug/lessons/$lessonSlug"
+                              params={{ slug, lessonSlug: lesson.slug! }}
+                              className="block"
+                            >
+                              {children}
+                            </Link>
+                          )
+                        : ({ children }: { children: React.ReactNode }) => <>{children}</>;
+
+                    return (
+                      <Wrapper key={lesson._id}>
+                        <div
+                          className={`flex items-center gap-4 py-4 border-b border-border last:border-0 ${isClickable ? "cursor-pointer hover:bg-muted/50 transition-colors" : ""}`}
+                        >
+                          <span className="text-sm text-muted-foreground font-mono w-8">
+                            {(i + 1).toString().padStart(2, "0")}
+                          </span>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">{lesson.title[locale]}</span>
+                              {lesson.isFree && (
+                                <Badge variant="outline" className="text-xs">
+                                  Gratis
+                                </Badge>
+                              )}
+                            </div>
+                            <p className="text-sm text-muted-foreground mt-0.5">{lesson.description[locale]}</p>
+                          </div>
+                          {lesson.isFree ? (
+                            <PlayCircle className="size-5 text-foreground shrink-0" />
+                          ) : (
+                            <Lock className="size-4 text-muted-foreground/50 shrink-0" />
                           )}
                         </div>
-                        <p className="text-sm text-muted-foreground mt-0.5">{lesson.description[locale]}</p>
-                      </div>
-                      <div className="shrink-0" />
-                      {lesson.isFree ? (
-                        <PlayCircle className="size-5 text-foreground shrink-0" />
-                      ) : (
-                        <Lock className="size-4 text-muted-foreground/50 shrink-0" />
-                      )}
-                    </div>
-                  ))}
+                      </Wrapper>
+                    );
+                  })}
                 </div>
               )}
             </div>

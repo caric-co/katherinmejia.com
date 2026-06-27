@@ -21,6 +21,16 @@ export const getById = query({
   },
 });
 
+export const getBySlug = query({
+  args: { slug: v.string() },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("lessons")
+      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
+      .first();
+  },
+});
+
 export const create = mutation({
   args: {
     courseId: v.id("courses"),
