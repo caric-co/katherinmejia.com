@@ -14,10 +14,6 @@ export default defineConfig({
       "@convex": path.resolve(__dirname, "../backend/convex"),
     },
   },
-  ssr: {
-    noExternal: process.env.NODE_ENV === "production" ? true : ["@convex-dev/better-auth", "@base-ui/react"],
-    external: ["tslib"],
-  },
   server: { host: true },
   plugins: [
     ...(process.env.NODE_ENV !== "production" ? [devtools()] : []),
