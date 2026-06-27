@@ -16,6 +16,7 @@ export default defineConfig({
   },
   ssr: {
     noExternal: process.env.NODE_ENV === "production" ? true : ["@convex-dev/better-auth", "@base-ui/react"],
+    external: ["tslib"],
   },
   server: { host: true },
   plugins: [
