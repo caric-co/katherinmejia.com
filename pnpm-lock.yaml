@@ -31,8 +31,8 @@ importers:
         specifier: latest
         version: 0.12.4(@standard-schema/spec@1.1.0)(better-auth@1.6.22(@tanstack/react-start@1.168.26(crossws@0.4.6(srvx@0.11.17))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(vite@8.1.0(@types/node@22.19.21)(esbuild@0.27.0)(jiti@2.7.0)(yaml@2.9.0)))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(solid-js@1.9.13))(convex@1.42.0(react@19.2.7))(hono@4.12.26)(react@19.2.7)(typescript@6.0.3)
       '@devultur/convex':
-        specifier: ^0.5.9
-        version: 0.5.9(convex@1.42.0(react@19.2.7))(react@19.2.7)
+        specifier: ^0.5.11
+        version: 0.5.11(convex@1.42.0(react@19.2.7))(react@19.2.7)
       better-auth:
         specifier: ~1.6.15
         version: 1.6.22(@tanstack/react-start@1.168.26(crossws@0.4.6(srvx@0.11.17))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(vite@8.1.0(@types/node@22.19.21)(esbuild@0.27.0)(jiti@2.7.0)(yaml@2.9.0)))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(solid-js@1.9.13)
@@ -116,14 +116,14 @@ importers:
         specifier: ^0.1.0
         version: 0.1.0(@tanstack/react-query@5.101.1(react@19.2.7))(convex@1.42.0(react@19.2.7))
       '@devultur/convex':
-        specifier: ^0.5.0
-        version: 0.5.9(convex@1.42.0(react@19.2.7))(react@19.2.7)
+        specifier: ^0.5.11
+        version: 0.5.11(convex@1.42.0(react@19.2.7))(react@19.2.7)
       '@devultur/core':
-        specifier: ^0.5.8
-        version: 0.5.9
+        specifier: ^0.5.11
+        version: 0.5.11
       '@devultur/react':
-        specifier: ^0.5.8
-        version: 0.5.9(convex@1.42.0(react@19.2.7))(react@19.2.7)
+        specifier: ^0.5.11
+        version: 0.5.11(convex@1.42.0(react@19.2.7))(react@19.2.7)
       '@repo/backend':
         specifier: workspace:*
         version: link:../backend
@@ -745,8 +745,8 @@ packages:
   '@daybrush/utils@1.13.0':
     resolution: {integrity: sha512-ALK12C6SQNNHw1enXK+UO8bdyQ+jaWNQ1Af7Z3FNxeAwjYhQT7do+TRE4RASAJ3ObaS2+TJ7TXR3oz2Gzbw0PQ==}
 
-  '@devultur/convex@0.5.9':
-    resolution: {integrity: sha512-m8YUgmsInUNS30Nw1ShAxt9b8lJshB0MgdLqSAlwzxq/RvIcwQleeayuuUVN/teKD2aCci+JbvlybqRHtH0I/Q==}
+  '@devultur/convex@0.5.11':
+    resolution: {integrity: sha512-vM6i8jnRzwdZppi+DUKKb4RnQo0YReodBbkuRc7UdN6fM1yx3zm5XyaOfJtRaTxUzUbNtN8wwCUrFHSKqvZk5w==}
     hasBin: true
     peerDependencies:
       convex: '>=1.25.0'
@@ -755,11 +755,11 @@ packages:
       react:
         optional: true
 
-  '@devultur/core@0.5.9':
-    resolution: {integrity: sha512-unDq0Yki1lql2IPDT0zkqL1MisCZCX3d/+RKvFWJl0C02Ko3ALiDn+Gqbv8lkeNLU+kTr1AVWRSmJDebD+KLXA==}
+  '@devultur/core@0.5.11':
+    resolution: {integrity: sha512-g0F1oVJpCZLWIVZ0O0l5e3JzAG3s00X2Fl6J/9BNodYStS2sBKcX19DboB7uayaZiCLpWs0HD4UZjiDmk9FgwQ==}
 
-  '@devultur/react@0.5.9':
-    resolution: {integrity: sha512-149IrdI4PtqSD/xyHebhw7uVSH7AphZlhTtzFOXgyGvibIMzj/rutTC31QsXJhUsEGFwC3v+5Gafd0EJJi4VYQ==}
+  '@devultur/react@0.5.11':
+    resolution: {integrity: sha512-Wut+HVjEZjwLv3cWwmU55JT5LZNvDnDZiisbngmEGZ5OmA0WcljWloT51YDeHLnsjjUKaICVV7NCJNkQeEmJxQ==}
     peerDependencies:
       convex: '>=1.0.0'
       react: ^19.2.0
@@ -5718,21 +5718,21 @@ snapshots:
 
   '@daybrush/utils@1.13.0': {}
 
-  '@devultur/convex@0.5.9(convex@1.42.0(react@19.2.7))(react@19.2.7)':
+  '@devultur/convex@0.5.11(convex@1.42.0(react@19.2.7))(react@19.2.7)':
     dependencies:
-      '@devultur/core': 0.5.9
+      '@devultur/core': 0.5.11
       convex: 1.42.0(react@19.2.7)
     optionalDependencies:
       react: 19.2.7
 
-  '@devultur/core@0.5.9':
+  '@devultur/core@0.5.11':
     dependencies:
       '@aws-sdk/client-s3': 3.1075.0
       '@aws-sdk/s3-request-presigner': 3.1075.0
 
-  '@devultur/react@0.5.9(convex@1.42.0(react@19.2.7))(react@19.2.7)':
+  '@devultur/react@0.5.11(convex@1.42.0(react@19.2.7))(react@19.2.7)':
     dependencies:
-      '@devultur/core': 0.5.9
+      '@devultur/core': 0.5.11
       hls.js: 1.6.16
       react: 19.2.7
     optionalDependencies:

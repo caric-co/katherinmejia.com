@@ -333,6 +333,12 @@ export function LessonForm({ courseId, courseSlug, lessonCount, lesson, onDone }
             <div className="flex items-center gap-2 p-2 border border-border rounded-md bg-background mb-2">
               <Film className="size-4 text-muted-foreground shrink-0" />
               <span className="text-sm truncate flex-1">{uploadedFileName ?? lesson?.videoId ?? videoKey}</span>
+              {mediaStatus.isQueued && (
+                <div className="flex items-center gap-1.5 text-xs text-amber-600 shrink-0">
+                  <Loader2 className="size-3 animate-spin" />
+                  Solicitando transcodificación…
+                </div>
+              )}
               {mediaStatus.isTranscoding && (
                 <div className="flex items-center gap-1.5 text-xs text-amber-600 shrink-0">
                   <Loader2 className="size-3 animate-spin" />

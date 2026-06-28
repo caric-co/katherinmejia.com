@@ -215,10 +215,21 @@ function LessonVideo({
     }));
   }, [mediaStatus.isReady, lesson.videoId, mediaStatus.captionLocales]);
 
-  if (!mediaStatus.isReady || !playlistUrl || !token) {
+  if (mediaStatus.isFailed) {
     return (
       <div className="aspect-video bg-black flex items-center justify-center">
-        <p className="text-white/50">{mediaStatus.isTranscoding ? "Procesando video..." : "Cargando..."}</p>
+        <p className="text-red-400/80">
+          No se pudo procesar este video. {mediaStatus.error ?? "Intenta de nuevo más tarde."}
+        </p>
+      </div>
+    );
+  }
+
+  if (!mediaStatus.isReady || !playlistUrl || !token) {
+    const statusLabel = mediaStatus.isQueued || mediaStatus.isTranscoding ? "Procesando video..." : "Cargando...";
+    return (
+      <div className="aspect-video bg-black flex items-center justify-center">
+        <p className="text-white/50">{statusLabel}</p>
       </div>
     );
   }

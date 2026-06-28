@@ -272,6 +272,14 @@ function MediaStatusBadge({ status, videoId }: { status: string; videoId: string
         Sin video
       </Badge>
     );
+  if (status === MediaStatus.QUEUED) {
+    return (
+      <Badge variant="outline" className="text-xs text-amber-600 border-amber-300">
+        <Loader2 className="size-3 animate-spin mr-1" />
+        Solicitando…
+      </Badge>
+    );
+  }
   if (status === MediaStatus.TRANSCODING || status === MediaStatus.CAPTIONING) {
     return (
       <Badge variant="outline" className="text-xs text-amber-600 border-amber-300">
