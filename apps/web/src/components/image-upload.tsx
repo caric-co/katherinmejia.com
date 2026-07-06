@@ -7,6 +7,7 @@ import { Button } from "@repo/ui/components/button";
 import { withToken } from "@repo/utils";
 
 import { media } from "#/lib/media";
+import { uploadErrorMessage } from "#/lib/upload-error";
 
 interface ImageUploadProps {
   value: string | null;
@@ -72,7 +73,7 @@ export function ImageUpload({
       <UploadZone
         onUploadUrl={handleUploadUrl}
         onComplete={handleComplete}
-        onError={(err) => setError(err.message)}
+        onError={(err) => setError(uploadErrorMessage(err))}
         accept={["image/jpeg", "image/png", "image/webp"]}
       >
         {({ getRootProps, getInputProps, isDragging, isUploading, progress }) => (

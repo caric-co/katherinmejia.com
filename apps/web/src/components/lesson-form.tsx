@@ -20,6 +20,7 @@ import { FormField } from "#/components/form-field";
 import { SmartSubmit } from "#/components/smart-submit";
 import { usePulse, useSubmitPulse } from "#/lib/form-primitives";
 import { media } from "#/lib/media";
+import { uploadErrorMessage } from "#/lib/upload-error";
 
 const lessonSchema = z.object({
   title: z.string().min(3, "Mínimo 3 caracteres"),
@@ -362,7 +363,7 @@ export function LessonForm({ courseId, courseSlug, lessonCount, lesson, onDone }
             <UploadZone
               onUploadUrl={handleUploadUrl}
               onComplete={handleUploadComplete}
-              onError={(err) => setUploadError(err.message)}
+              onError={(err) => setUploadError(uploadErrorMessage(err))}
               accept={["video/mp4", "video/quicktime", "video/webm"]}
             >
               {({ getRootProps, getInputProps, isDragging, isUploading, progress, file: uploadFile }) => (
