@@ -15,9 +15,9 @@
   "dependencies": {
     "@convex-dev/better-auth": "latest",
     "@convex-dev/react-query": "^0.1.0",
-    "@devultur/convex": "^0.5.11",
-    "@devultur/core": "^0.5.11",
-    "@devultur/react": "^0.5.11",
+    "@devultur/convex": "^0.5.13",
+    "@devultur/core": "^0.5.13",
+    "@devultur/react": "^0.5.13",
     "@repo/backend": "workspace:*",
     "@repo/ui": "workspace:*",
     "@repo/utils": "workspace:*",
