@@ -225,6 +225,8 @@ function EditCourseFormInner({
               onUploadUrl={uploadUrl}
               onDelete={deleteMedia}
               label="Thumbnail del curso"
+              aspectRatio="4/3"
+              className="max-w-sm"
             />
           </div>
 
@@ -319,7 +321,7 @@ function EditCourseFormInner({
                   title={previewTitle}
                   description={previewDesc}
                   price={price}
-                  thumbnailUrl={course.thumbnailUrl}
+                  thumbnailUrl={thumbnailUrl ?? undefined}
                   lang={previewLang}
                 />
                 <Separator />

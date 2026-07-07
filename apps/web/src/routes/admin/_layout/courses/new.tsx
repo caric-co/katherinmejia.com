@@ -4,7 +4,6 @@ import { useDevultur } from "@devultur/convex/react";
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useAction, useMutation } from "convex/react";
-import {} from "lucide-react";
 import { z } from "zod";
 
 import { api } from "@convex/_generated/api";
@@ -134,6 +133,8 @@ function NewCoursePage() {
               onUploadUrl={uploadUrl}
               onDelete={deleteMedia}
               label="Thumbnail del curso"
+              aspectRatio="4/3"
+              className="max-w-sm"
             />
           </div>
 
@@ -207,7 +208,13 @@ function NewCoursePage() {
 
             return (
               <div className="p-6 space-y-8">
-                <CourseCardPreview title={previewTitle} description={previewDesc} price={price} lang={previewLang} />
+                <CourseCardPreview
+                  title={previewTitle}
+                  description={previewDesc}
+                  price={price}
+                  thumbnailUrl={thumbnailUrl ?? undefined}
+                  lang={previewLang}
+                />
                 <Separator />
                 <CourseDetailPreview title={previewTitle} description={previewDesc} price={price} lang={previewLang} />
               </div>

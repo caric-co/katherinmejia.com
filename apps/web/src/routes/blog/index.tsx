@@ -7,6 +7,7 @@ import { api } from "@convex/_generated/api";
 
 import { Footer } from "#/components/landing/footer";
 import { Navigation } from "#/components/landing/navigation";
+import { useAuthedMediaUrl } from "#/lib/use-authed-media-url";
 
 export const Route = createFileRoute("/blog/")({
   head: () => ({
@@ -52,11 +53,7 @@ function BlogPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {posts.map((post) => (
                 <Link key={post._id} to={`/blog/${post.slug[locale]}` as string} className="group">
-                  {post.coverImageUrl && (
-                    <div className="aspect-[16/9] bg-accent/20 mb-4 overflow-hidden">
-                      <img src={post.coverImageUrl} alt={post.title[locale]} className="w-full h-full object-cover" />
-                    </div>
-                  )}
+                  {post.coverImageUrl && <PostCover url={post.coverImageUrl} alt={post.title[locale]} />}
                   <h2 className="font-semibold text-lg mb-1 group-hover:opacity-70 transition-opacity">
                     {post.title[locale]}
                   </h2>
@@ -78,6 +75,16 @@ function BlogPage() {
       </div>
 
       <Footer />
+    </div>
+  );
+}
+
+function PostCover({ url, alt }: { url: string; alt: string }) {
+  const displayUrl = useAuthedMediaUrl(url);
+  if (!displayUrl) return null;
+  return (
+    <div className="aspect-[16/9] bg-accent/20 mb-4 overflow-hidden">
+      <img src={displayUrl} alt={alt} className="w-full h-full object-cover" />
     </div>
   );
 }

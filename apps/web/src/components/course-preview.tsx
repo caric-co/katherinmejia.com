@@ -5,6 +5,8 @@ import { Button } from "@repo/ui/components/button";
 import { Separator } from "@repo/ui/components/separator";
 import { formatDurationShort } from "@repo/utils";
 
+import { useAuthedMediaUrl } from "#/lib/use-authed-media-url";
+
 interface CoursePreviewData {
   title: string;
   description: string;
@@ -63,13 +65,14 @@ function formatPrice(price: number): string {
 
 export function CourseCardPreview({ title, description, price, thumbnailUrl, lang = "es" }: CoursePreviewData) {
   const t = i18n[lang];
+  const displayUrl = useAuthedMediaUrl(thumbnailUrl);
   return (
     <div>
       <p className="text-xs uppercase tracking-widest text-muted-foreground mb-3">Card del catálogo</p>
       <div className="max-w-sm mx-auto">
         <div className="aspect-[4/3] bg-accent/30 mb-4 overflow-hidden">
-          {thumbnailUrl ? (
-            <img src={thumbnailUrl} alt={title} className="w-full h-full object-cover" />
+          {displayUrl ? (
+            <img src={displayUrl} alt={title} className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-muted-foreground/30">
               <span className="text-xs">{t.noImage}</span>
