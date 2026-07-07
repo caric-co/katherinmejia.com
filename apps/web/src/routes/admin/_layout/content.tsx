@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { convexQuery } from "@convex-dev/react-query";
+import { useDevultur } from "@devultur/convex/react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useAction, useMutation } from "convex/react";
@@ -12,20 +13,25 @@ import { Badge } from "@repo/ui/components/badge";
 import { Button } from "@repo/ui/components/button";
 import { Input } from "@repo/ui/components/input";
 
+import { ImageUpload } from "#/components/image-upload";
 import { LandingPreview } from "#/components/landing/landing-preview";
+import { mediaKeyFromUrl } from "#/lib/media";
 
 export const Route = createFileRoute("/admin/_layout/content")({
   component: ContentPage,
 });
 
-const sections = [
+type FieldDef = { key: string; label: string; long: boolean; aspect?: string };
+type Section = { label: string; keys: FieldDef[] };
+
+const sections: Section[] = [
   {
     label: "Hero",
     keys: [
       { key: "hero.title", label: "Título", long: false },
       { key: "hero.subtitle", label: "Subtítulo", long: true },
       { key: "hero.cta", label: "Botón CTA", long: false },
-      { key: "hero.image", label: "URL imagen de fondo", long: false },
+      { key: "hero.image", label: "Imagen de fondo", long: false, aspect: "16/9" },
     ],
   },
   {
@@ -35,13 +41,13 @@ const sections = [
       { key: "services.heading", label: "Título de sección", long: false },
       { key: "services.1.title", label: "Servicio 1 — Título", long: false },
       { key: "services.1.description", label: "Servicio 1 — Descripción", long: true },
-      { key: "services.1.image", label: "Servicio 1 — URL imagen", long: false },
+      { key: "services.1.image", label: "Servicio 1 — Imagen", long: false, aspect: "4/3" },
       { key: "services.2.title", label: "Servicio 2 — Título", long: false },
       { key: "services.2.description", label: "Servicio 2 — Descripción", long: true },
-      { key: "services.2.image", label: "Servicio 2 — URL imagen", long: false },
+      { key: "services.2.image", label: "Servicio 2 — Imagen", long: false, aspect: "4/3" },
       { key: "services.3.title", label: "Servicio 3 — Título", long: false },
       { key: "services.3.description", label: "Servicio 3 — Descripción", long: true },
-      { key: "services.3.image", label: "Servicio 3 — URL imagen", long: false },
+      { key: "services.3.image", label: "Servicio 3 — Imagen", long: false, aspect: "4/3" },
     ],
   },
   {
@@ -51,7 +57,7 @@ const sections = [
       { key: "about.title", label: "Nombre", long: false },
       { key: "about.bio", label: "Bio (párrafo 1)", long: true },
       { key: "about.bio2", label: "Bio (párrafo 2)", long: true },
-      { key: "about.image", label: "URL imagen", long: false },
+      { key: "about.image", label: "Imagen", long: false, aspect: "3/4" },
     ],
   },
   {
@@ -182,6 +188,40 @@ function ContentField({
   );
 }
 
+function ImageContentField({
+  label,
+  aspect,
+  hasDraft,
+  displayUrl,
+  token,
+  onUploadUrl,
+  onChangeUrl,
+}: {
+  label: string;
+  aspect: string;
+  hasDraft: boolean;
+  displayUrl: string;
+  token: string | null;
+  onUploadUrl: (file: File) => Promise<{ url: string; key: string }>;
+  onChangeUrl: (url: string | null) => void;
+}) {
+  return (
+    <div className={`p-3 rounded-sm ${hasDraft ? "bg-muted/30 ring-1 ring-foreground/5" : ""}`}>
+      <div className="flex items-center gap-1.5 mb-2">
+        <p className="text-xs text-muted-foreground">{label}</p>
+        {hasDraft && <span className="size-1.5 rounded-full bg-foreground/40" />}
+      </div>
+      <ImageUpload
+        value={displayUrl || null}
+        onChange={onChangeUrl}
+        onUploadUrl={onUploadUrl}
+        token={token}
+        aspectRatio={aspect}
+      />
+    </div>
+  );
+}
+
 function ContentPage() {
   const { data: allContent } = useQuery(convexQuery(api.siteContent.listAll, {}));
   const { data: hasDrafts } = useQuery(convexQuery(api.siteContent.hasDrafts, {}));
@@ -189,6 +229,7 @@ function ContentPage() {
   const publishAll = useMutation(api.siteContent.publishAll);
   const discardDrafts = useMutation(api.siteContent.discardDrafts);
   const translateAction = useAction(api.ai.translateText);
+  const { token: viewerToken, uploadUrl, deleteMedia } = useDevultur();
 
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
@@ -258,10 +299,53 @@ function ContentPage() {
     setEditingKey(null);
   };
 
+  // Deletes the devultur object behind a URL, if it is one we own.
+  const deleteMediaUrl = useCallback(
+    (url: string | undefined) => {
+      if (!url) return;
+      const key = mediaKeyFromUrl(url);
+      if (key) deleteMedia(key);
+    },
+    [deleteMedia],
+  );
+
+  // Saves a new image URL (or clears it) as a draft, without touching the
+  // published object — that only changes on publish/discard so edits stay
+  // reversible. A prior *unpublished* draft upload is orphaned now, so drop it.
+  const saveImageDraft = useCallback(
+    (key: string, url: string | null) => {
+      const current = contentMap.get(key);
+      const publishedUrl = current?.value.es ?? "";
+      const prevDraftUrl = current?.draftValue?.es;
+      if (prevDraftUrl && prevDraftUrl !== publishedUrl && prevDraftUrl !== url) {
+        deleteMediaUrl(prevDraftUrl);
+      }
+      const value = url ?? "";
+      saveDraft({ key, value: { es: value, en: value }, type: "image" });
+    },
+    [contentMap, deleteMediaUrl, saveDraft],
+  );
+
   const handlePublish = async () => {
     setPublishing(true);
+    // Old published images that a draft replaces or removes become orphaned once
+    // the draft is promoted — delete them only after the publish succeeds.
+    const orphanedUrls = (allContent ?? [])
+      .filter((c) => c.type === "image" && c.draftValue !== undefined && c.draftValue.es !== c.value.es)
+      .map((c) => c.value.es);
     await publishAll();
+    orphanedUrls.forEach(deleteMediaUrl);
     setPublishing(false);
+  };
+
+  const handleDiscard = async () => {
+    // Draft image uploads being thrown away are orphaned — delete them after the
+    // drafts are cleared (published objects are untouched).
+    const orphanedUrls = (allContent ?? [])
+      .filter((c) => c.type === "image" && c.draftValue !== undefined && c.draftValue.es !== c.value.es)
+      .map((c) => c.draftValue?.es);
+    await discardDrafts();
+    orphanedUrls.forEach(deleteMediaUrl);
   };
 
   const draftCount = allContent?.filter((c) => c.draftValue !== undefined).length ?? 0;
@@ -284,7 +368,7 @@ function ContentPage() {
               {draftCount === 1 ? "cambio pendiente" : "cambios pendientes"}
             </span>
             <div className="flex gap-2">
-              <Button variant="ghost" size="sm" onClick={() => discardDrafts()}>
+              <Button variant="ghost" size="sm" onClick={handleDiscard}>
                 <Undo2 data-icon="inline-start" className="size-3.5" />
                 Descartar
               </Button>
@@ -307,11 +391,26 @@ function ContentPage() {
                 {section.label}
               </h2>
               <div className="space-y-1.5">
-                {section.keys.map(({ key, label, long }) => {
+                {section.keys.map(({ key, label, long, aspect }) => {
                   const content = contentMap.get(key);
                   const isEditing = editingKey === key;
                   const hasDraft = content?.draftValue !== undefined;
                   const displayValue = hasDraft ? content?.draftValue?.es : content?.value.es;
+
+                  if (isImageKey(key)) {
+                    return (
+                      <ImageContentField
+                        key={key}
+                        label={label}
+                        aspect={aspect ?? "16/9"}
+                        hasDraft={hasDraft}
+                        displayUrl={displayValue ?? ""}
+                        token={viewerToken}
+                        onUploadUrl={uploadUrl}
+                        onChangeUrl={(url) => saveImageDraft(key, url)}
+                      />
+                    );
+                  }
 
                   return (
                     <ContentField
