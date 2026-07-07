@@ -11,6 +11,7 @@ import { Button } from "@repo/ui/components/button";
 
 import { Footer } from "#/components/landing/footer";
 import { Navigation } from "#/components/landing/navigation";
+import { useAuthedMediaUrl } from "#/lib/use-authed-media-url";
 
 const fetchPostMeta = createServerFn({ method: "GET" })
   .validator((slug: string) => slug)
@@ -58,6 +59,7 @@ function BlogPostPage() {
   const { i18n } = useTranslation();
   const locale = i18n.language as "es" | "en";
   const { data: post } = useQuery(convexQuery(api.blogPosts.getBySlug, { slug }));
+  const coverUrl = useAuthedMediaUrl(post?.coverImageUrl);
 
   if (post === undefined) {
     return (
@@ -113,9 +115,9 @@ function BlogPostPage() {
             <h1 className="font-display text-[clamp(2rem,5vw,3.5rem)] tracking-tight mb-6">{post.title[locale]}</h1>
           </div>
 
-          {post.coverImageUrl && (
+          {coverUrl && (
             <div className="aspect-[16/9] mb-8 overflow-hidden">
-              <img src={post.coverImageUrl} alt={post.title[locale]} className="w-full h-full object-cover" />
+              <img src={coverUrl} alt={post.title[locale]} className="w-full h-full object-cover" />
             </div>
           )}
 
