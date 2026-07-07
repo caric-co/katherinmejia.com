@@ -9,4 +9,5 @@ dist
 *.tsbuildinfo
 .vercel
 feedback-devultur
+docs/internal/feature-requests/
 .tanstack
