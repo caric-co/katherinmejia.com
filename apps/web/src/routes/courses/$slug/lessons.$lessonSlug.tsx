@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { convexQuery } from "@convex-dev/react-query";
-import { useDevultur, useDevulturMedia, useDevulturProgress } from "@devultur/convex/react";
+import { useDevultur, useDevulturMedia, useDevulturProgress, useMediaUrl } from "@devultur/convex/react";
 import { captionPath, extractId } from "@devultur/core";
 import { formatTime, VideoPlayer, type VideoPlayerRef } from "@devultur/react";
 import { useQuery } from "@tanstack/react-query";
@@ -13,7 +13,6 @@ import { api } from "@convex/_generated/api";
 import { Badge } from "@repo/ui/components/badge";
 import { Button } from "@repo/ui/components/button";
 import { Separator } from "@repo/ui/components/separator";
-import { withToken } from "@repo/utils";
 
 import { authClient } from "#/lib/auth-client";
 import { media } from "#/lib/media";
@@ -203,7 +202,7 @@ function LessonVideo({
     }
   }, [userId, lesson.videoId, progress, lessons, currentIndex, courseSlug]);
 
-  const playlistUrl = mediaStatus.playlistUrl ? media.getMediaUrl(mediaStatus.playlistUrl) : null;
+  const playlistUrl = useMediaUrl(mediaStatus.playlistUrl);
 
   const captionTracks = useMemo(() => {
     if (!mediaStatus.isReady || !lesson.videoId || mediaStatus.captionLocales.length === 0) return [];
@@ -245,7 +244,7 @@ function LessonVideo({
   return (
     <VideoPlayer
       ref={playerRef}
-      src={withToken(playlistUrl, token)}
+      src={playlistUrl}
       token={token ?? undefined}
       captions={captionTracks}
       defaultCaption="es-CO"

@@ -193,7 +193,6 @@ function ImageContentField({
   aspect,
   hasDraft,
   displayUrl,
-  token,
   onUploadUrl,
   onChangeUrl,
 }: {
@@ -201,7 +200,6 @@ function ImageContentField({
   aspect: string;
   hasDraft: boolean;
   displayUrl: string;
-  token: string | null;
   onUploadUrl: (file: File) => Promise<{ url: string; key: string }>;
   onChangeUrl: (url: string | null) => void;
 }) {
@@ -211,13 +209,7 @@ function ImageContentField({
         <p className="text-xs text-muted-foreground">{label}</p>
         {hasDraft && <span className="size-1.5 rounded-full bg-foreground/40" />}
       </div>
-      <ImageUpload
-        value={displayUrl || null}
-        onChange={onChangeUrl}
-        onUploadUrl={onUploadUrl}
-        token={token}
-        aspectRatio={aspect}
-      />
+      <ImageUpload value={displayUrl || null} onChange={onChangeUrl} onUploadUrl={onUploadUrl} aspectRatio={aspect} />
     </div>
   );
 }
@@ -229,7 +221,7 @@ function ContentPage() {
   const publishAll = useMutation(api.siteContent.publishAll);
   const discardDrafts = useMutation(api.siteContent.discardDrafts);
   const translateAction = useAction(api.ai.translateText);
-  const { token: viewerToken, uploadUrl, deleteMedia } = useDevultur();
+  const { uploadUrl, deleteMedia } = useDevultur();
 
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
@@ -405,7 +397,6 @@ function ContentPage() {
                         aspect={aspect ?? "16/9"}
                         hasDraft={hasDraft}
                         displayUrl={displayValue ?? ""}
-                        token={viewerToken}
                         onUploadUrl={uploadUrl}
                         onChangeUrl={(url) => saveImageDraft(key, url)}
                       />

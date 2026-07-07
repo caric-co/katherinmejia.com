@@ -42,7 +42,7 @@ function NewCoursePage() {
   const navigate = useNavigate();
   const createCourse = useMutation(api.courses.create);
   const translateAction = useAction(api.ai.translateText);
-  const { token: viewerToken, uploadUrl, deleteMedia } = useDevultur();
+  const { uploadUrl, deleteMedia } = useDevultur();
   const [serverError, setServerError] = useState("");
   const [previewLang, setPreviewLang] = useState<"es" | "en">("es");
   const [titleEn, setTitleEn] = useState("");
@@ -133,7 +133,6 @@ function NewCoursePage() {
               onChange={setThumbnailUrl}
               onUploadUrl={uploadUrl}
               onDelete={deleteMedia}
-              token={viewerToken}
               label="Thumbnail del curso"
             />
           </div>

@@ -1,9 +1,9 @@
 import { createMediaRouter, extractKeyFromUrl, file, image, video } from "@devultur/core";
 
-const baseUrl = import.meta.env.VITE_DEVULTUR_API_URL || "https://devultur-api.crdemar.workers.dev";
+export const mediaBaseUrl = import.meta.env.VITE_DEVULTUR_API_URL || "https://devultur-api.crdemar.workers.dev";
 
 export const media = createMediaRouter({
-  baseUrl,
+  baseUrl: mediaBaseUrl,
 
   video: video({
     maxSize: "2GB",
@@ -25,4 +25,4 @@ export const media = createMediaRouter({
  * fallback). Use before `useDevultur().deleteMedia` so we never try to delete
  * media we don't own.
  */
-export const mediaKeyFromUrl = (url: string): string | null => extractKeyFromUrl(url, baseUrl);
+export const mediaKeyFromUrl = (url: string): string | null => extractKeyFromUrl(url, mediaBaseUrl);

@@ -1,12 +1,12 @@
 import { useState } from "react";
 
+import { useMediaUrl } from "@devultur/convex/react";
 import { UploadZone } from "@devultur/react";
-import { ImagePlus, Loader2, Trash2 } from "lucide-react";
+import { Download, ImagePlus, Loader2, Trash2 } from "lucide-react";
 
 import { Button } from "@repo/ui/components/button";
-import { withToken } from "@repo/utils";
 
-import { media } from "#/lib/media";
+import { media, mediaKeyFromUrl } from "#/lib/media";
 import { uploadErrorMessage } from "#/lib/upload-error";
 
 interface ImageUploadProps {
@@ -14,7 +14,6 @@ interface ImageUploadProps {
   onChange: (url: string | null) => void;
   onUploadUrl: (file: File) => Promise<{ url: string; key: string }>;
   onDelete?: (url: string) => void;
-  token?: string | null;
   label?: string;
   aspectRatio?: string;
   className?: string;
@@ -25,12 +24,14 @@ export function ImageUpload({
   onChange,
   onUploadUrl,
   onDelete,
-  token,
   label,
   aspectRatio = "16/9",
   className,
 }: ImageUploadProps) {
   const [error, setError] = useState<string | null>(null);
+  const mediaKey = value ? mediaKeyFromUrl(value) : null;
+  const displayUrl = useMediaUrl(mediaKey) ?? value;
+  const downloadUrl = useMediaUrl(mediaKey, { download: true });
 
   const handleUploadUrl = async (file: File) => {
     setError(null);
@@ -43,12 +44,21 @@ export function ImageUpload({
   };
 
   if (value) {
-    const displayUrl = withToken(value, token);
     return (
       <div className={className}>
         <div className="relative group rounded-sm overflow-hidden border border-border" style={{ aspectRatio }}>
-          <img src={displayUrl} alt={label ?? "Uploaded image"} className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+          <img src={displayUrl ?? undefined} alt={label ?? "Uploaded image"} className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center gap-1">
+            {downloadUrl && (
+              <Button
+                render={<a href={downloadUrl} download />}
+                variant="ghost"
+                size="icon-sm"
+                className="opacity-0 group-hover:opacity-100 transition-opacity text-white hover:text-white hover:bg-white/20"
+              >
+                <Download className="size-4" />
+              </Button>
+            )}
             <Button
               type="button"
               variant="ghost"

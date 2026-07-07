@@ -291,7 +291,6 @@ export function BlogPostEditor({
         onChange={store.setCoverImageUrl}
         onUploadUrl={createUploadUrl}
         onDelete={deleteMedia}
-        token={viewerToken}
         label="Imagen de portada"
         aspectRatio="21/9"
         className="mb-6"
