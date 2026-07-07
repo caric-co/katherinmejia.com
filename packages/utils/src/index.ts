@@ -10,5 +10,4 @@ export {
   getVideoDuration,
   parseCOPInput,
   slugify,
-  withToken,
 } from "./formatters";

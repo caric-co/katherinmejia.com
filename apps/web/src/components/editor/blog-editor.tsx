@@ -149,8 +149,8 @@ const slashItems = createSuggestionItems([
         try {
           const { url, key } = await _uploadHandler(file);
           await fetch(url, { method: "PUT", body: file, headers: { "Content-Type": file.type } });
-          const [{ media }, { withToken }] = await Promise.all([import("#/lib/media"), import("@repo/utils")]);
-          const authedUrl = withToken(media.getMediaUrl(key), _viewerToken);
+          const { media } = await import("#/lib/media");
+          const authedUrl = media.getMediaUrl(key, { token: _viewerToken ?? undefined });
           editor.chain().focus().setImage({ src: authedUrl }).run();
         } catch {}
       };

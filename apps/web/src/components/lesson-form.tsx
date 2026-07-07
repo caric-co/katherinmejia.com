@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { useDevultur, useDevulturMedia } from "@devultur/convex/react";
+import { useDevultur, useDevulturMedia, useMediaUrl } from "@devultur/convex/react";
 import { captionPath, extractId } from "@devultur/core";
 import { formatTime, TranscriptPanel, UploadZone, VideoPlayer, type VideoPlayerRef } from "@devultur/react";
 import { useForm } from "@tanstack/react-form";
@@ -14,7 +14,7 @@ import type { Doc, Id } from "@convex/_generated/dataModel";
 import { Badge } from "@repo/ui/components/badge";
 import { Button } from "@repo/ui/components/button";
 import { Label } from "@repo/ui/components/label";
-import { slugify, withToken } from "@repo/utils";
+import { slugify } from "@repo/utils";
 
 import { FormField } from "#/components/form-field";
 import { SmartSubmit } from "#/components/smart-submit";
@@ -96,7 +96,7 @@ export function LessonForm({ courseId, courseSlug, lessonCount, lesson, onDone }
     }));
   }, [mediaStatus.isReady, videoKey, mediaStatus.captionLocales]);
 
-  const playlistUrl = mediaStatus.playlistUrl ? media.getMediaUrl(mediaStatus.playlistUrl) : null;
+  const playlistUrl = useMediaUrl(mediaStatus.playlistUrl);
 
   // Auto-generate metadata when captions become available
   const generateMetadata = useCallback(async () => {
@@ -313,7 +313,7 @@ export function LessonForm({ courseId, courseSlug, lessonCount, lesson, onDone }
             >
               <VideoPlayer
                 ref={playerRef}
-                src={withToken(playlistUrl, authToken)}
+                src={playlistUrl}
                 token={authToken ?? undefined}
                 captions={captionTracks}
                 defaultCaption="es-CO"
@@ -432,8 +432,9 @@ export function LessonForm({ courseId, courseSlug, lessonCount, lesson, onDone }
                     variant="ghost"
                     size="xs"
                     onClick={async () => {
-                      const url = withToken(vttUrls[activeSubLocale], authToken);
-                      const res = await fetch(url);
+                      const res = await fetch(vttUrls[activeSubLocale], {
+                        headers: { Authorization: `Bearer ${authToken}` },
+                      });
                       if (!res.ok) return;
                       const blob = new Blob([await res.text()], { type: "text/vtt" });
                       const href = URL.createObjectURL(blob);

@@ -76,8 +76,3 @@ export function slugify(text: string): string {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
 }
-
-export function withToken(url: string, token: string | null | undefined): string {
-  if (!token) return url;
-  return `${url}${url.includes("?") ? "&" : "?"}token=${token}`;
-}

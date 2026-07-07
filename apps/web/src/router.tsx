@@ -7,6 +7,8 @@ import { ConvexProvider } from "convex/react";
 
 import { api } from "@convex/_generated/api";
 
+import { mediaBaseUrl } from "#/lib/media";
+
 import { routeTree } from "./routeTree.gen";
 
 export function getRouter() {
@@ -36,7 +38,9 @@ export function getRouter() {
     Wrap: ({ children }) => (
       <ConvexProvider client={convexQueryClient.convexClient}>
         <QueryClientProvider client={queryClient}>
-          <DevulturProvider api={api.devultur}>{children}</DevulturProvider>
+          <DevulturProvider api={api.devultur} baseUrl={mediaBaseUrl}>
+            {children}
+          </DevulturProvider>
         </QueryClientProvider>
       </ConvexProvider>
     ),

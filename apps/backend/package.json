@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "@convex-dev/better-auth": "latest",
-    "@devultur/convex": "^0.5.13",
+    "@devultur/convex": "^0.5.14",
     "better-auth": "~1.6.15",
     "convex": "latest"
   }
