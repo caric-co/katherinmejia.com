@@ -14,6 +14,13 @@ export default defineConfig({
       "@convex": path.resolve(__dirname, "../backend/convex"),
     },
   },
+  // In production bundle everything into the SSR output so no client lib (base-ui,
+  // framer-motion, …) is left importing `react` as an external the Vercel function
+  // can't resolve. tslib stays external to avoid a CJS/ESM interop mismatch.
+  ssr: {
+    noExternal: process.env.NODE_ENV === "production" ? true : ["@convex-dev/better-auth", "@base-ui/react"],
+    external: ["tslib"],
+  },
   server: { host: true },
   plugins: [
     ...(process.env.NODE_ENV !== "production" ? [devtools()] : []),
