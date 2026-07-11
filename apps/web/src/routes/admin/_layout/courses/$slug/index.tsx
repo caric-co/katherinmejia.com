@@ -145,6 +145,9 @@ function EditCourseFormInner({
   onCancel: () => void;
 }) {
   const [thumbnail, setThumbnail] = useState<DevulturMedia | null>(course.thumbnail ?? null);
+  // The thumbnail lives outside the form, so a thumbnail-only change leaves the form pristine —
+  // track it so "Guardar cambios" enables when just the image changes.
+  const thumbnailChanged = (thumbnail?.id ?? null) !== (course.thumbnail?.id ?? null);
 
   const previewLessons = (lessons ?? []).map((l) => ({
     title: previewLang === "es" ? l.title.es : l.title.en,
@@ -236,7 +239,7 @@ function EditCourseFormInner({
           <form.Subscribe
             selector={(state) => [state.isSubmitting, state.canSubmit, state.isPristine, state.values] as const}
             children={([isSubmitting, canSubmit, isPristine, values]) => {
-              const isDisabled = isSubmitting || !canSubmit || isPristine;
+              const isDisabled = isSubmitting || !canSubmit || (isPristine && !thumbnailChanged);
               const emptyFields = Object.entries(values as Record<string, string>)
                 .filter(([, v]) => !v)
                 .map(([k]) => fieldLabels[k] ?? k);
