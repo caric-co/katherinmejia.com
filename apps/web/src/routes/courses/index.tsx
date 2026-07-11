@@ -1,4 +1,5 @@
 import { convexQuery } from "@convex-dev/react-query";
+import { Image } from "@devultur/convex/react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
@@ -7,7 +8,6 @@ import { api } from "@convex/_generated/api";
 
 import { Footer } from "#/components/landing/footer";
 import { Navigation } from "#/components/landing/navigation";
-import { useAuthedMediaUrl } from "#/lib/use-authed-media-url";
 
 export const Route = createFileRoute("/courses/")({
   head: () => ({
@@ -53,7 +53,9 @@ function CourseCatalogPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {courses.map((course) => (
                 <Link key={course._id} to={`/courses/${course.slug[locale]}` as string} className="group">
-                  <CourseThumbnail url={course.thumbnailUrl} alt={course.title[locale]} />
+                  <div className="aspect-[4/3] bg-accent/30 mb-4 overflow-hidden">
+                    <Image media={course.thumbnail} alt={course.title[locale]} className="w-full h-full object-cover" />
+                  </div>
                   <h2 className="font-semibold text-lg mb-1 group-hover:opacity-70 transition-opacity">
                     {course.title[locale]}
                   </h2>
@@ -67,15 +69,6 @@ function CourseCatalogPage() {
       </div>
 
       <Footer />
-    </div>
-  );
-}
-
-function CourseThumbnail({ url, alt }: { url?: string; alt: string }) {
-  const displayUrl = useAuthedMediaUrl(url);
-  return (
-    <div className="aspect-[4/3] bg-accent/30 mb-4 overflow-hidden">
-      {displayUrl && <img src={displayUrl} alt={alt} className="w-full h-full object-cover" />}
     </div>
   );
 }

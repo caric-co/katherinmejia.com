@@ -1,3 +1,4 @@
+import { dv } from "@devultur/convex/validators";
 import { v } from "convex/values";
 
 import { mutation, query } from "./_generated/server";
@@ -69,7 +70,7 @@ export const create = mutation({
     description: bilingualText,
     slug: bilingualText,
     price: v.number(),
-    thumbnailUrl: v.optional(v.string()),
+    thumbnail: v.optional(dv.media("image")),
   },
   handler: async (ctx, args) => {
     const existingEs = await ctx.db
@@ -104,8 +105,8 @@ export const update = mutation({
     description: v.optional(bilingualText),
     slug: v.optional(bilingualText),
     price: v.optional(v.number()),
-    thumbnailUrl: v.optional(v.string()),
-    previewVideoId: v.optional(v.string()),
+    thumbnail: v.optional(dv.media("image")),
+    previewVideo: v.optional(dv.media("video")),
   },
   handler: async (ctx, args) => {
     const { courseId, ...updates } = args;

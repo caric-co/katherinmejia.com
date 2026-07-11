@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { useDevultur } from "@devultur/convex/react";
+import type { DevulturMedia } from "@devultur/core";
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useAction, useMutation } from "convex/react";
@@ -41,12 +42,12 @@ function NewCoursePage() {
   const navigate = useNavigate();
   const createCourse = useMutation(api.courses.create);
   const translateAction = useAction(api.ai.translateText);
-  const { uploadUrl, deleteMedia } = useDevultur();
+  const { deleteMedia } = useDevultur();
   const [serverError, setServerError] = useState("");
   const [previewLang, setPreviewLang] = useState<"es" | "en">("es");
   const [titleEn, setTitleEn] = useState("");
   const [descEn, setDescEn] = useState("");
-  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
+  const [thumbnail, setThumbnail] = useState<DevulturMedia | null>(null);
   const submitControls = useSubmitPulse(SUBMIT_ID);
 
   const form = useForm({
@@ -71,7 +72,7 @@ function NewCoursePage() {
           description: { es: value.description, en: finalDescEn },
           slug: { es: slug, en: slugify(finalTitleEn) },
           price: parseCOPInput(value.price),
-          ...(thumbnailUrl ? { thumbnailUrl } : {}),
+          ...(thumbnail ? { thumbnail } : {}),
         });
         navigate({ to: "/admin/courses" });
       } catch (err: any) {
@@ -128,9 +129,8 @@ function NewCoursePage() {
           <div>
             <Label className="text-xs uppercase tracking-wider font-medium mb-2 block">Thumbnail</Label>
             <ImageUpload
-              value={thumbnailUrl}
-              onChange={setThumbnailUrl}
-              onUploadUrl={uploadUrl}
+              value={thumbnail}
+              onChange={setThumbnail}
               onDelete={deleteMedia}
               label="Thumbnail del curso"
               aspectRatio="4/3"
@@ -212,7 +212,7 @@ function NewCoursePage() {
                   title={previewTitle}
                   description={previewDesc}
                   price={price}
-                  thumbnailUrl={thumbnailUrl ?? undefined}
+                  thumbnail={thumbnail}
                   lang={previewLang}
                 />
                 <Separator />

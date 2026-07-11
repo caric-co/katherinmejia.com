@@ -1,4 +1,5 @@
 import { convexQuery } from "@convex-dev/react-query";
+import { Image } from "@devultur/convex/react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
@@ -11,7 +12,7 @@ import { Button } from "@repo/ui/components/button";
 
 import { Footer } from "#/components/landing/footer";
 import { Navigation } from "#/components/landing/navigation";
-import { useAuthedMediaUrl } from "#/lib/use-authed-media-url";
+import { publicImageUrl } from "#/lib/media";
 
 const fetchPostMeta = createServerFn({ method: "GET" })
   .validator((slug: string) => slug)
@@ -24,7 +25,7 @@ const fetchPostMeta = createServerFn({ method: "GET" })
     return {
       title: post.title,
       excerpt: post.excerpt,
-      coverImageUrl: post.coverImageUrl,
+      ogImage: post.cover ? publicImageUrl(post.cover) : null,
       publishedAt: post.publishedAt,
     };
   });
@@ -44,8 +45,8 @@ export const Route = createFileRoute("/blog/$slug")({
         { property: "og:title", content: title },
         { property: "og:description", content: description },
         { property: "og:type", content: "article" },
-        ...(loaderData.coverImageUrl ? [{ property: "og:image", content: loaderData.coverImageUrl }] : []),
-        { name: "twitter:card", content: loaderData.coverImageUrl ? "summary_large_image" : "summary" },
+        ...(loaderData.ogImage ? [{ property: "og:image", content: loaderData.ogImage }] : []),
+        { name: "twitter:card", content: loaderData.ogImage ? "summary_large_image" : "summary" },
         { name: "twitter:title", content: title },
         { name: "twitter:description", content: description },
       ],
@@ -59,7 +60,6 @@ function BlogPostPage() {
   const { i18n } = useTranslation();
   const locale = i18n.language as "es" | "en";
   const { data: post } = useQuery(convexQuery(api.blogPosts.getBySlug, { slug }));
-  const coverUrl = useAuthedMediaUrl(post?.coverImageUrl);
 
   if (post === undefined) {
     return (
@@ -115,9 +115,9 @@ function BlogPostPage() {
             <h1 className="font-display text-[clamp(2rem,5vw,3.5rem)] tracking-tight mb-6">{post.title[locale]}</h1>
           </div>
 
-          {coverUrl && (
+          {post.cover && (
             <div className="aspect-[16/9] mb-8 overflow-hidden">
-              <img src={coverUrl} alt={post.title[locale]} className="w-full h-full object-cover" />
+              <Image media={post.cover} alt={post.title[locale]} className="w-full h-full object-cover" />
             </div>
           )}
 

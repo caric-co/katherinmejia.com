@@ -1,5 +1,4 @@
 import { convexQuery } from "@convex-dev/react-query";
-import { useDevultur } from "@devultur/convex/react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation } from "convex/react";
@@ -19,7 +18,6 @@ function EditBlogPostPage() {
   const updatePost = useMutation(api.blogPosts.update);
   const publishPost = useMutation(api.blogPosts.publish);
   const unpublishPost = useMutation(api.blogPosts.unpublish);
-  const { token, uploadUrl, deleteMedia } = useDevultur();
 
   if (post === undefined) return <p className="text-muted-foreground">Cargando...</p>;
   if (post === null) return <p className="text-destructive">Artículo no encontrado</p>;
@@ -34,7 +32,7 @@ function EditBlogPostPage() {
         excerptEn: post.excerpt.en,
         contentHtml: post.content.es,
         contentEn: post.content.en,
-        coverImageUrl: post.coverImageUrl,
+        cover: post.cover,
       }}
       isPublished={post.status === "published"}
       onSave={async (data) => {
@@ -48,9 +46,6 @@ function EditBlogPostPage() {
       }}
       onCancel={() => navigate({ to: "/admin/blog" })}
       onUnpublish={() => unpublishPost({ postId: post._id })}
-      createUploadUrl={uploadUrl}
-      deleteMedia={deleteMedia}
-      viewerToken={token}
     />
   );
 }

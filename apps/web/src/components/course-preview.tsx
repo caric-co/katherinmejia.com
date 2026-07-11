@@ -1,3 +1,5 @@
+import { Image } from "@devultur/convex/react";
+import type { DevulturMedia } from "@devultur/core";
 import { Clock, Lock, PlayCircle } from "lucide-react";
 
 import { Badge } from "@repo/ui/components/badge";
@@ -5,13 +7,11 @@ import { Button } from "@repo/ui/components/button";
 import { Separator } from "@repo/ui/components/separator";
 import { formatDurationShort } from "@repo/utils";
 
-import { useAuthedMediaUrl } from "#/lib/use-authed-media-url";
-
 interface CoursePreviewData {
   title: string;
   description: string;
   price: number;
-  thumbnailUrl?: string;
+  thumbnail?: DevulturMedia | null;
   lang?: "es" | "en";
   lessons?: Array<{
     title: string;
@@ -63,21 +63,23 @@ function formatPrice(price: number): string {
   return `$${price.toLocaleString("es-CO")}`;
 }
 
-export function CourseCardPreview({ title, description, price, thumbnailUrl, lang = "es" }: CoursePreviewData) {
+export function CourseCardPreview({ title, description, price, thumbnail, lang = "es" }: CoursePreviewData) {
   const t = i18n[lang];
-  const displayUrl = useAuthedMediaUrl(thumbnailUrl);
   return (
     <div>
       <p className="text-xs uppercase tracking-widest text-muted-foreground mb-3">Card del catálogo</p>
       <div className="max-w-sm mx-auto">
         <div className="aspect-[4/3] bg-accent/30 mb-4 overflow-hidden">
-          {displayUrl ? (
-            <img src={displayUrl} alt={title} className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-muted-foreground/30">
-              <span className="text-xs">{t.noImage}</span>
-            </div>
-          )}
+          <Image
+            media={thumbnail}
+            alt={title}
+            className="w-full h-full object-cover"
+            fallback={
+              <div className="w-full h-full flex items-center justify-center text-muted-foreground/30">
+                <span className="text-xs">{t.noImage}</span>
+              </div>
+            }
+          />
         </div>
         <h2 className="font-semibold text-lg mb-1">{title || t.title}</h2>
         <p className="text-muted-foreground mb-2 line-clamp-2">{description || t.description}</p>

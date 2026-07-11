@@ -13,6 +13,7 @@ import { Separator } from "@repo/ui/components/separator";
 
 import { Footer } from "#/components/landing/footer";
 import { Navigation } from "#/components/landing/navigation";
+import { publicImageUrl } from "#/lib/media";
 
 const fetchCourseMeta = createServerFn({ method: "GET" })
   .validator((slug: string) => slug)
@@ -25,7 +26,7 @@ const fetchCourseMeta = createServerFn({ method: "GET" })
     return {
       title: course.title,
       description: course.description,
-      thumbnailUrl: course.thumbnailUrl,
+      ogImage: course.thumbnail ? publicImageUrl(course.thumbnail) : null,
     };
   });
 
@@ -44,8 +45,8 @@ export const Route = createFileRoute("/courses/$slug")({
         { property: "og:title", content: title },
         { property: "og:description", content: description },
         { property: "og:type", content: "website" },
-        ...(loaderData.thumbnailUrl ? [{ property: "og:image", content: loaderData.thumbnailUrl }] : []),
-        { name: "twitter:card", content: loaderData.thumbnailUrl ? "summary_large_image" : "summary" },
+        ...(loaderData.ogImage ? [{ property: "og:image", content: loaderData.ogImage }] : []),
+        { name: "twitter:card", content: loaderData.ogImage ? "summary_large_image" : "summary" },
         { name: "twitter:title", content: title },
         { name: "twitter:description", content: description },
       ],
