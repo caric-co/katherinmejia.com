@@ -1,3 +1,4 @@
+import { dv } from "@devultur/convex/validators";
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
@@ -22,8 +23,8 @@ export default defineSchema({
     title: bilingualText,
     description: bilingualText,
     slug: bilingualText,
-    thumbnailUrl: v.optional(v.string()),
-    previewVideoId: v.optional(v.string()),
+    thumbnail: v.optional(dv.media("image")),
+    previewVideo: v.optional(dv.media("video")),
     price: v.number(),
     currency: v.literal("COP"),
     status: v.union(v.literal("draft"), v.literal("published"), v.literal("archived")),
@@ -40,7 +41,7 @@ export default defineSchema({
     title: bilingualText,
     slug: v.optional(v.string()),
     description: bilingualText,
-    videoId: v.string(),
+    video: v.optional(dv.media("video")),
     order: v.number(),
     isFree: v.boolean(),
   })
@@ -114,7 +115,7 @@ export default defineSchema({
     slug: bilingualText,
     content: bilingualText,
     excerpt: bilingualText,
-    coverImageUrl: v.optional(v.string()),
+    cover: v.optional(dv.media("image")),
     status: v.union(v.literal("draft"), v.literal("published")),
     publishedAt: v.optional(v.number()),
     createdAt: v.number(),

@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { convexQuery } from "@convex-dev/react-query";
-import { useDevultur, useDevulturMedia, useDevulturProgress, useMediaUrl } from "@devultur/convex/react";
-import { captionPath, extractId } from "@devultur/core";
+import { useDevulturProgress, useVideoState } from "@devultur/convex/react";
+import type { DevulturMedia } from "@devultur/core";
 import { formatTime, VideoPlayer, type VideoPlayerRef } from "@devultur/react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
@@ -15,13 +15,12 @@ import { Button } from "@repo/ui/components/button";
 import { Separator } from "@repo/ui/components/separator";
 
 import { authClient } from "#/lib/auth-client";
-import { media } from "#/lib/media";
 
 export const Route = createFileRoute("/courses/$slug/lessons/$lessonSlug")({
   component: LessonPlayerPage,
 });
 
-const CAPTION_LABELS: Record<string, string> = { "es-CO": "Español (CO)", en: "English" };
+const CAPTION_LOCALES = ["es-CO", "en"];
 const SAVE_INTERVAL = 10;
 
 function LessonPlayerPage() {
@@ -162,70 +161,57 @@ function LessonVideo({
   currentIndex,
   courseSlug,
 }: {
-  lesson: { videoId: string; _id: string };
+  lesson: { video?: DevulturMedia; _id: string };
   userId?: string;
   lessons: Array<{ _id: string; slug?: string }>;
   currentIndex: number;
   courseSlug: string;
 }) {
-  const { token } = useDevultur();
-  const mediaStatus = useDevulturMedia(lesson.videoId);
+  const state = useVideoState(lesson.video, { locales: CAPTION_LOCALES });
   const progress = useDevulturProgress();
   const playerRef = useRef<VideoPlayerRef>(null);
   const [initialTime, setInitialTime] = useState<number | null>(null);
   const lastSavedRef = useRef(0);
+  const videoId = lesson.video?.id;
 
   useEffect(() => {
-    if (!userId || !lesson.videoId) return;
-    progress.load(lesson.videoId).then((p) => {
+    if (!userId || !videoId) return;
+    progress.load(videoId).then((p) => {
       setInitialTime(p?.lastPosition ?? 0);
     });
-  }, [userId, lesson.videoId]);
+  }, [userId, videoId]);
 
   const handleProgress = useCallback(
     (currentTime: number) => {
-      if (!userId || !lesson.videoId) return;
+      if (!userId || !videoId) return;
       if (Math.abs(currentTime - lastSavedRef.current) < SAVE_INTERVAL) return;
       lastSavedRef.current = currentTime;
-      progress.save(lesson.videoId, currentTime);
+      progress.save(videoId, currentTime);
     },
-    [userId, lesson.videoId, progress],
+    [userId, videoId, progress],
   );
 
   const handleEnded = useCallback(() => {
-    if (!userId || !lesson.videoId) return;
-    progress.markComplete(lesson.videoId);
+    if (!userId || !videoId) return;
+    progress.markComplete(videoId);
 
     const nextLesson = lessons[currentIndex + 1];
     if (nextLesson?.slug) {
       window.location.href = `/courses/${courseSlug}/lessons/${nextLesson.slug}`;
     }
-  }, [userId, lesson.videoId, progress, lessons, currentIndex, courseSlug]);
+  }, [userId, videoId, progress, lessons, currentIndex, courseSlug]);
 
-  const playlistUrl = useMediaUrl(mediaStatus.playlistUrl);
-
-  const captionTracks = useMemo(() => {
-    if (!mediaStatus.isReady || !lesson.videoId || mediaStatus.captionLocales.length === 0) return [];
-    const id = extractId(lesson.videoId);
-    return mediaStatus.captionLocales.map((locale) => ({
-      locale,
-      label: CAPTION_LABELS[locale] ?? locale,
-      src: media.getMediaUrl(captionPath(id, locale)),
-    }));
-  }, [mediaStatus.isReady, lesson.videoId, mediaStatus.captionLocales]);
-
-  if (mediaStatus.isFailed) {
+  if (state.phase === "failed") {
     return (
       <div className="aspect-video bg-black flex items-center justify-center">
-        <p className="text-red-400/80">
-          No se pudo procesar este video. {mediaStatus.error ?? "Intenta de nuevo más tarde."}
-        </p>
+        <p className="text-red-400/80">No se pudo procesar este video. {state.message}</p>
       </div>
     );
   }
 
-  if (!mediaStatus.isReady || !playlistUrl || !token) {
-    const statusLabel = mediaStatus.isQueued || mediaStatus.isTranscoding ? "Procesando video..." : "Cargando...";
+  if (state.phase !== "ready") {
+    const statusLabel =
+      state.phase === "queued" || state.phase === "processing" ? "Procesando video..." : "Cargando...";
     return (
       <div className="aspect-video bg-black flex items-center justify-center">
         <p className="text-white/50">{statusLabel}</p>
@@ -244,9 +230,7 @@ function LessonVideo({
   return (
     <VideoPlayer
       ref={playerRef}
-      src={playlistUrl}
-      token={token ?? undefined}
-      captions={captionTracks}
+      {...state.playerProps}
       defaultCaption="es-CO"
       initialTime={initialTime}
       aspectRatio="16/9"
@@ -311,7 +295,7 @@ function LessonSidebar({
     title: { es: string; en: string };
     order: number;
     isFree: boolean;
-    videoId: string;
+    video?: DevulturMedia;
   }>;
   currentLessonId: string;
   courseSlug: string;
@@ -350,13 +334,14 @@ function SidebarLesson({
     title: { es: string; en: string };
     order: number;
     isFree: boolean;
-    videoId: string;
+    video?: DevulturMedia;
   };
   isCurrent: boolean;
   courseSlug: string;
   locale: "es" | "en";
 }) {
-  const mediaStatus = useDevulturMedia(lesson.videoId !== "pending-upload" ? lesson.videoId : null);
+  const state = useVideoState(lesson.video);
+  const duration = state.phase === "ready" ? state.duration : null;
 
   const content = (
     <div
@@ -369,9 +354,7 @@ function SidebarLesson({
       </span>
       <div className="flex-1 min-w-0">
         <p className={`truncate ${isCurrent ? "font-medium" : ""}`}>{lesson.title[locale]}</p>
-        {mediaStatus.duration ? (
-          <p className="text-xs text-muted-foreground">{formatTime(mediaStatus.duration)}</p>
-        ) : null}
+        {duration ? <p className="text-xs text-muted-foreground">{formatTime(duration)}</p> : null}
       </div>
       {lesson.isFree && (
         <Badge variant="outline" className="text-[10px] shrink-0">

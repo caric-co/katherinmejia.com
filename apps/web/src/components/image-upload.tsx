@@ -1,19 +1,22 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 
-import { useMediaUrl } from "@devultur/convex/react";
-import { UploadZone } from "@devultur/react";
+import { Image, useDevultur } from "@devultur/convex/react";
+import type { DevulturMedia, Visibility } from "@devultur/core";
 import { Download, ImagePlus, Loader2, Trash2 } from "lucide-react";
 
 import { Button } from "@repo/ui/components/button";
 
-import { media, mediaKeyFromUrl } from "#/lib/media";
 import { uploadErrorMessage } from "#/lib/upload-error";
 
 interface ImageUploadProps {
-  value: string | null;
-  onChange: (url: string | null) => void;
-  onUploadUrl: (file: File) => Promise<{ url: string; key: string }>;
-  onDelete?: (url: string) => void;
+  value: DevulturMedia | null;
+  onChange: (media: DevulturMedia | null) => void;
+  /** Called with the removed media when the user clears it, for immediate cleanup. */
+  onDelete?: (media: DevulturMedia) => void;
+  /** External URL (e.g. an Unsplash seed) shown when there is no devultur `value`. */
+  externalFallback?: string;
+  /** Visibility for uploads. Images here are public (og-safe, tokenless) by default. */
+  visibility?: Visibility;
   label?: string;
   aspectRatio?: string;
   className?: string;
@@ -22,36 +25,49 @@ interface ImageUploadProps {
 export function ImageUpload({
   value,
   onChange,
-  onUploadUrl,
   onDelete,
+  externalFallback,
+  visibility = "public",
   label,
   aspectRatio = "16/9",
   className,
 }: ImageUploadProps) {
+  const { upload, url } = useDevultur();
   const [error, setError] = useState<string | null>(null);
-  const mediaKey = value ? mediaKeyFromUrl(value) : null;
-  const displayUrl = useMediaUrl(mediaKey) ?? value;
-  const downloadUrl = useMediaUrl(mediaKey, { download: true });
+  const [uploading, setUploading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleUploadUrl = async (file: File) => {
+  const handleFile = async (file: File | undefined) => {
+    if (!file) return;
     setError(null);
-    return onUploadUrl(file);
+    setUploading(true);
+    try {
+      const media = await upload(file, { visibility });
+      onChange(media);
+    } catch (err) {
+      setError(uploadErrorMessage(err as Error));
+    } finally {
+      setUploading(false);
+    }
   };
 
-  const handleComplete = (result: { key: string; file: File }) => {
-    const url = media.getMediaUrl(result.key);
-    onChange(url);
-  };
+  const downloadHref = value ? url(value, { download: true }) : null;
 
-  if (value) {
+  if (value || externalFallback) {
     return (
       <div className={className}>
         <div className="relative group rounded-sm overflow-hidden border border-border" style={{ aspectRatio }}>
-          <img src={displayUrl ?? undefined} alt={label ?? "Uploaded image"} className="w-full h-full object-cover" />
+          <Image
+            media={value}
+            externalFallback={externalFallback}
+            alt={label ?? "Imagen"}
+            className="w-full h-full object-cover"
+          />
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center gap-1">
-            {downloadUrl && (
+            {downloadHref && (
               <Button
-                render={<a href={downloadUrl} download />}
+                render={<a href={downloadHref} download />}
                 variant="ghost"
                 size="icon-sm"
                 className="opacity-0 group-hover:opacity-100 transition-opacity text-white hover:text-white hover:bg-white/20"
@@ -80,38 +96,46 @@ export function ImageUpload({
 
   return (
     <div className={className}>
-      <UploadZone
-        onUploadUrl={handleUploadUrl}
-        onComplete={handleComplete}
-        onError={(err) => setError(uploadErrorMessage(err))}
-        accept={["image/jpeg", "image/png", "image/webp"]}
+      <button
+        type="button"
+        onClick={() => inputRef.current?.click()}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setIsDragging(true);
+        }}
+        onDragLeave={() => setIsDragging(false)}
+        onDrop={(e) => {
+          e.preventDefault();
+          setIsDragging(false);
+          handleFile(e.dataTransfer.files?.[0]);
+        }}
+        className={`flex w-full flex-col items-center justify-center border border-dashed rounded-sm cursor-pointer transition-colors ${
+          isDragging
+            ? "border-foreground/50 bg-foreground/5"
+            : "border-input/60 bg-muted/30 hover:border-input text-muted-foreground"
+        }`}
+        style={{ aspectRatio }}
       >
-        {({ getRootProps, getInputProps, isDragging, isUploading, progress }) => (
-          <div
-            {...getRootProps()}
-            className={`flex flex-col items-center justify-center border border-dashed rounded-sm cursor-pointer transition-colors ${
-              isDragging
-                ? "border-foreground/50 bg-foreground/5"
-                : "border-input/60 bg-muted/30 hover:border-input text-muted-foreground"
-            }`}
-            style={{ aspectRatio }}
-          >
-            <input {...getInputProps()} />
-            {isUploading ? (
-              <>
-                <Loader2 className="size-6 animate-spin" />
-                <span className="text-xs mt-2">{Math.round(progress)}%</span>
-              </>
-            ) : (
-              <>
-                <ImagePlus className="size-6" />
-                <span className="text-xs mt-2">{isDragging ? "Soltar imagen" : "Subir imagen"}</span>
-                <span className="text-xs text-muted-foreground/60">JPG, PNG o WebP · Max 10MB</span>
-              </>
-            )}
-          </div>
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          className="hidden"
+          onChange={(e) => handleFile(e.target.files?.[0])}
+        />
+        {uploading ? (
+          <>
+            <Loader2 className="size-6 animate-spin" />
+            <span className="text-xs mt-2">Subiendo…</span>
+          </>
+        ) : (
+          <>
+            <ImagePlus className="size-6" />
+            <span className="text-xs mt-2">{isDragging ? "Soltar imagen" : "Subir imagen"}</span>
+            <span className="text-xs text-muted-foreground/60">JPG, PNG o WebP · Max 10MB</span>
+          </>
         )}
-      </UploadZone>
+      </button>
       {error && <p className="text-sm text-red-500 mt-1">{error}</p>}
     </div>
   );

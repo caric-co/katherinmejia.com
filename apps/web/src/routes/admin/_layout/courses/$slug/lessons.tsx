@@ -1,8 +1,8 @@
 import { useState } from "react";
 
 import { convexQuery } from "@convex-dev/react-query";
-import { useDevultur, useDevulturMedia } from "@devultur/convex/react";
-import { MediaStatus } from "@devultur/core";
+import { useDevultur, useVideoState, type VideoState } from "@devultur/convex/react";
+import type { DevulturMedia } from "@devultur/core";
 import { formatTime } from "@devultur/react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
@@ -160,13 +160,7 @@ function LessonsPage() {
                   onDelete={async () => {
                     if (!confirm("¿Eliminar esta lección? Esta acción no se puede deshacer.")) return;
                     await removeLesson({ lessonId: lesson._id });
-                    if (
-                      lesson.videoId &&
-                      !lesson.videoId.startsWith("placeholder") &&
-                      lesson.videoId !== "pending-upload"
-                    ) {
-                      deleteMedia(lesson.videoId);
-                    }
+                    if (lesson.video) deleteMedia(lesson.video);
                   }}
                   onMoveUp={() => handleMoveUp(index)}
                   onMoveDown={() => handleMoveDown(index)}
@@ -185,7 +179,7 @@ interface LessonRowProps {
     _id: Id<"lessons">;
     title: { es: string; en: string };
     description?: { es: string; en: string };
-    videoId: string;
+    video?: DevulturMedia;
     order: number;
     isFree: boolean;
   };
@@ -198,7 +192,7 @@ interface LessonRowProps {
 }
 
 function LessonRow({ lesson, index, totalLessons, onEdit, onDelete, onMoveUp, onMoveDown }: LessonRowProps) {
-  const mediaStatus = useDevulturMedia(lesson.videoId !== "pending-upload" ? lesson.videoId : null);
+  const state = useVideoState(lesson.video);
 
   return (
     <TableRow>
@@ -211,14 +205,22 @@ function LessonRow({ lesson, index, totalLessons, onEdit, onDelete, onMoveUp, on
             </Badge>
           )}
           <span className="font-medium">{lesson.title.es}</span>
-          <MediaStatusBadge status={mediaStatus.status} videoId={lesson.videoId} />
+          {lesson.video ? (
+            <MediaStatusBadge phase={state.phase} />
+          ) : (
+            <Badge variant="outline" className="text-xs">
+              Sin video
+            </Badge>
+          )}
         </div>
         <div className="text-sm text-muted-foreground">{lesson.title.en}</div>
         {lesson.description?.es && (
           <div className="text-sm text-muted-foreground/70 mt-1 line-clamp-1">{lesson.description.es}</div>
         )}
       </TableCell>
-      <TableCell className="text-center font-mono">{formatTime(mediaStatus.duration ?? 0)}</TableCell>
+      <TableCell className="text-center font-mono">
+        {formatTime(state.phase === "ready" ? state.duration : 0)}
+      </TableCell>
       <TableCell className="text-center">{lesson.isFree && <Badge variant="outline">Gratis</Badge>}</TableCell>
       <TableCell className="text-center">
         <div className="flex items-center justify-center gap-1">
@@ -265,14 +267,8 @@ function LessonRow({ lesson, index, totalLessons, onEdit, onDelete, onMoveUp, on
   );
 }
 
-function MediaStatusBadge({ status, videoId }: { status: string; videoId: string }) {
-  if (videoId === "pending-upload")
-    return (
-      <Badge variant="outline" className="text-xs">
-        Sin video
-      </Badge>
-    );
-  if (status === MediaStatus.QUEUED) {
+function MediaStatusBadge({ phase }: { phase: VideoState["phase"] }) {
+  if (phase === "queued") {
     return (
       <Badge variant="outline" className="text-xs text-amber-600 border-amber-300">
         <Loader2 className="size-3 animate-spin mr-1" />
@@ -280,21 +276,21 @@ function MediaStatusBadge({ status, videoId }: { status: string; videoId: string
       </Badge>
     );
   }
-  if (status === MediaStatus.TRANSCODING || status === MediaStatus.CAPTIONING) {
+  if (phase === "processing") {
     return (
       <Badge variant="outline" className="text-xs text-amber-600 border-amber-300">
         <Loader2 className="size-3 animate-spin mr-1" />
-        {status === MediaStatus.TRANSCODING ? "Transcoding" : "Subtítulos"}
+        Procesando
       </Badge>
     );
   }
-  if (status === MediaStatus.FAILED)
+  if (phase === "failed")
     return (
       <Badge variant="outline" className="text-xs text-red-600 border-red-300">
         Error
       </Badge>
     );
-  if (status === MediaStatus.READY) {
+  if (phase === "ready") {
     return (
       <Badge variant="outline" className="text-xs text-green-600 border-green-300">
         <CheckCircle2 className="size-3 mr-1" />

@@ -1,5 +1,7 @@
 import { useEffect, useRef } from "react";
 
+import { useDevultur } from "@devultur/convex/react";
+import type { DevulturMedia } from "@devultur/core";
 import { useAction } from "convex/react";
 import { ArrowLeft, Eye, Loader2, Save, Sparkles } from "lucide-react";
 
@@ -11,6 +13,7 @@ import { slugify } from "@repo/utils";
 
 import { BlogEditor, type BlogEditorRef, setEditorUploadConfig } from "#/components/editor/blog-editor";
 import { ImageUpload } from "#/components/image-upload";
+import { publicImageUrl } from "#/lib/media";
 import { useBlogEditorStore } from "#/stores/blog-editor-store";
 
 interface BlogPayload {
@@ -18,7 +21,7 @@ interface BlogPayload {
   slug: { es: string; en: string };
   excerpt: { es: string; en: string };
   content: { es: string; en: string };
-  coverImageUrl?: string;
+  cover?: DevulturMedia;
 }
 
 interface BlogPostEditorProps {
@@ -29,16 +32,13 @@ interface BlogPostEditorProps {
     excerptEn: string;
     contentHtml: string;
     contentEn: string;
-    coverImageUrl?: string | null;
+    cover?: DevulturMedia | null;
   };
   onSave: (data: BlogPayload) => Promise<void>;
   onPublish?: (data: BlogPayload) => Promise<void>;
   onCancel: () => void;
   onUnpublish?: () => void;
   isPublished?: boolean;
-  createUploadUrl: (file: File) => Promise<{ url: string; key: string }>;
-  deleteMedia: (mediaUrl: string) => void;
-  viewerToken: string | null;
 }
 
 export function BlogPostEditor({
@@ -48,20 +48,17 @@ export function BlogPostEditor({
   onCancel,
   onUnpublish,
   isPublished,
-  createUploadUrl,
-  deleteMedia,
-  viewerToken,
 }: BlogPostEditorProps) {
   const store = useBlogEditorStore();
+  const { upload, deleteMedia } = useDevultur();
   const translateAction = useAction(api.ai.translateToEnglish);
   const generateExcerptAction = useAction(api.ai.generateExcerpt);
   const capitalizeTitleAction = useAction(api.ai.capitalizeTitle);
 
   useEffect(() => {
-    if (viewerToken) {
-      setEditorUploadConfig(async (file) => createUploadUrl(file), viewerToken);
-    }
-  }, [createUploadUrl, viewerToken]);
+    // Inline editor images are public: tokenless, cacheable, permanent (no 2h expiry in the HTML).
+    setEditorUploadConfig(async (file) => publicImageUrl(await upload(file, { visibility: "public" })));
+  }, [upload]);
   const editorRef = useRef<BlogEditorRef>(null);
   const initializedRef = useRef(false);
 
@@ -87,7 +84,7 @@ export function BlogPostEditor({
       es: store.contentHtml || store.contentEs,
       en: store.contentEn || store.contentHtml || store.contentEs,
     },
-    ...(store.coverImageUrl ? { coverImageUrl: store.coverImageUrl } : {}),
+    ...(store.cover ? { cover: store.cover } : {}),
   });
 
   const handleTitleBlur = async () => {
@@ -287,9 +284,8 @@ export function BlogPostEditor({
       {store.error && <p className="text-destructive mb-4">{store.error}</p>}
 
       <ImageUpload
-        value={store.coverImageUrl}
-        onChange={store.setCoverImageUrl}
-        onUploadUrl={createUploadUrl}
+        value={store.cover}
+        onChange={store.setCover}
         onDelete={deleteMedia}
         label="Imagen de portada"
         aspectRatio="21/9"

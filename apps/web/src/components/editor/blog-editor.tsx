@@ -51,12 +51,11 @@ import {
 // Module-level upload config — TipTap slash commands run outside React's tree,
 // so we can't use hooks or context. The parent component sets this before mounting.
 // TODO: Replace with @devultur/tiptap extension when available.
-let _uploadHandler: ((file: File) => Promise<{ url: string; key: string }>) | null = null;
-let _viewerToken: string | null = null;
+// `uploadImage` uploads the file (public) and resolves the delivery URL to embed.
+let _uploadImage: ((file: File) => Promise<string>) | null = null;
 
-export function setEditorUploadConfig(handler: (file: File) => Promise<{ url: string; key: string }>, token: string) {
-  _uploadHandler = handler;
-  _viewerToken = token;
+export function setEditorUploadConfig(uploadImage: (file: File) => Promise<string>) {
+  _uploadImage = uploadImage;
 }
 
 const slashItems = createSuggestionItems([
@@ -139,19 +138,16 @@ const slashItems = createSuggestionItems([
     icon: <Image className="size-4" />,
     command: ({ editor, range }) => {
       editor.chain().focus().deleteRange(range).run();
-      if (!_uploadHandler) return;
+      if (!_uploadImage) return;
       const input = document.createElement("input");
       input.type = "file";
       input.accept = "image/jpeg,image/png,image/webp";
       input.onchange = async () => {
         const file = input.files?.[0];
-        if (!file || !_uploadHandler) return;
+        if (!file || !_uploadImage) return;
         try {
-          const { url, key } = await _uploadHandler(file);
-          await fetch(url, { method: "PUT", body: file, headers: { "Content-Type": file.type } });
-          const { media } = await import("#/lib/media");
-          const authedUrl = media.getMediaUrl(key, { token: _viewerToken ?? undefined });
-          editor.chain().focus().setImage({ src: authedUrl }).run();
+          const src = await _uploadImage(file);
+          editor.chain().focus().setImage({ src }).run();
         } catch {}
       };
       input.click();

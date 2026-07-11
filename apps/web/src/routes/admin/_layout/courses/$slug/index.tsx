@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import { convexQuery } from "@convex-dev/react-query";
 import { useDevultur } from "@devultur/convex/react";
+import type { DevulturMedia } from "@devultur/core";
 import { useForm } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
@@ -56,7 +57,7 @@ function EditCoursePage() {
   const updateCourse = useMutation(api.courses.update);
   const updateStatus = useMutation(api.courses.updateStatus);
   const translateAction = useAction(api.ai.translateText);
-  const { uploadUrl, deleteMedia } = useDevultur();
+  const { deleteMedia } = useDevultur();
   const submitControls = useSubmitPulse(SUBMIT_ID);
 
   const [serverError, setServerError] = useState("");
@@ -78,10 +79,9 @@ function EditCoursePage() {
       titleEn={titleEn || course.title.en}
       descEn={descEn || course.description.en}
       serverError={serverError}
-      uploadUrl={uploadUrl}
       deleteMedia={deleteMedia}
       submitControls={submitControls}
-      onSubmit={async (value, thumbnailUrl) => {
+      onSubmit={async (value, thumbnail) => {
         setServerError("");
         try {
           const [titleResult, descResult] = await Promise.all([
@@ -99,7 +99,7 @@ function EditCoursePage() {
             description: { es: value.description, en: finalDescEn },
             slug: { es: slugify(value.title), en: slugify(finalTitleEn) },
             price: parseCOPInput(value.price),
-            thumbnailUrl: thumbnailUrl ?? undefined,
+            thumbnail: thumbnail ?? undefined,
           });
           navigate({ to: "/admin/courses" });
         } catch (err: any) {
@@ -121,7 +121,6 @@ function EditCourseFormInner({
   titleEn,
   descEn,
   serverError,
-  uploadUrl,
   deleteMedia,
   submitControls,
   onSubmit,
@@ -136,17 +135,16 @@ function EditCourseFormInner({
   titleEn: string;
   descEn: string;
   serverError: string;
-  uploadUrl: (file: File) => Promise<{ url: string; key: string }>;
-  deleteMedia: (mediaUrl: string) => void;
+  deleteMedia: (media: DevulturMedia) => void;
   submitControls: any;
   onSubmit: (
     value: { title: string; description: string; price: string },
-    thumbnailUrl: string | null,
+    thumbnail: DevulturMedia | null,
   ) => Promise<void>;
   onStatusChange: (status: "draft" | "published") => void;
   onCancel: () => void;
 }) {
-  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(course.thumbnailUrl ?? null);
+  const [thumbnail, setThumbnail] = useState<DevulturMedia | null>(course.thumbnail ?? null);
 
   const previewLessons = (lessons ?? []).map((l) => ({
     title: previewLang === "es" ? l.title.es : l.title.en,
@@ -162,7 +160,7 @@ function EditCourseFormInner({
       price: formatCOPInput(course.price.toString()),
     },
     validators: { onChange: courseSchema },
-    onSubmit: async ({ value }) => onSubmit(value, thumbnailUrl),
+    onSubmit: async ({ value }) => onSubmit(value, thumbnail),
   });
 
   return (
@@ -220,9 +218,8 @@ function EditCourseFormInner({
           <div>
             <Label className="text-xs uppercase tracking-wider font-medium mb-2 block">Thumbnail</Label>
             <ImageUpload
-              value={thumbnailUrl}
-              onChange={setThumbnailUrl}
-              onUploadUrl={uploadUrl}
+              value={thumbnail}
+              onChange={setThumbnail}
               onDelete={deleteMedia}
               label="Thumbnail del curso"
               aspectRatio="4/3"
@@ -321,7 +318,7 @@ function EditCourseFormInner({
                   title={previewTitle}
                   description={previewDesc}
                   price={price}
-                  thumbnailUrl={thumbnailUrl ?? undefined}
+                  thumbnail={thumbnail}
                   lang={previewLang}
                 />
                 <Separator />

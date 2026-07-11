@@ -40,7 +40,6 @@ export const seedTestData = internalMutation({
         en: "Learn to create a fresh, natural look perfect for everyday with accessible products.",
       },
       slug: { es: "maquillaje-natural-de-dia", en: "natural-day-makeup" },
-      thumbnailUrl: "https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?w=800&q=80",
       price: 149900,
       currency: "COP",
       status: "published",
@@ -55,7 +54,6 @@ export const seedTestData = internalMutation({
         en: "Master contouring techniques to sculpt and define your face like the pros.",
       },
       slug: { es: "contorno-y-correccion", en: "contour-and-correction" },
-      thumbnailUrl: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800&q=80",
       price: 199900,
       currency: "COP",
       status: "published",
@@ -70,7 +68,6 @@ export const seedTestData = internalMutation({
         en: "High-impact looks for weddings, galas, quinceañeras and graduations.",
       },
       slug: { es: "maquillaje-para-eventos", en: "special-events-makeup" },
-      thumbnailUrl: "https://images.unsplash.com/photo-1512496015851-a90fb38ba796?w=800&q=80",
       price: 249900,
       currency: "COP",
       status: "draft",
@@ -85,7 +82,6 @@ export const seedTestData = internalMutation({
         es: "Limpieza, hidratación y primer para una base perfecta.",
         en: "Cleansing, moisturizing and primer for a perfect base.",
       },
-      videoId: "placeholder-1",
       order: 1,
       isFree: true,
     });
@@ -97,7 +93,6 @@ export const seedTestData = internalMutation({
         es: "Técnicas de aplicación para un acabado natural e impecable.",
         en: "Application techniques for a natural, flawless finish.",
       },
-      videoId: "placeholder-2",
       order: 2,
       isFree: false,
     });
@@ -109,7 +104,6 @@ export const seedTestData = internalMutation({
         es: "Sombras suaves, delineado sutil y labios nude.",
         en: "Soft shadows, subtle liner and nude lips.",
       },
-      videoId: "placeholder-3",
       order: 3,
       isFree: false,
     });
@@ -121,7 +115,6 @@ export const seedTestData = internalMutation({
         es: "Entender las formas del rostro y cómo trabajar con ellas.",
         en: "Understanding face shapes and how to work with them.",
       },
-      videoId: "placeholder-4",
       order: 1,
       isFree: true,
     });

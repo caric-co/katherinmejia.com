@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { convexQuery } from "@convex-dev/react-query";
 import { useDevultur } from "@devultur/convex/react";
+import type { DevulturMedia } from "@devultur/core";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useAction, useMutation } from "convex/react";
@@ -15,7 +16,7 @@ import { Input } from "@repo/ui/components/input";
 
 import { ImageUpload } from "#/components/image-upload";
 import { LandingPreview } from "#/components/landing/landing-preview";
-import { mediaKeyFromUrl } from "#/lib/media";
+import { mediaFromPublicUrl, publicImageUrl } from "#/lib/media";
 
 export const Route = createFileRoute("/admin/_layout/content")({
   component: ContentPage,
@@ -193,15 +194,13 @@ function ImageContentField({
   aspect,
   hasDraft,
   displayUrl,
-  onUploadUrl,
-  onChangeUrl,
+  onChange,
 }: {
   label: string;
   aspect: string;
   hasDraft: boolean;
   displayUrl: string;
-  onUploadUrl: (file: File) => Promise<{ url: string; key: string }>;
-  onChangeUrl: (url: string | null) => void;
+  onChange: (media: DevulturMedia | null) => void;
 }) {
   return (
     <div className={`p-3 rounded-sm ${hasDraft ? "bg-muted/30 ring-1 ring-foreground/5" : ""}`}>
@@ -209,7 +208,12 @@ function ImageContentField({
         <p className="text-xs text-muted-foreground">{label}</p>
         {hasDraft && <span className="size-1.5 rounded-full bg-foreground/40" />}
       </div>
-      <ImageUpload value={displayUrl || null} onChange={onChangeUrl} onUploadUrl={onUploadUrl} aspectRatio={aspect} />
+      <ImageUpload
+        value={mediaFromPublicUrl(displayUrl)}
+        externalFallback={displayUrl || undefined}
+        onChange={onChange}
+        aspectRatio={aspect}
+      />
     </div>
   );
 }
@@ -221,7 +225,7 @@ function ContentPage() {
   const publishAll = useMutation(api.siteContent.publishAll);
   const discardDrafts = useMutation(api.siteContent.discardDrafts);
   const translateAction = useAction(api.ai.translateText);
-  const { uploadUrl, deleteMedia } = useDevultur();
+  const { deleteMedia } = useDevultur();
 
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
@@ -291,21 +295,23 @@ function ContentPage() {
     setEditingKey(null);
   };
 
-  // Deletes the devultur object behind a URL, if it is one we own.
+  // Deletes the devultur object behind a public URL, if it is one we own.
+  // External URLs (e.g. Unsplash seeds) reconstruct to null and are left alone.
   const deleteMediaUrl = useCallback(
     (url: string | undefined) => {
-      if (!url) return;
-      const key = mediaKeyFromUrl(url);
-      if (key) deleteMedia(key);
+      const media = mediaFromPublicUrl(url);
+      if (media) deleteMedia(media);
     },
     [deleteMedia],
   );
 
-  // Saves a new image URL (or clears it) as a draft, without touching the
-  // published object — that only changes on publish/discard so edits stay
-  // reversible. A prior *unpublished* draft upload is orphaned now, so drop it.
+  // Saves a new image (or clears it) as a draft, without touching the published
+  // object — that only changes on publish/discard so edits stay reversible. We
+  // persist the public URL string (siteContent's value is bilingual text). A prior
+  // *unpublished* draft upload is orphaned now, so drop it.
   const saveImageDraft = useCallback(
-    (key: string, url: string | null) => {
+    (key: string, media: DevulturMedia | null) => {
+      const url = media ? publicImageUrl(media) : null;
       const current = contentMap.get(key);
       const publishedUrl = current?.value.es ?? "";
       const prevDraftUrl = current?.draftValue?.es;
@@ -397,8 +403,7 @@ function ContentPage() {
                         aspect={aspect ?? "16/9"}
                         hasDraft={hasDraft}
                         displayUrl={displayValue ?? ""}
-                        onUploadUrl={uploadUrl}
-                        onChangeUrl={(url) => saveImageDraft(key, url)}
+                        onChange={(media) => saveImageDraft(key, media)}
                       />
                     );
                   }

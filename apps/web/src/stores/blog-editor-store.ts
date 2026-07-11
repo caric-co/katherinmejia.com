@@ -1,3 +1,4 @@
+import type { DevulturMedia } from "@devultur/core";
 import { create } from "zustand";
 
 interface BlogEditorState {
@@ -8,7 +9,7 @@ interface BlogEditorState {
   titleEn: string;
   excerptEn: string;
   contentEn: string;
-  coverImageUrl: string | null;
+  cover: DevulturMedia | null;
 
   view: "editor" | "preview";
   previewLang: "es" | "en";
@@ -26,7 +27,7 @@ interface BlogEditorState {
   setTitleEn: (v: string) => void;
   setExcerptEn: (v: string) => void;
   setContentEn: (v: string) => void;
-  setCoverImageUrl: (v: string | null) => void;
+  setCover: (v: DevulturMedia | null) => void;
 
   setView: (v: "editor" | "preview") => void;
   setPreviewLang: (v: "es" | "en") => void;
@@ -44,7 +45,7 @@ interface BlogEditorState {
     excerptEn: string;
     contentHtml: string;
     contentEn: string;
-    coverImageUrl?: string | null;
+    cover?: DevulturMedia | null;
   }) => void;
   reset: () => void;
 }
@@ -57,7 +58,7 @@ const initialState = {
   titleEn: "",
   excerptEn: "",
   contentEn: "",
-  coverImageUrl: null as string | null,
+  cover: null as DevulturMedia | null,
 
   view: "editor" as const,
   previewLang: "es" as const,
@@ -79,7 +80,7 @@ export const useBlogEditorStore = create<BlogEditorState>((set) => ({
   setTitleEn: (v) => set({ titleEn: v }),
   setExcerptEn: (v) => set({ excerptEn: v }),
   setContentEn: (v) => set({ contentEn: v }),
-  setCoverImageUrl: (v) => set({ coverImageUrl: v }),
+  setCover: (v) => set({ cover: v }),
 
   setView: (v) => set({ view: v }),
   setPreviewLang: (v) => set({ previewLang: v }),
