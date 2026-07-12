@@ -31,8 +31,8 @@ importers:
         specifier: latest
         version: 0.12.5(@standard-schema/spec@1.1.0)(better-auth@1.6.23(@tanstack/react-start@1.168.27(crossws@0.4.6(srvx@0.11.21))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(vite@8.1.3(@types/node@22.19.21)(esbuild@0.27.0)(jiti@2.7.0)(yaml@2.9.0)))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(solid-js@1.9.13))(convex@1.42.1(react@19.2.7))(hono@4.12.26)(react@19.2.7)(typescript@6.0.3)
       '@devultur/convex':
-        specifier: ^0.6.7
-        version: 0.6.7(convex@1.42.1(react@19.2.7))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+        specifier: ^0.6.9
+        version: 0.6.9(convex@1.42.1(react@19.2.7))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       better-auth:
         specifier: ~1.6.15
         version: 1.6.23(@tanstack/react-start@1.168.27(crossws@0.4.6(srvx@0.11.21))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(vite@8.1.3(@types/node@22.19.21)(esbuild@0.27.0)(jiti@2.7.0)(yaml@2.9.0)))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(solid-js@1.9.13)
@@ -116,14 +116,14 @@ importers:
         specifier: ^0.1.0
         version: 0.1.0(@tanstack/react-query@5.101.2(react@19.2.7))(convex@1.42.1(react@19.2.7))
       '@devultur/convex':
-        specifier: ^0.6.7
-        version: 0.6.7(convex@1.42.1(react@19.2.7))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+        specifier: ^0.6.9
+        version: 0.6.9(convex@1.42.1(react@19.2.7))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       '@devultur/core':
-        specifier: ^0.6.7
-        version: 0.6.7
+        specifier: ^0.6.9
+        version: 0.6.9
       '@devultur/react':
-        specifier: ^0.6.7
-        version: 0.6.7(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+        specifier: ^0.6.9
+        version: 0.6.9(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       '@repo/backend':
         specifier: workspace:*
         version: link:../backend
@@ -745,8 +745,8 @@ packages:
   '@daybrush/utils@1.13.0':
     resolution: {integrity: sha512-ALK12C6SQNNHw1enXK+UO8bdyQ+jaWNQ1Af7Z3FNxeAwjYhQT7do+TRE4RASAJ3ObaS2+TJ7TXR3oz2Gzbw0PQ==}
 
-  '@devultur/convex@0.6.7':
-    resolution: {integrity: sha512-grNSgQJ7UmPz+lpsgYja7oRIVDz5y9NdCq/TjzQKTTnrw1eASB4ETTcAzl07Q86hqiO07y9/8BIS8ZXI/b94ZA==}
+  '@devultur/convex@0.6.9':
+    resolution: {integrity: sha512-x0MrWRlLU321Sf5fEXfdb1wWUiLAB4BYwzFYeObPGmB/PZDiWmsAhKpmvCd8Xz/8BoWudsy/EGyj+Qwes4elxg==}
     hasBin: true
     peerDependencies:
       convex: '>=1.25.0'
@@ -755,11 +755,11 @@ packages:
       react:
         optional: true
 
-  '@devultur/core@0.6.7':
-    resolution: {integrity: sha512-q/84cpyKbcBUc2Wq8d9olLq6rbDS42xf+9Zv49I1QSLOvEKyuoUYeT/V3EwM8ETiHcM9ys1Wnli5+YwRtcD0Bg==}
+  '@devultur/core@0.6.9':
+    resolution: {integrity: sha512-ZplXp/xO/rBtrh8lX64d6IQt+Y9OtmcHrX83xw9J4hgMaJLW4zinJSJsqluovvVySQOqorTPzo3Yt1v1PO7ftA==}
 
-  '@devultur/react@0.6.7':
-    resolution: {integrity: sha512-6VamGZc2lpimA/5u8H4jU3EY3JM15gqDKINKvSd4qIID8uFztcoLMhZLmm/wSJK5iOYswtlNL27c41Evetr7Yw==}
+  '@devultur/react@0.6.9':
+    resolution: {integrity: sha512-Jji7lhWts5AaDOU3wVG8RcLLLaMzRcmrYodDpeqVuljguB0JP1d/ICLQ6WftJ3HROn796vmGMVdRIvz54PEAPA==}
     peerDependencies:
       react: ^19.2.0
 
@@ -5748,24 +5748,24 @@ snapshots:
 
   '@daybrush/utils@1.13.0': {}
 
-  '@devultur/convex@0.6.7(convex@1.42.1(react@19.2.7))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
+  '@devultur/convex@0.6.9(convex@1.42.1(react@19.2.7))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
     dependencies:
-      '@devultur/core': 0.6.7
-      '@devultur/react': 0.6.7(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@devultur/core': 0.6.9
+      '@devultur/react': 0.6.9(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       convex: 1.42.1(react@19.2.7)
     optionalDependencies:
       react: 19.2.7
     transitivePeerDependencies:
       - react-dom
 
-  '@devultur/core@0.6.7':
+  '@devultur/core@0.6.9':
     dependencies:
       '@aws-sdk/client-s3': 3.1075.0
       '@aws-sdk/s3-request-presigner': 3.1075.0
 
-  '@devultur/react@0.6.7(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
+  '@devultur/react@0.6.9(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
     dependencies:
-      '@devultur/core': 0.6.7
+      '@devultur/core': 0.6.9
       hls.js: 1.6.16
       react: 19.2.7
       react-easy-crop: 5.5.7(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
