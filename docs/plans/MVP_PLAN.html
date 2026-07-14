@@ -148,7 +148,7 @@
 │   ├── src/
 │   │   ├── routes/             ← Rutas por archivo
 │   │   ├── components/         ← Componentes por dominio
-│   │   ├── lib/                ← Auth, env, bunny, i18n
+│   │   ├── lib/                ← Auth, env, media (devultur), i18n
 │   │   ├── locales/            ← es.json, en.json
 │   │   ├── hooks/              ← use-progress-tracker, etc.
 │   │   ├── styles.css
@@ -238,8 +238,8 @@
         <tr><td>title</td><td><code>{ es, en }</code></td><td>Bilingüe</td></tr>
         <tr><td>description</td><td><code>{ es, en }</code></td><td>Bilingüe</td></tr>
         <tr><td>slug</td><td><code>string</code></td><td>URL-friendly, índice único</td></tr>
-        <tr><td>thumbnailUrl</td><td><code>string?</code></td><td>Convex file storage</td></tr>
-        <tr><td>previewVideoId</td><td><code>string?</code></td><td>Bunny Stream ID</td></tr>
+        <tr><td>thumbnail</td><td><code>dv.media("image")?</code></td><td>Ref devultur (pública)</td></tr>
+        <tr><td>previewVideo</td><td><code>dv.media("video")?</code></td><td>Ref devultur</td></tr>
         <tr><td>price</td><td><code>number</code></td><td>En COP</td></tr>
         <tr><td>status</td><td><code>"draft" | "published" | "archived"</code></td><td></td></tr>
         <tr><td>order</td><td><code>number</code></td><td>Orden de visualización</td></tr>
@@ -253,7 +253,7 @@
         <tr><td>courseId</td><td><code>Id&lt;"courses"&gt;</code></td><td>Relación</td></tr>
         <tr><td>title</td><td><code>{ es, en }</code></td><td>Bilingüe</td></tr>
         <tr><td>description</td><td><code>{ es, en }</code></td><td>Bilingüe</td></tr>
-        <tr><td>videoId</td><td><code>string</code></td><td>Bunny Stream video ID</td></tr>
+        <tr><td>video</td><td><code>dv.media("video")?</code></td><td>Ref devultur (privada)</td></tr>
         <tr><td>duration</td><td><code>number</code></td><td>Segundos</td></tr>
         <tr><td>order</td><td><code>number</code></td><td>Dentro del curso</td></tr>
         <tr><td>isFree</td><td><code>boolean</code></td><td>Vista previa gratuita</td></tr>
@@ -321,7 +321,7 @@
       <tbody>
         <tr><td>key</td><td><code>string</code></td><td>Ej: "hero.title", "about.bio"</td></tr>
         <tr><td>value</td><td><code>{ es, en }</code></td><td>Bilingüe</td></tr>
-        <tr><td>type</td><td><code>"text" | "richtext" | "image"</code></td><td></td></tr>
+        <tr><td>type</td><td><code>"text" | "richtext" | "image"</code></td><td>Para "image", <code>value</code> guarda la publicUrl de devultur (string)</td></tr>
       </tbody>
     </table>
 
@@ -333,7 +333,7 @@
         <tr><td>slug</td><td><code>string</code></td><td>URL-friendly</td></tr>
         <tr><td>content</td><td><code>{ es, en }</code></td><td>Markdown o richtext</td></tr>
         <tr><td>excerpt</td><td><code>{ es, en }</code></td><td>Resumen para listado</td></tr>
-        <tr><td>coverImageUrl</td><td><code>string?</code></td><td></td></tr>
+        <tr><td>cover</td><td><code>dv.media("image")?</code></td><td>Ref devultur (pública)</td></tr>
         <tr><td>status</td><td><code>"draft" | "published"</code></td><td></td></tr>
       </tbody>
     </table>
@@ -444,7 +444,7 @@ html { font-size: calc(0.625rem + 0.416667vw); }</div>
     </div>
     <div class="decision">
       <span class="decision-icon">🎬</span>
-      <div class="decision-text"><strong>Estudio de costos de video realizado</strong> — Ver <a href="../research/VIDEO_STREAMING_COSTS.html">docs/research/VIDEO_STREAMING_COSTS.html</a> para comparativa detallada de Bunny Stream vs Mux vs Cloudflare vs R2 autoalojado con costos por escala.</div>
+      <div class="decision-text"><strong>Estudio de costos de video realizado</strong> — Ver <a href="../research/VIDEO_STREAMING_COSTS.html">docs/research/VIDEO_STREAMING_COSTS.html</a> para comparativa detallada de Bunny Stream vs Mux vs Cloudflare vs R2 autoalojado con costos por escala. <strong>Resultado:</strong> se construyó y adoptó <strong>devultur</strong> (R2 autoalojado, SaaS de media propio) — integración completa en 0.6.11 (refs tipadas, upload+transcode, session binding).</div>
     </div>
 
     <!-- Phases -->
@@ -563,18 +563,18 @@ html { font-size: calc(0.625rem + 0.416667vw); }</div>
         <span class="phase-chevron">▶</span>
       </div>
       <div class="phase-body">
-        <p>CRUD completo de cursos y lecciones con carga de video a Bunny Stream.</p>
+        <p>CRUD completo de cursos y lecciones con carga de video a devultur.</p>
         <ul>
           <li><strong>Convex functions</strong>: <code>courses.create</code>, <code>.update</code>, <code>.updateStatus</code>, <code>.reorder</code>, <code>.delete</code>; mismo patrón para <code>lessons.*</code></li>
-          <li><strong>Bunny Stream</strong>:
+          <li><strong>devultur (video)</strong>:
             <ul>
-              <li>Acción Convex <code>bunny.createVideoAction(title)</code> → crea video, retorna ID + URL de carga</li>
-              <li>Frontend usa <code>tus-js-client</code> para carga reanudable directo a Bunny</li>
-              <li>Al completar, guarda <code>videoId</code> en la lección</li>
+              <li><code>useMediaUpload</code> (@devultur/convex/react) — una máquina de estado upload → transcode; dispara <code>processVideo</code> solo y borra el video viejo en replace</li>
+              <li>Al completar, guarda la ref <code>DevulturMedia</code> en <code>lessons.video</code></li>
+              <li>Estado del video vía <code>useVideoState</code> (unión discriminada: queued → processing → ready | failed)</li>
             </ul>
           </li>
           <li><strong>Páginas admin</strong>: tabla de cursos con acciones (editar, lecciones, publicar/archivar), formulario de creación/edición con campos bilingües, gestión de lecciones con reordenar (arrastrar), carga de video con indicador de progreso</li>
-          <li><strong>Imágenes</strong>: Convex file storage para miniaturas de cursos</li>
+          <li><strong>Imágenes</strong>: <code>&lt;CropUpload&gt;</code> de devultur (recorte a aspecto fijo → WebP) para miniaturas de cursos y portadas</li>
           <li><strong>Invitaciones</strong>: generar código único, configurar máximo de usos y expiración, copiar enlace</li>
         </ul>
       </div>
@@ -608,7 +608,7 @@ html { font-size: calc(0.625rem + 0.416667vw); }</div>
       <div class="phase-body">
         <p>Reproductor HLS con seguimiento de progreso por segundo, avance automático y reanudación.</p>
         <ul>
-          <li><strong>Reproductor</strong>: <code>hls.js</code> con URL HLS de Bunny Stream. Controles: reproducir/pausar, buscar, volumen, pantalla completa, velocidad</li>
+          <li><strong>Reproductor</strong>: <code>&lt;VideoPlayer&gt;</code> de devultur (hls.js interno, token-transparente con session binding). Controles: reproducir/pausar, buscar, volumen, pantalla completa, velocidad</li>
           <li><strong>Progreso</strong>:
             <ul>
               <li>Evento <code>timeupdate</code> del <code>&lt;video&gt;</code> (~4x/seg)</li>
@@ -686,7 +686,7 @@ html { font-size: calc(0.625rem + 0.416667vw); }</div>
 
     <div class="decision">
       <span class="decision-icon">🎬</span>
-      <div class="decision-text"><strong>hls.js sobre iframe de Bunny</strong> — Necesitamos eventos <code>timeupdate</code> del elemento <code>&lt;video&gt;</code> para seguimiento por segundo. El iframe requeriría <code>postMessage</code>, que es frágil.</div>
+      <div class="decision-text"><strong>devultur <code>&lt;VideoPlayer&gt;</code> (hls.js interno)</strong> — expone <code>onProgress</code> con el <code>timeupdate</code> del <code>&lt;video&gt;</code> para el seguimiento por segundo, sin el <code>postMessage</code> frágil de un iframe. Delivery privado (HLS + captions) con session binding transparente.</div>
     </div>
     <div class="decision">
       <span class="decision-icon">⏱</span>
@@ -706,7 +706,7 @@ html { font-size: calc(0.625rem + 0.416667vw); }</div>
     </div>
     <div class="decision">
       <span class="decision-icon">🖼</span>
-      <div class="decision-text"><strong>Convex para imágenes, Bunny para video</strong> — Convex file storage para miniaturas y portadas de blog. Bunny Stream exclusivamente para video (HLS + DRM).</div>
+      <div class="decision-text"><strong>devultur para todo el media</strong> — SaaS de media propio (R2 autoalojado). Imágenes públicas (miniaturas, portadas, landing — og-safe, tokenless) y video privado (HLS + session binding). Refs tipadas <code>DevulturMedia</code> vía <code>dv.media()</code> de <code>@devultur/convex/validators</code>, no strings de URL.</div>
     </div>
     <div class="decision">
       <span class="decision-icon">🔒</span>
@@ -722,6 +722,7 @@ html { font-size: calc(0.625rem + 0.416667vw); }</div>
           <li><span>VITE_CONVEX_URL</span></li>
           <li><span>VITE_CONVEX_SITE_URL</span></li>
           <li><span>VITE_SITE_URL</span></li>
+          <li><span>VITE_DEVULTUR_API_URL</span></li>
           <li><span>VITE_POSTHOG_KEY</span></li>
           <li><span>SENTRY_DSN</span></li>
         </ul>
@@ -733,8 +734,8 @@ html { font-size: calc(0.625rem + 0.416667vw); }</div>
           <li><span>AUTH_APPLE_ID / SECRET</span></li>
           <li><span>BETTER_AUTH_SECRET</span></li>
           <li><span>RESEND_API_KEY</span></li>
-          <li><span>BUNNY_API_KEY</span></li>
-          <li><span>BUNNY_LIBRARY_ID</span></li>
+          <li><span>DEVULTUR_API_KEY</span></li>
+          <li><span>DEVULTUR_API_URL</span></li>
           <li><span>SITE_URL</span></li>
         </ul>
       </div>
