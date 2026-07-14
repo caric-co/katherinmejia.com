@@ -404,6 +404,7 @@ export function LessonForm({ courseId, courseSlug, lessonCount, lesson, onDone }
               locale={activeSubLocale}
               currentTime={currentTime}
               token={playerToken}
+              sessionSecret={playerProps?.sessionSecret}
               onSeek={(seconds) => {
                 playerRef.current?.seek(seconds);
                 playerRef.current?.play();
