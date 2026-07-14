@@ -13,6 +13,7 @@ import { Separator } from "@repo/ui/components/separator";
 
 import { Footer } from "#/components/landing/footer";
 import { Navigation } from "#/components/landing/navigation";
+import { authClient } from "#/lib/auth-client";
 import { publicImageUrl } from "#/lib/media";
 
 const fetchCourseMeta = createServerFn({ method: "GET" })
@@ -59,8 +60,13 @@ function CourseDetailPage() {
   const { slug } = Route.useParams();
   const { i18n } = useTranslation();
   const locale = i18n.language as "es" | "en";
+  const { data: session } = authClient.useSession();
+  const userId = session?.user?.email;
   const { data: course } = useQuery(convexQuery(api.courses.getBySlug, { slug }));
   const { data: lessons } = useQuery(convexQuery(api.lessons.listByCourse, course ? { courseId: course._id } : "skip"));
+  const { data: access } = useQuery(
+    convexQuery(api.access.hasAccess, userId && course ? { userId, courseId: course._id } : "skip"),
+  );
 
   if (course === undefined) {
     return (
@@ -88,6 +94,14 @@ function CourseDetailPage() {
   }
 
   const totalHours = 0;
+  const hasAccess = Boolean(access?.hasAccess);
+  const firstLessonSlug = lessons?.find((lesson) => lesson.slug)?.slug ?? null;
+  const accessNote =
+    access?.reason === "subscription"
+      ? "Incluido en tu suscripción"
+      : access?.reason === "purchased"
+        ? "Ya tienes este curso"
+        : null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -169,11 +183,34 @@ function CourseDetailPage() {
             <div className="md:sticky md:top-20 h-fit">
               <div className="bg-muted p-6">
                 <div className="text-center mb-6">
-                  <p className="font-display text-3xl mb-1">${course.price.toLocaleString("es-CO")}</p>
-                  <p className="text-sm text-muted-foreground">COP</p>
+                  {hasAccess ? (
+                    <p className="font-display text-2xl mb-1">Ya tienes acceso</p>
+                  ) : (
+                    <>
+                      <p className="font-display text-3xl mb-1">${course.price.toLocaleString("es-CO")}</p>
+                      <p className="text-sm text-muted-foreground">COP</p>
+                    </>
+                  )}
                 </div>
 
-                <Button className="w-full mb-4">Comprar curso</Button>
+                <div className="mb-4">
+                  {hasAccess ? (
+                    <>
+                      {firstLessonSlug ? (
+                        <Link to="/courses/$slug/lessons/$lessonSlug" params={{ slug, lessonSlug: firstLessonSlug }}>
+                          <Button className="w-full">Continuar viendo</Button>
+                        </Link>
+                      ) : (
+                        <Button className="w-full" disabled>
+                          Contenido próximamente
+                        </Button>
+                      )}
+                      {accessNote && <p className="text-xs text-center text-muted-foreground mt-2">{accessNote}</p>}
+                    </>
+                  ) : (
+                    <Button className="w-full">Comprar curso</Button>
+                  )}
+                </div>
 
                 <Separator className="my-4" />
 
